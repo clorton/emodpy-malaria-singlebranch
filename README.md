@@ -1,2 +1,2 @@
-# emodpy-malaria
-Usability layer written in Python for using EMOD for malaria modeling
+# emodpy-tbhiv
+Python module for use as user-space front-end for doing research easily with EMOD (Malaria_SIM) via idmtools

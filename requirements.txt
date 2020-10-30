@@ -1,0 +1,2 @@
+emod_api~=1.2.2
+emodpy~=1.6.1
