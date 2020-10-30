@@ -4,7 +4,7 @@ import version
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-    ext_name = "emodpy_tbhiv"
+    ext_name = "emodpy_malaria"
 
 with open('requirements.txt') as requirements_file:
     requirements = requirements_file.read().split("\n")
@@ -14,10 +14,10 @@ setuptools.setup(
     version=version.__version__,
     author="Jonathan Bloedow",
     author_email="jbloedow@idmod.org",
-    description="IDM's tbhiv-specific EMOD API support scripts",
+    description="IDM's malaria-specific EMOD API support scripts",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/InstituteforDiseaseModeling/emodpy-tbhiv",
+    url="https://github.com/InstituteforDiseaseModeling/emodpy-malaria",
     packages=setuptools.find_packages(),
     include_package_data=True,
     setup_requires=['wheel'],
