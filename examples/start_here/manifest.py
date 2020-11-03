@@ -11,4 +11,4 @@ assets_input_dir="Assets"
 plugins_dir = "download"
 
 my_ep4_assets=None
-requirements = "./requirements.txt"
+#requirements = "./requirements.txt"

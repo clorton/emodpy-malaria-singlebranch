@@ -16,7 +16,8 @@ from emodpy.emod_task import EMODTask
 import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy.reporters.custom import Report_TBHIV_ByAge
+import emod_api.config.default_from_schema_no_validation as dfs
+#from emodpy.reporters.custom import Report_TBHIV_ByAge
 
 import params
 import set_config
@@ -52,6 +53,56 @@ def print_params():
     print("exp_name: ", params.exp_name)
     print("nSims: ", params.nSims)
 
+def convert_list_to_dict( mdp_list ):
+    mdp_map = {}
+    for mdp in mdp_list:
+        mdp_map[ mdp.name ] = mdp
+    return mdp_map
+
+def set_mdp( config ):
+    """
+    Use 
+    dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
+    to get default malaria drug param dict. Convert to schema-backed version (that's an emod_api responsibility)
+    dfs.load_config_as_rod
+
+    Set params as desired.
+    Do this for each malaria drug.
+    Add to config (through emod_api if necessary, this might end up being an insertion which would normally be forbidden by schema-backed non-insertable dict)
+    """
+    # This initial code is just fumbling my way towards a solution; this code will be deeper down in a util function when done.
+    #mdp_list = list()
+    mdp_default = { "parameters": { "schema": {} } }
+    mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
+
+    mdp.parameters.Bodyweight_Exponent = 45
+    mdp.parameters.Drug_Cmax = 100
+    mdp.parameters.Drug_Decay_T1 = 1
+    mdp.parameters.Drug_Decay_T2 = 1
+    mdp.parameters.Drug_Dose_Interval = 1
+    mdp.parameters.Drug_Fulltreatment_Doses = 1
+    mdp.parameters.Drug_Gametocyte02_Killrate = 1
+    mdp.parameters.Drug_Gametocyte34_Killrate = 1
+    mdp.parameters.Drug_GametocyteM_Killrate = 1
+    mdp.parameters.Drug_Hepatocyte_Killrate = 1
+    mdp.parameters.Drug_PKPD_C50 = 1
+    mdp.parameters.Drug_Vd = 1
+    mdp.parameters.Fractional_Dose_By_Upper_Age = [
+            {
+                "Fraction_Of_Adult_Dose": 0.5,
+                "Upper_Age_In_Years": 5
+                }
+            ]
+    mdp.parameters.Max_Drug_IRBC_Kill = 1
+    #mdp.parameters.Resistance = 1
+    mdp_map = {}
+    mdp_map["Chloroquine"] = mdp.parameters
+    # mdp_list.append( mdp )
+
+    # mdp_map = convert_list_to_dict( mdp_list )
+    config.parameters.Malaria_Drug_Params = mdp_map
+    return config
+
 def set_param_fn(config): 
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
@@ -61,21 +112,20 @@ def set_param_fn(config):
     config.parameters.x_Other_Mortality =  0.34
     config.parameters.x_Birth =  1.43
 
-    config.parameters.TB_MDR_Fitness_Multiplier =  1.0 #no fitness cost worst case
-
     #config.parameters.Simulation_Duration =  params.burn_initial + params.burn_predots + params.To_end_from_DOTS
     config.parameters.Simulation_Duration =  3650
-    config.parameters.TB_Smear_Negative_Infectivity_Multiplier = 0.34604
-    config.parameters.TB_Presymptomatic_Rate = 0.01165
-    config.parameters.TB_Active_Presymptomatic_Infectivity_Multiplier = 0.34604*0.3318
-
+    
     #config.parameters.Base_Population_Scale_Factor =  1000
-    config.parameters.TB_Slow_Progressor_Rate =  0.007/365.0
+    config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Serialization_Times = [ 365 ]
+    config.parameters.Susceptibility_Initialization_Distribution_Type: "DISTRIBUTION_OFF"
     #config.parameters.pop( "Serialized_Population_Filenames" )
 
-    config.parameters.Report_Event_Recorder_Events = ["TBActivationPresymptomatic","Hello","Oh_No_I_Have_HIV","Yay"]
+    #config.parameters.Report_Event_Recorder_Events = ["TBActivationPresymptomatic","Hello","Oh_No_I_Have_HIV","Yay"]
 
+    # TBD: Set MalariaDrugParams
+    config = set_mdp( config )
+    config["parameters"]["Insecticides"] = []
     return config
 
 def build_camp():
@@ -85,11 +135,11 @@ def build_camp():
     """
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
-    import emodpy_tbhiv as tbhiv
-    import emodpy_tbhiv.interventions.art as art
-    import emodpy_tbhiv.interventions.bcg as bcg
-    import emodpy_tbhiv.interventions.active_diagnostic as ad
-    import emodpy_tbhiv.interventions.hiv_diag as hd
+    #import emodpy_tbhiv as tbhiv
+    #import emodpy_tbhiv.interventions.art as art
+    #import emodpy_tbhiv.interventions.bcg as bcg
+    #import emodpy_tbhiv.interventions.active_diagnostic as ad
+    #import emodpy_tbhiv.interventions.hiv_diag as hd
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
@@ -100,10 +150,10 @@ def build_camp():
     seed = ob.seed_by_coverage( 40, camp, 0.5 )
     camp.add( seed, first=True )
 
-    camp.add( art.ART( camp, ["TBActivationPresymptomatic"], start_day=10 ) )
-    camp.add( bcg.BCG( camp, ["TBActivationPresymptomatic"], start_day=10 ) )
-    camp.add( ad.ActiveDiagnostic( camp, ["TBActivationPresymptomatic"], start_day=1, pos_event="Hello" ) )
-    camp.add( hd.HIVDiagnostic( camp, ["TBActivationPresymptomatic"], start_day=1, pos_event="Oh_No_I_Have_HIV", neg_event="Yay" ) )
+    #camp.add( art.ART( camp, ["TBActivationPresymptomatic"], start_day=10 ) )
+    #camp.add( bcg.BCG( camp, ["TBActivationPresymptomatic"], start_day=10 ) )
+    #camp.add( ad.ActiveDiagnostic( camp, ["TBActivationPresymptomatic"], start_day=1, pos_event="Hello" ) )
+    #camp.add( hd.HIVDiagnostic( camp, ["TBActivationPresymptomatic"], start_day=1, pos_event="Oh_No_I_Have_HIV", neg_event="Yay" ) )
     return camp
 
 
@@ -115,7 +165,7 @@ def build_demog():
     TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
 
     """
-    import emodpy_tbhiv.demographics.TBHIVDemographics as Demographics # OK to call into emod-api
+    import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
     import emod_api.demographics.DemographicsTemplates as DT
 
     demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
@@ -139,14 +189,15 @@ def general_sim( erad_path, ep4_scripts ):
     platform = Platform("SLURM", docker_image="docker-staging.packages.idmod.org/idmtools/comps_ssmt_worker:1.5.1.7")
 
 
-    pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+    #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
+    """
     report = Report_TBHIV_ByAge()
     report.add_report(200, 0, 0, 200, ["HappyBirthday","Hello","Oh_No_I_Have_HIV", "Yay", "ArtDistributed", "BcgDistributed"])
-    
     report.asset_dir = manifest.plugins_dir
+    """
 
     task = EMODTask.from_default2(
             config_path="my_config.json",
@@ -154,9 +205,9 @@ def general_sim( erad_path, ep4_scripts ):
             campaign_builder=build_camp,
             schema_path=manifest.schema_file,
             param_custom_cb=set_param_fn,
-            #ep4_custom_cb=None,
+            ep4_custom_cb=None,
             demog_builder=build_demog,
-            plugin_report=report
+            plugin_report=None # report
         )
 
     #demog_path = build_demog()
@@ -182,8 +233,8 @@ def general_sim( erad_path, ep4_scripts ):
     print( f"Prompting for COMPS creds if necessary..." )
     experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
 
-    other_assets = AssetCollection.from_id(pl.run())
-    experiment.assets.add_assets(other_assets)
+    #other_assets = AssetCollection.from_id(pl.run())
+    #experiment.assets.add_assets(other_assets)
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
@@ -207,7 +258,7 @@ def run_test( erad_path ):
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line
-    plan = EradicationBambooBuilds.TBHIV
+    plan = EradicationBambooBuilds.MALARIA
     print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files( plan, manifest )
     print("...done.") 
