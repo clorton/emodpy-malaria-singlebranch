@@ -53,12 +53,6 @@ def print_params():
     print("exp_name: ", params.exp_name)
     print("nSims: ", params.nSims)
 
-def convert_list_to_dict( mdp_list ):
-    mdp_map = {}
-    for mdp in mdp_list:
-        mdp_map[ mdp.name ] = mdp
-    return mdp_map
-
 def set_mdp( config ):
     """
     Use 
@@ -96,11 +90,48 @@ def set_mdp( config ):
     mdp.parameters.Max_Drug_IRBC_Kill = 1
     #mdp.parameters.Resistance = 1
     mdp_map = {}
+    mdp.parameters.finalize()
     mdp_map["Chloroquine"] = mdp.parameters
-    # mdp_list.append( mdp )
 
-    # mdp_map = convert_list_to_dict( mdp_list )
     config.parameters.Malaria_Drug_Params = mdp_map
+    return config
+
+def set_vsp( config ):
+    vsp_default = { "parameters": { "schema": {} } }
+    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Vector_Species_Parameters","VectorSpeciesParameters_Value"] )
+    #vsp.parameters.Acquire_Modifier = 1
+    #vsp.parameters.Adult_Life_Expectancy = 1
+    vsp.parameters.Anthropophily = 0.95
+    #vsp.parameters.Aquatic_Arrhenius_1 = 1
+    #vsp.parameters.Aquatic_Arrhenius_2 = 1
+    #vsp.parameters.Aquatic_Mortality_Rate = 1
+    ##vsp.parameters.Cycle_Arrhenius_1 = 1
+    ##vsp.parameters.Cycle_Arrhenius_2 = 1
+    ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
+    #vsp.parameters.Days_Between_Feeds = 1
+    #vsp.parameters.Drivers = []
+    #vsp.parameters.Egg_Batch_Size = 1
+    vsp.parameters.Gene_To_Trait_Modifiers = []
+    #vsp.parameters.Genes = []
+    #vsp.parameters.Immature_Duration = 1
+    #vsp.parameters.Indoor_Feeding_Fraction = 1
+    #vsp.parameters.Infected_Arrhenius_1 = 1
+    #vsp.parameters.Infected_Arrhenius_2 = 1
+    #vsp.parameters.Infected_Egg_Batch_Factor = 1
+    #vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1
+    vsp.parameters.Larval_Habitat_Types = {
+                        "TEMPORARY_RAINFALL": 11250000000
+    }
+    #vsp.parameters.Male_Life_Expectancy = 1
+    vsp.parameters.Name = "Gambiae"
+    #vsp.parameters.Transmission_Rate = 1
+    #vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_NONE"
+    vsp.parameters.finalize()
+    #vsp_map = {}
+    #vsp_map["Gambiae"] = vsp.parameters
+
+    config.parameters.Vector_Species_Params.append( vsp.parameters )
+    #pdb.set_trace()
     return config
 
 def set_param_fn(config): 
@@ -109,23 +140,28 @@ def set_param_fn(config):
     """
     config = set_config.set_config( config )
 
-    config.parameters.x_Other_Mortality =  0.34
+    config.parameters.x_Other_Mortality =  0.034
     config.parameters.x_Birth =  1.43
+    config.parameters.Base_Rainfall = 150
 
     #config.parameters.Simulation_Duration =  params.burn_initial + params.burn_predots + params.To_end_from_DOTS
-    config.parameters.Simulation_Duration =  3650
+    config.parameters.Simulation_Duration =  365
     
     #config.parameters.Base_Population_Scale_Factor =  1000
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
-    config.parameters.Serialization_Times = [ 365 ]
+    config.parameters.Enable_Disease_Mortality = 0
+    #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Susceptibility_Initialization_Distribution_Type: "DISTRIBUTION_OFF"
-    #config.parameters.pop( "Serialized_Population_Filenames" )
+    config.parameters.Enable_Vector_Species_Report = 1
+    #config.parameters.Enable_Initial_Prevalence = 1
+    config["parameters"]["Insecticides"] = []
+    config.parameters.pop( "Serialized_Population_Filenames" )
 
     #config.parameters.Report_Event_Recorder_Events = ["TBActivationPresymptomatic","Hello","Oh_No_I_Have_HIV","Yay"]
 
     # TBD: Set MalariaDrugParams
     config = set_mdp( config )
-    config["parameters"]["Insecticides"] = []
+    config = set_vsp( config )
     return config
 
 def build_camp():
@@ -136,10 +172,7 @@ def build_camp():
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
     #import emodpy_tbhiv as tbhiv
-    #import emodpy_tbhiv.interventions.art as art
-    #import emodpy_tbhiv.interventions.bcg as bcg
-    #import emodpy_tbhiv.interventions.active_diagnostic as ad
-    #import emodpy_tbhiv.interventions.hiv_diag as hd
+    import emodpy_malaria.interventions.bednet as bednet
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
@@ -147,13 +180,12 @@ def build_camp():
     #print( f"Telling emod-api to use {manifest.schema_file} as schema." )
     
     # importation pressure
-    seed = ob.seed_by_coverage( 40, camp, 0.5 )
+    """
+    seed = ob.seed_by_coverage( 10, camp, 0.10 )
     camp.add( seed, first=True )
+    """
 
-    #camp.add( art.ART( camp, ["TBActivationPresymptomatic"], start_day=10 ) )
-    #camp.add( bcg.BCG( camp, ["TBActivationPresymptomatic"], start_day=10 ) )
-    #camp.add( ad.ActiveDiagnostic( camp, ["TBActivationPresymptomatic"], start_day=1, pos_event="Hello" ) )
-    #camp.add( hd.HIVDiagnostic( camp, ["TBActivationPresymptomatic"], start_day=1, pos_event="Oh_No_I_Have_HIV", neg_event="Yay" ) )
+    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5 ) )
     return camp
 
 
