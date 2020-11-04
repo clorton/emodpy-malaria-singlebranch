@@ -69,6 +69,7 @@ def set_mdp( config ):
     mdp_default = { "parameters": { "schema": {} } }
     mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
 
+    # Just demonstrating that we can set drug params. Values mean nothing at this time.
     mdp.parameters.Bodyweight_Exponent = 45
     mdp.parameters.Drug_Cmax = 100
     mdp.parameters.Drug_Decay_T1 = 1
@@ -81,14 +82,15 @@ def set_mdp( config ):
     mdp.parameters.Drug_Hepatocyte_Killrate = 1
     mdp.parameters.Drug_PKPD_C50 = 1
     mdp.parameters.Drug_Vd = 1
+    # This needs to be changed ASAP
     mdp.parameters.Fractional_Dose_By_Upper_Age = [
-            {
-                "Fraction_Of_Adult_Dose": 0.5,
-                "Upper_Age_In_Years": 5
+                {
+                    "Fraction_Of_Adult_Dose": 0.5,
+                    "Upper_Age_In_Years": 5
                 }
             ]
     mdp.parameters.Max_Drug_IRBC_Kill = 1
-    #mdp.parameters.Resistance = 1
+ 
     mdp_map = {}
     mdp.parameters.finalize()
     mdp_map["Chloroquine"] = mdp.parameters
@@ -99,6 +101,8 @@ def set_mdp( config ):
 def set_vsp( config ):
     vsp_default = { "parameters": { "schema": {} } }
     vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Vector_Species_Parameters","VectorSpeciesParameters_Value"] )
+
+    # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
     #vsp.parameters.Acquire_Modifier = 1
     #vsp.parameters.Adult_Life_Expectancy = 1
     vsp.parameters.Anthropophily = 0.95
@@ -111,7 +115,7 @@ def set_vsp( config ):
     #vsp.parameters.Days_Between_Feeds = 1
     #vsp.parameters.Drivers = []
     #vsp.parameters.Egg_Batch_Size = 1
-    vsp.parameters.Gene_To_Trait_Modifiers = []
+    vsp.parameters.Gene_To_Trait_Modifiers = [] # This seems to be necessary.
     #vsp.parameters.Genes = []
     #vsp.parameters.Immature_Duration = 1
     #vsp.parameters.Indoor_Feeding_Fraction = 1
@@ -119,8 +123,9 @@ def set_vsp( config ):
     #vsp.parameters.Infected_Arrhenius_2 = 1
     #vsp.parameters.Infected_Egg_Batch_Factor = 1
     #vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1
+    # This needs to be changed once the schema for Larval_Habitat_Types is fixed.
     vsp.parameters.Larval_Habitat_Types = {
-                        "TEMPORARY_RAINFALL": 11250000000
+        "TEMPORARY_RAINFALL": 11250000000
     }
     #vsp.parameters.Male_Life_Expectancy = 1
     vsp.parameters.Name = "Gambiae"
@@ -131,7 +136,6 @@ def set_vsp( config ):
     #vsp_map["Gambiae"] = vsp.parameters
 
     config.parameters.Vector_Species_Params.append( vsp.parameters )
-    #pdb.set_trace()
     return config
 
 def set_param_fn(config): 
@@ -140,24 +144,14 @@ def set_param_fn(config):
     """
     config = set_config.set_config( config )
 
-    config.parameters.x_Other_Mortality =  0.034
-    config.parameters.x_Birth =  1.43
     config.parameters.Base_Rainfall = 150
-
-    #config.parameters.Simulation_Duration =  params.burn_initial + params.burn_predots + params.To_end_from_DOTS
-    config.parameters.Simulation_Duration =  365
-    
-    #config.parameters.Base_Population_Scale_Factor =  1000
+    config.parameters.Simulation_Duration = 365
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
     #config.parameters.Serialization_Times = [ 365 ]
-    config.parameters.Susceptibility_Initialization_Distribution_Type: "DISTRIBUTION_OFF"
     config.parameters.Enable_Vector_Species_Report = 1
-    #config.parameters.Enable_Initial_Prevalence = 1
-    config["parameters"]["Insecticides"] = []
-    config.parameters.pop( "Serialized_Population_Filenames" )
-
-    #config.parameters.Report_Event_Recorder_Events = ["TBActivationPresymptomatic","Hello","Oh_No_I_Have_HIV","Yay"]
+    config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     # TBD: Set MalariaDrugParams
     config = set_mdp( config )
@@ -171,20 +165,12 @@ def build_camp():
     """
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
-    #import emodpy_tbhiv as tbhiv
     import emodpy_malaria.interventions.bednet as bednet
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
-    #print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    
-    # importation pressure
-    """
-    seed = ob.seed_by_coverage( 10, camp, 0.10 )
-    camp.add( seed, first=True )
-    """
-
+    # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
     camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5 ) )
     return camp
 
@@ -201,9 +187,6 @@ def build_demog():
     import emod_api.demographics.DemographicsTemplates as DT
 
     demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
-    #DT.SimpleSusceptibilityDistribution( demog, meanAgeAtInfection=2.5 )
-    #DT.AddSeasonalForcing( demog, start=100, end=330, factor=1.0 )
-    #demog.AddAgeDependentTransmission( Age_Bin_Edges_In_Years=[0, 1, 2, -1], TransmissionMatrix=[[0.2, 0.4, 1.0], [0.2, 0.4, 1.0], [0.2, 0.4, 1.0]] )
     return demog
 
 
@@ -217,7 +200,6 @@ def general_sim( erad_path, ep4_scripts ):
     # Create a platform
     # Show how to dynamically set priority and node_group
     #platform = Platform("SLURM") 
-    #platform = Platform("SLURM", docker_image="docker-production.packages.idmod.org/idmtools/comps_ssmt_worker:1.5.0.2" )
     platform = Platform("SLURM", docker_image="docker-staging.packages.idmod.org/idmtools/comps_ssmt_worker:1.5.1.7")
 
 
