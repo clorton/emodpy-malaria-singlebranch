@@ -18,6 +18,7 @@ from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 import emod_api.config.default_from_schema_no_validation as dfs
 #from emodpy.reporters.custom import Report_TBHIV_ByAge
+import pdb
 
 import params
 import set_config
@@ -113,10 +114,10 @@ def set_vsp( config ):
     ##vsp.parameters.Cycle_Arrhenius_2 = 1
     ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
     #vsp.parameters.Days_Between_Feeds = 1
-    #vsp.parameters.Drivers = []
+    vsp.parameters.Drivers = []
     #vsp.parameters.Egg_Batch_Size = 1
     vsp.parameters.Gene_To_Trait_Modifiers = [] # This seems to be necessary.
-    #vsp.parameters.Genes = []
+    vsp.parameters.Genes = []
     #vsp.parameters.Immature_Duration = 1
     #vsp.parameters.Indoor_Feeding_Fraction = 1
     #vsp.parameters.Infected_Arrhenius_1 = 1
@@ -135,6 +136,7 @@ def set_vsp( config ):
     #vsp_map = {}
     #vsp_map["Gambiae"] = vsp.parameters
 
+    config.parameters.Vector_Species_Params = list() # won't need this after schema is fixed.
     config.parameters.Vector_Species_Params.append( vsp.parameters )
     return config
 
