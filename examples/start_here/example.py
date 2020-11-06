@@ -113,6 +113,7 @@ def set_genetics( vsp, allele_dict ):
 
 def set_vsp( config, manifest ):
     vsp_default = { "parameters": { "schema": {} } } 
+
     vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
 
     # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
@@ -129,7 +130,9 @@ def set_vsp( config, manifest ):
     ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
     #vsp.parameters.Days_Between_Feeds = 1
     #vsp.parameters.Drivers = []
-    #vsp.parameters.Egg_Batch_Size = 1
+    #vsp.parameters.Egg_Batch_Size = 1 
+    #vsp.parameters.Gene_To_Trait_Modifiers = [] # This seems to be necessary.
+    #vsp.parameters.Genes = []
     #vsp.parameters.Immature_Duration = 1
     #vsp.parameters.Indoor_Feeding_Fraction = 1
     #vsp.parameters.Infected_Arrhenius_1 = 1
@@ -166,13 +169,14 @@ def set_param_fn(config):
     config.parameters.Enable_Disease_Mortality = 0
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
-    config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     # Set MalariaDrugParams
     config = set_mdp( config, manifest )
 
     # Vector Genetics
+    """
     malconf.add_alleles( [ "tom", "dick", "harry" ], [ 0.5, 0.5, 0 ] )
     malconf.add_mutation( from_allele="tom", to_allele="dick", rate=0.5 )
     malconf.add_mutation( from_allele="tom", to_allele="harry", rate=0.1 )
@@ -183,6 +187,7 @@ def set_param_fn(config):
     malconf.add_trait( manifest, [ "X", "X" ], [ "tom", "dick" ], "INFECTED_BY_HUMAN", 0 )
     malconf.add_resistance( manifest, "pyrethroid", "Gambiae", [ [ "this", "that" ] ] )
     config = malconf.set_resistances( config )
+    """
 
     # Vector Species Params
     config = set_vsp( config, manifest )
@@ -322,7 +327,9 @@ def run_test( erad_path ):
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
-    plan = EradicationBambooBuilds.MALARIA_LINUX
+    #plan = EradicationBambooBuilds.MALARIA_LINUX 
+    #plan = 'DTKACTIVEMALBRANCH-DTKACTMALRELLNX'
+    plan = 'DTKACTIVEMALBRANCH-SCONSRELLNXSFT'
     print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files( plan, manifest )
     print("...done.") 
