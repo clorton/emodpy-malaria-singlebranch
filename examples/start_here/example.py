@@ -84,12 +84,14 @@ def set_mdp( config ):
     mdp.parameters.Drug_PKPD_C50 = 1
     mdp.parameters.Drug_Vd = 1
     # This needs to be changed ASAP
+    """
     mdp.parameters.Fractional_Dose_By_Upper_Age = [
                 {
                     "Fraction_Of_Adult_Dose": 0.5,
                     "Upper_Age_In_Years": 5
                 }
             ]
+    """
     mdp.parameters.Max_Drug_IRBC_Kill = 1
  
     mdp_map = {}
@@ -99,9 +101,18 @@ def set_mdp( config ):
     config.parameters.Malaria_Drug_Params = mdp_map
     return config
 
+def set_genetics( vsp, allele_dict ):
+    #genes = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:vector VectorGene","VectorGene_Value"] )
+    genes = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorGene"] )
+    genes.parameters.Alleles = allele_dict 
+    genes.parameters.finalize()
+    #pdb.set_trace()
+    vsp.parameters.Genes.append( genes.parameters ) # too many 'parameters'
+    return vsp
+
 def set_vsp( config ):
-    vsp_default = { "parameters": { "schema": {} } }
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Vector_Species_Parameters","VectorSpeciesParameters_Value"] )
+    vsp_default = { "parameters": { "schema": {} } } 
+    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
 
     # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
     #vsp.parameters.Acquire_Modifier = 1
@@ -116,8 +127,8 @@ def set_vsp( config ):
     #vsp.parameters.Days_Between_Feeds = 1
     vsp.parameters.Drivers = []
     #vsp.parameters.Egg_Batch_Size = 1
-    vsp.parameters.Gene_To_Trait_Modifiers = [] # This seems to be necessary.
-    vsp.parameters.Genes = []
+    #vsp.parameters.Gene_To_Trait_Modifiers = [] # This seems to be necessary.  
+    #vsp.parameters.Genes = []
     #vsp.parameters.Immature_Duration = 1
     #vsp.parameters.Indoor_Feeding_Fraction = 1
     #vsp.parameters.Infected_Arrhenius_1 = 1
@@ -128,6 +139,9 @@ def set_vsp( config ):
     vsp.parameters.Larval_Habitat_Types = {
         "TEMPORARY_RAINFALL": 11250000000
     }
+
+    vsp = set_genetics( vsp, { "tom": 0.5, "dick": 0.5, "harry": 0 } )
+
     #vsp.parameters.Male_Life_Expectancy = 1
     vsp.parameters.Name = "Gambiae"
     #vsp.parameters.Transmission_Rate = 1
@@ -201,8 +215,8 @@ def general_sim( erad_path, ep4_scripts ):
 
     # Create a platform
     # Show how to dynamically set priority and node_group
-    #platform = Platform("SLURM") 
-    platform = Platform("SLURM", docker_image="docker-staging.packages.idmod.org/idmtools/comps_ssmt_worker:1.5.1.7")
+    platform = Platform("SLURM") 
+    #platform = Platform("SLURM", docker_image="docker-staging.packages.idmod.org/idmtools/comps_ssmt_worker:1.5.1.7")
 
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
@@ -273,8 +287,8 @@ def run_test( erad_path ):
     general_sim( erad_path, manifest.my_ep4_assets )
 
 if __name__ == "__main__":
-    # TBD: user should be allowed to specify (override default) erad_path and input_path from command line
-    plan = EradicationBambooBuilds.MALARIA
+    # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
+    plan = EradicationBambooBuilds.MALARIA_LINUX
     print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files( plan, manifest )
     print("...done.") 
