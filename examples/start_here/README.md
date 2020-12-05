@@ -20,11 +20,11 @@ index-url = https://packages.idmod.org/api/pypi/pypi-production/simple
 
 ## Installation
 ```
-pip install emodpy_tbhiv
+pip install emodpy_malaria
 pip install dataclasses
 pip install keyrings.alt (Linux only)
-git clone https://github.com/InstituteforDiseaseModeling/emodpy-tbhiv.git
-cd emodpy-tbhiv/examples/SA_demo
+git clone https://github.com/InstituteforDiseaseModeling/emodpy-malaria.git
+cd emodpy-malaria/examples/start_here
 ```
 
 ## Configuration
@@ -33,7 +33,7 @@ Open and edit manifest.py and create folders like "Assets" and "download". You a
 ## Run
 ```
 python example.py
-```
+```pip
 (Enter necessary creds as prompted; include '@idmod.org' for bamboo. If the program seems to hang at the beginning, check that you are VPN'ed.)
 
 ## Study
