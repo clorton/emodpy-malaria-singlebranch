@@ -156,7 +156,7 @@ def set_param_fn(config):
     config.parameters.Enable_Disease_Mortality = 0
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
-    config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     # Set MalariaDrugParams
@@ -204,9 +204,14 @@ def build_demog():
 
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
+    #import emod_api.demographics.Demographics as Demographics # OK to call into emod-api
     import emod_api.demographics.DemographicsTemplates as DT
 
-    demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    #demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    demog = Demographics.from_pop_csv( manifest.population_input_path )
+    #demog.SetDefaultProperties()
+    #demog.generate_file("burkina_demog.json")
+
     return demog
 
 

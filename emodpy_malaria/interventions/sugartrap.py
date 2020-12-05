@@ -2,11 +2,11 @@ from emod_api import schema_to_class as s2c
 import json
 
 schema_path = None
-iv_name = "Bednet"
+iv_name = "SugarTrap"
 #dupe_policy = "Replace" # or "Add" or "Abort" -- from covid branch
 # Note that duration (what we call waning profile) needs to be configurable, but in an intuitive way
 
-def Bednet( camp, start_day, coverage=1.0, blocking_eff=1, killing_eff=1, repelling_eff=1, usage_eff=1, insecticide=None ):
+def SugarTrap( camp, start_day, coverage=1.0, blocking_eff=1, killing_eff=1, repelling_eff=1, usage_eff=1, insecticide=None ):
     """
     MCV1 Campaign
     :param coverage: Demographic Coverage
@@ -22,7 +22,7 @@ def Bednet( camp, start_day, coverage=1.0, blocking_eff=1, killing_eff=1, repell
         print( "s2c.get_class_with_defaults returned None. Maybe no schema.json was provided." )
         return ""
 
-    intervention = s2c.get_class_with_defaults( "SimpleBednet", schema_path )
+    intervention = s2c.get_class_with_defaults( "SimpleSugarTrap", schema_path )
     efficacy_profile = "WaningEffectConstant"
     blocking = s2c.get_class_with_defaults( efficacy_profile, schema_path )
     killing = s2c.get_class_with_defaults( efficacy_profile, schema_path )
@@ -68,7 +68,7 @@ def new_intervention_as_file( start_day, filename=None ):
     campaign["Events"] = []
     campaign["Events"].append( new_intervention( start_day, vaccine_type, iv_name ) )
     if filename is None:
-        filename = "bednet.json"
+        filename = "SugarTrap.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
     return filename

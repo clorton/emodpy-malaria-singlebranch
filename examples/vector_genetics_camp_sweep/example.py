@@ -18,7 +18,7 @@ from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 from emodpy.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
-import pdb
+from emodpy.emod_campaign import EMODCampaign
 
 from emodpy_malaria import config as malconf
 import params
@@ -44,6 +44,12 @@ def update_sim_bic(simulation, value):
 def update_sim_random_seed(simulation, value):
     simulation.task.config.parameters.Run_Number = value
     return {"Run_Number": value}
+
+def update_camp_start_day(simulation, value):
+    #simulation.task.config.parameters.Run_Number = value
+    build_camp_partial = partial( build_camp, start_day_in=80+value*10 )
+    simulation.task.create_campaign_from_callback( build_camp_partial )
+    return {"Start_Day": 80+value*10}
 
 
 def print_params():
@@ -156,7 +162,7 @@ def set_param_fn(config):
     config.parameters.Enable_Disease_Mortality = 0
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
-    config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     # Set MalariaDrugParams
@@ -178,7 +184,7 @@ def set_param_fn(config):
     config = set_vsp( config, manifest )
     return config
 
-def build_camp():
+def build_camp( start_day_in=100 ):
     """
     Build a campaign input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
@@ -191,7 +197,7 @@ def build_camp():
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid" ) )
+    camp.add( bednet.Bednet( camp, start_day=start_day_in, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid" ), first=True )
     return camp
 
 
@@ -286,7 +292,8 @@ def general_sim( erad_path, ep4_scripts ):
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()
-    builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
+    #builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
+    builder.add_sweep_definition( update_camp_start_day, range(params.nSims) )
 
     # create experiment from builder
     print( f"Prompting for COMPS creds if necessary..." )
