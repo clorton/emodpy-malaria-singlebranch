@@ -18,6 +18,7 @@ def Bednet( camp, start_day, coverage=1.0, blocking_eff=1, killing_eff=1, repell
     # First, get the objects
     event = s2c.get_class_with_defaults( "CampaignEvent", schema_path )
     coordinator = s2c.get_class_with_defaults( "StandardEventCoordinator", schema_path )
+    coordinator.Demographic_Coverage = coverage
     if coordinator is None:
         print( "s2c.get_class_with_defaults returned None. Maybe no schema.json was provided." )
         return ""

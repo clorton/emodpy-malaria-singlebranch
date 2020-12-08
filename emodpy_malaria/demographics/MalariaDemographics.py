@@ -4,9 +4,7 @@ from emod_api.demographics import DemographicsTemplates as DT
 class MalariaDemographics(Demographics):
     """
     This class is derived from emod_api.demographics' Demographics class so that we can set 
-    certain defaults for Malaria in construction. Keen observers will note thatt SetDefaultProperties
-    does not look like a measles-specific function. But as we add other disease types the 
-    generatlizations and speicfics will become clearer. The architectural point is solid.
+    certain defaults for Malaria in construction.
     """
     def __init__(self, nodes, idref="Gridded world grump2.5arcmin", base_file=None, implicits=None): 
         super().__init__( nodes, idref, base_file, implicits )
