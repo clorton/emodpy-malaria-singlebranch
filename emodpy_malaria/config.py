@@ -35,11 +35,12 @@ def add_mutation( from_allele, to_allele, rate ):
 
 def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
     """
-    Should produce something like: 
-    {
-       "Allele_Combinations": [["X", "X"],["a0", "a1"]],
-       "Trait_Modifiers": {"INFECTED_BY_HUMAN": 0}
-    },
+    Should produce something like:: 
+
+        {
+           "Allele_Combinations": [["X", "X"],["a0", "a1"]],
+           "Trait_Modifiers": {"INFECTED_BY_HUMAN": 0}
+        },
     """
     if len(sex_genes) != 2 or sex_genes[0] not in [ "X", "Y" ] or sex_genes[1] not in [ "X", "Y" ]:
         raise ValueError( "sex_genes needs to have two values and can only be X or Y" )
@@ -62,23 +63,25 @@ def add_resistance( manifest, name, species, combo, blocking = 1.0, killing = 1.
     # combo is a list of allele pairs
     # needs to end up as:
     """
-    Insecticides = [
-    {
-      "Name": "pyrethroid",
-      "Resistances": [
+    ::
+    
+        Insecticides = [
         {
-          "Allele_Combinations": [
-          [
-            "a1",
-            "a1"
-          ]
-         ],
-        "Blocking_Modifier": 1.0,
-        "Killing_Modifier": pyrethroid_killing,
-        "Species": "gambiae"
-      }
-     ]
-    },
+          "Name": "pyrethroid",
+          "Resistances": [
+            {
+              "Allele_Combinations": [
+              [
+                "a1",
+                "a1"
+              ]
+             ],
+            "Blocking_Modifier": 1.0,
+            "Killing_Modifier": pyrethroid_killing,
+            "Species": "gambiae"
+          }
+         ]
+        },
     """
     insecticide = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Insecticide"] )
     insecticide.parameters.Name = name
