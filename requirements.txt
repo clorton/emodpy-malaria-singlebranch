@@ -1,2 +1,2 @@
-emod_api~=1.4.0
-emodpy~=1.8.0
+emod_api~=1.4.1
+emodpy~=1.8.2

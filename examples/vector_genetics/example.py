@@ -204,13 +204,8 @@ def build_demog():
 
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
-    #import emod_api.demographics.Demographics as Demographics # OK to call into emod-api
-    import emod_api.demographics.DemographicsTemplates as DT
 
-    #demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
-    demog = Demographics.from_pop_csv( manifest.population_input_path )
-    #demog.SetDefaultProperties()
-    #demog.generate_file("burkina_demog.json")
+    demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
 
     return demog
 

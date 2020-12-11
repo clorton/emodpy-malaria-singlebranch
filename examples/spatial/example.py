@@ -8,15 +8,17 @@ from idmtools.assets import Asset, AssetCollection  #
 from idmtools.builders import SimulationBuilder
 from idmtools.core.platform_factory import Platform
 from idmtools.entities.experiment import Experiment
-# from idmtools_platform_comps.utils.python_requirements_ac.requirements_to_asset_collection import RequirementsToAssetCollection
-# from idmtools_models.templated_script_task import get_script_wrapper_unix_task
+from idmtools_platform_comps.utils.python_requirements_ac.requirements_to_asset_collection import RequirementsToAssetCollection
+from idmtools_models.templated_script_task import get_script_wrapper_unix_task
 
 # emodpy
 from emodpy.emod_task import EMODTask
+import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 from emodpy.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
+import pdb
 
 from emodpy_malaria import config as malconf
 import params
@@ -53,7 +55,6 @@ def print_params():
     print("exp_name: ", params.exp_name)
     print("nSims: ", params.nSims)
 
-    
 def set_mdp( config, manifest ):
     """
     Use 
@@ -101,16 +102,6 @@ def set_mdp( config, manifest ):
     config.parameters.Malaria_Drug_Params = mdp_map
     return config
 
-# This can move out of user-space probably
-def set_genetics( vsp, allele_dict ):
-    #genes = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:vector VectorGene","VectorGene_Value"] )
-    genes = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorGene"] )
-    genes.parameters.Alleles = allele_dict 
-    genes.parameters.finalize()
-    vsp.parameters.Genes.append( genes.parameters ) # too many 'parameters'
-    return vsp
-
-
 def set_vsp( config, manifest ):
     vsp_default = { "parameters": { "schema": {} } } 
     vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
@@ -153,7 +144,6 @@ def set_vsp( config, manifest ):
     config.parameters.Vector_Species_Params.append( vsp.parameters )
     return config
 
-
 def set_param_fn(config): 
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
@@ -166,7 +156,7 @@ def set_param_fn(config):
     config.parameters.Enable_Disease_Mortality = 0
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
-    config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     # Set MalariaDrugParams
@@ -188,7 +178,6 @@ def set_param_fn(config):
     config = set_vsp( config, manifest )
     return config
 
-
 def build_camp():
     """
     Build a campaign input file for the DTK using emod_api.
@@ -202,8 +191,7 @@ def build_camp():
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=99, coverage=0.9,
-                             killing_eff=0.6, blocking_eff=0.8, usage_eff=0.7))
+    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid" ) )
     return camp
 
 
@@ -211,28 +199,38 @@ def build_demog():
     """
     Build a demographics input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
-    Also right now this function takes care of the config updates that are required as a result of specific demog
-    settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in
-    emod-api as much as possible.
+    Also right now this function takes care of the config updates that are required as a result of specific demog settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in emod-api as much as possible.
     TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
 
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
+    import emod_api.demographics.DemographicsTemplates as DT
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321 )
-    return demog
+    #demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    demog = Demographics.from_pop_csv( manifest.population_input_path, site='burkina' )
+
+    import emod_api.migration.Migration as mig
+    mig_partial = partial( mig.from_demog_and_param_gravity, gravity_params = [7.50395776e-06, 9.65648371e-01, 9.65648371e-01, -1.10305489e+00], id_ref='burkina', migration_type=mig.Migration.REGIONAL ) 
+
+    return demog, mig_partial
+    #return demog
+
+def ep4_fn(task):
+    task = emod_task.add_ep4_from_path(task, manifest.ep4_dir)
+    return task
 
 
-def general_sim( erad_path, ep4_scripts ):
+def general_sim( erad_path ):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
     """
     print_params()
 
-    platform = Platform("SLURM") 
-
-    #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+    # Create a platform
+    # Show how to dynamically set priority and node_group
+    platform = Platform("SLURM", num_cores=16) 
+    pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
@@ -243,10 +241,13 @@ def general_sim( erad_path, ep4_scripts ):
             campaign_builder=build_camp,
             schema_path=manifest.schema_file,
             param_custom_cb=set_param_fn,
-            ep4_custom_cb=None,
+            ep4_custom_cb=ep4_fn,
             demog_builder=build_demog,
             plugin_report=None # report
         )
+
+    #demog_path = build_demog()
+    #task.common_assets.add_asset( demog_path )
 
     print("Adding asset dir...")
     task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
@@ -281,12 +282,9 @@ def general_sim( erad_path, ep4_scripts ):
     reporter.config( rvg_config_builder, manifest )  # Config the reporter
     task.reporters.add_reporter(reporter)  # Add thre reporter
 
+    # Set task.campaign to None to not send any campaign to comps since we are going to override it later with
+    # dtk-pre-process.
     print("Adding local assets (py scripts mainly)...")
-
-    if ep4_scripts is not None:
-        for asset in ep4_scripts:
-            pathed_asset = Asset(pathlib.PurePath.joinpath(manifest.ep4_path, asset), relative_path="python")
-            task.common_assets.add_asset(pathed_asset)
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()
@@ -296,8 +294,8 @@ def general_sim( erad_path, ep4_scripts ):
     print( f"Prompting for COMPS creds if necessary..." )
     experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
 
-    #other_assets = AssetCollection.from_id(pl.run())
-    #experiment.assets.add_assets(other_assets)
+    other_assets = AssetCollection.from_id(pl.run())
+    experiment.assets.add_assets(other_assets)
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
@@ -317,8 +315,7 @@ def general_sim( erad_path, ep4_scripts ):
     
 
 def run_test( erad_path ):
-    general_sim( erad_path, manifest.my_ep4_assets )
-
+    general_sim( erad_path )
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
