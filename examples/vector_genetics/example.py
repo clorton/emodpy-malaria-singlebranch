@@ -203,10 +203,8 @@ def build_demog():
     TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
 
     """
-    import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
-
+    import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api 
     demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
-
     return demog
 
 

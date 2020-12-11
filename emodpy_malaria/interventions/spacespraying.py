@@ -2,13 +2,16 @@ from emod_api import schema_to_class as s2c
 import json
 
 schema_path = None
-iv_name = "SugarTrap"
-#dupe_policy = "Replace" # or "Add" or "Abort" -- from covid branch
-# Note that duration (what we call waning profile) needs to be configurable, but in an intuitive way
+iv_name = "SpaceSpraying"
 
-def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, constant_duration=100 ): 
+def SpaceSpraying( camp, start_day, coverage=1.0, killing_eff=1,
+                   insecticide=None, constant_duration=100 ):
     """
-    SugarTrap intervention wrapper.
+    MCV1 Campaign
+    :param coverage: Demographic Coverage
+    :param blocking: 
+    :param killing: 
+    Note Start_Day is initialized as 1, recommend that this be aligned with the start of the simulation
     """
     schema_path = camp.schema_path
     # First, get the objects
@@ -18,7 +21,7 @@ def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, c
         print( "s2c.get_class_with_defaults returned None. Maybe no schema.json was provided." )
         return ""
 
-    intervention = s2c.get_class_with_defaults( "SugarTrap", schema_path )
+    intervention = s2c.get_class_with_defaults( "SpaceSpraying", schema_path )
     efficacy_profile = "WaningEffectConstant"
     killing = s2c.get_class_with_defaults( efficacy_profile, schema_path )
     killing.Initial_Effect = killing_eff
@@ -26,18 +29,18 @@ def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, c
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
     coordinator.Intervention_Config = intervention
-    intervention.Killing_Config = killing 
-
+    intervention.Killing_Config = killing
+    intervention.Spray_Coverage = coverage
     event.Start_Day = float(start_day)
 
     # Third, do the actual settings
-    intervention.Intervention_Name = iv_name 
+    intervention.Intervention_Name = iv_name
     if insecticide is None:
         intervention.pop( "Insecticide_Name" ) # this is not permanent
     else:
         intervention.Insecticide_Name = insecticide
 
-    intervention.Expiration_Constant = constant_duration
+    #intervention.Duplicate_Policy = dupe_policy
 
     # Fourth/finally, purge the schema bits
     coordinator.finalize()

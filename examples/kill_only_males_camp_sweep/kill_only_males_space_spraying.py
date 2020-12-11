@@ -8,20 +8,19 @@ from idmtools.assets import Asset, AssetCollection  #
 from idmtools.builders import SimulationBuilder
 from idmtools.core.platform_factory import Platform
 from idmtools.entities.experiment import Experiment
-# from idmtools_platform_comps.utils.python_requirements_ac.requirements_to_asset_collection import RequirementsToAssetCollection
-# from idmtools_models.templated_script_task import get_script_wrapper_unix_task
 
 # emodpy
-from emodpy.emod_task import EMODTask
+import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy.reporters.builtin import ReportVectorGenetics
+from emodpy_malaria.reporters.builtin import ReportVectorGenetics, ReportVectorStats
 import emod_api.config.default_from_schema_no_validation as dfs
 
 from emodpy_malaria import config as malconf
 import params
 import set_config
 import manifest
+import vector_report_support as vrs
 
 # ****************************************************************
 # Features to support:
@@ -42,6 +41,19 @@ def update_sim_bic(simulation, value):
 def update_sim_random_seed(simulation, value):
     simulation.task.config.parameters.Run_Number = value
     return {"Run_Number": value}
+
+def update_camp_start_day(simulation, value):
+    #simulation.task.config.parameters.Run_Number = value
+    build_camp_partial = partial( build_camp, actual_start_day=80+value*10 )
+    simulation.task.create_campaign_from_callback( build_camp_partial )
+    return {"Start_Day": 80+value*10}
+
+def update_killing_config_effectiveness(simulation, value):
+    #simulation.task.config.parameters.Run_Number = value
+    build_camp_partial = partial( build_camp, current_insecticide="nokill_females",
+                                  killing_effectiveness=value )
+    simulation.task.create_campaign_from_callback( build_camp_partial )
+    return {"killing_effectiveness": value}
 
 
 def print_params():
@@ -104,38 +116,19 @@ def set_mdp( config, manifest ):
 
 def set_vsp( config, manifest ):
     vsp_default = { "parameters": { "schema": {} } } 
-
     vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
 
     # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
     # These are here, commented out, just to show what can be set. If we want some preset groups, we could have some functions
     # in the emodpy-malaria module.
-    #vsp.parameters.Acquire_Modifier = 1
-    #vsp.parameters.Adult_Life_Expectancy = 1
-    #vsp.parameters.Anthropophily = 0.95
-    #vsp.parameters.Aquatic_Arrhenius_1 = 1
-    #vsp.parameters.Aquatic_Arrhenius_2 = 1
-    #vsp.parameters.Aquatic_Mortality_Rate = 1
-    ##vsp.parameters.Cycle_Arrhenius_1 = 1
-    ##vsp.parameters.Cycle_Arrhenius_2 = 1
-    ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
-    #vsp.parameters.Days_Between_Feeds = 1
-    #vsp.parameters.Drivers = []
-    #vsp.parameters.Immature_Duration = 1
-    #vsp.parameters.Indoor_Feeding_Fraction = 1
-    #vsp.parameters.Infected_Arrhenius_1 = 1
-    #vsp.parameters.Infected_Arrhenius_2 = 1
-    #vsp.parameters.Infected_Egg_Batch_Factor = 1
-    #vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1
-    #vsp.parameters.Male_Life_Expectancy = 1
-    #vsp.parameters.Transmission_Rate = 1
-    #vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_NONE"
 
     # This needs to be changed once the schema for Larval_Habitat_Types is fixed. 
     # Keys-as-values means we have to do this
     vsp.parameters.Larval_Habitat_Types = {
         "TEMPORARY_RAINFALL": 11250000000
     }
+    vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
+    vsp = malconf.set_genetics( vsp, manifest ) # , alleles, allele_inits ) 
     vsp.parameters.Name = "Gambiae"
     vsp.parameters.finalize()
 
@@ -154,6 +147,7 @@ def set_param_fn(config):
     config.parameters.Simulation_Duration = 365
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
+    config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
@@ -162,25 +156,51 @@ def set_param_fn(config):
     # Set MalariaDrugParams
     config = set_mdp( config, manifest )
 
+    # Vector Genetics
+    malconf.add_resistance( manifest, "everybody_wants_some", "Gambiae", [["X", "*"]])
+    malconf.add_resistance( manifest, "nokill_females", "Gambiae", combo=[["X", "X"]],
+                            killing=0.0)
+    malconf.add_resistance( manifest, "nokill_males", "Gambiae", combo=[["X", "Y"]],
+                            killing=0.0)
+    config = malconf.set_resistances( config )
+
     # Vector Species Params
     config = set_vsp( config, manifest )
     return config
 
+def build_camp( actual_start_day=90, current_insecticide="kokill_females",
+                coverage=1.0, killing_effectiveness=0.5 ):
+    import emod_api.campaign as camp
+    import emodpy_malaria.interventions.spacespraying as spray
 
-def build_camp():
+    # This isn't desirable. Need to think about right way to provide schema (once)
+    camp.schema_path = manifest.schema_file
+
+    # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
+    camp.add(spray.SpaceSpraying(camp, start_day=actual_start_day, coverage=coverage,
+                                 killing_eff=killing_effectiveness, constant_duration=730,
+                                 insecticide=current_insecticide),
+             first=True)
+    return camp
+
+
+def build_sugartrap_camp( actual_start_day=90, current_insecticide="nokill_females", killing_effectiveness=0.5 ):
     """
     Build a campaign input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     """
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
-    import emodpy_malaria.interventions.bednet as bednet
+    import emodpy_malaria.interventions.sugartrap as sugartrap
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5 ) )
+    camp.add( sugartrap.SugarTrap( camp, start_day=actual_start_day, coverage=0.9,
+                                   killing_eff=killing_effectiveness, constant_duration=730,
+                                   insecticide=current_insecticide ),
+              first=True )
     return camp
 
 
@@ -188,17 +208,20 @@ def build_demog():
     """
     Build a demographics input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
-    Also right now this function takes care of the config updates that are required as a result of specific demog
-    settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in
-    emod-api as much as possible.
+    Also right now this function takes care of the config updates that are required as a result of specific demog settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in emod-api as much as possible.
     TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
 
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
+    import emod_api.demographics.DemographicsTemplates as DT
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321 )
+    demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
     return demog
 
+
+def ep4_fn(task):
+    task = emod_task.add_ep4_from_path(task, manifest.ep4_path)
+    return task
 
 def general_sim( erad_path, ep4_scripts ):
     """
@@ -207,40 +230,78 @@ def general_sim( erad_path, ep4_scripts ):
     """
     print_params()
 
+    # Create a platform
+    # Show how to dynamically set priority and node_group
     platform = Platform("SLURM") 
-
-    #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
     
-    task = EMODTask.from_default2(
+    task = emod_task.EMODTask.from_default2(
             config_path="my_config.json",
             eradication_path=manifest.eradication_path,
             campaign_builder=build_camp,
             schema_path=manifest.schema_file,
             param_custom_cb=set_param_fn,
-            ep4_custom_cb=None,
+            ep4_custom_cb=ep4_fn,
             demog_builder=build_demog,
             plugin_report=None # report
         )
 
     print("Adding asset dir...")
     task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
-    print("Adding local assets (py scripts mainly)...")
+    # from kill_only_males_camp_sweep import vector_report_support as vrs
 
-    if ep4_scripts is not None:
-        for asset in ep4_scripts:
-            pathed_asset = Asset(pathlib.PurePath.joinpath(manifest.ep4_path, asset), relative_path="python")
-            task.common_assets.add_asset(pathed_asset)
+    # def rvg_config_builder_female( params ):
+    #     params.Include_Vector_State_Columns = True
+    #     params.Gender = "VECTOR_FEMALE"
+    #     params.Start_Day = 85
+    #     params.Duration_Days = 30
+    #
+    #     return params
+    #
+    # def rvg_config_builder_male( params ):
+    #     params.Include_Vector_State_Columns = True
+    #     params.Gender = "VECTOR_MALE"
+    #     params.Start_Day = 85
+    #     params.Duration_Days = 30
+    #
+    #     return params
+    #
+    # def rvs_config_builder( params ):
+    #     params.Include_Gestation_Columns = True
+    #     params.Species_List = ["Gambiae"]
+    #     params.Stratify_By_Species = True
+    #     params.Include_Wolbachia_Columns = True
+    #     return params
+
+    # reporter = ReportVectorGenetics()  # Create the reporter
+    # reporter.config( rvg_config_builder_female, manifest )  # Config the reporter
+    reporter_female = vrs.get_report_vector_genetics(manifest, sex=vrs.VectorGender.Female)
+    task.reporters.add_reporter(reporter_female)  # Add the reporter
+
+    # reporter2 = ReportVectorGenetics()  # Create the reporter
+    # reporter2.config( rvg_config_builder_male, manifest )  # Config the reporter
+    reporter_male = vrs.get_report_vector_genetics(manifest, sex=vrs.VectorGender.Male)
+    task.reporters.add_reporter(reporter_male)  # Add the reporter
+
+    # reporter3 = ReportVectorStats()
+    # reporter3.config( rvs_config_builder, manifest )
+    reporter_vstats = vrs.get_report_vector_stats(manifest)
+    task.reporters.add_reporter(reporter_vstats)
+
+    # Set task.campaign to None to not send any campaign to comps since we are going to override it later with
+    # dtk-pre-process.
+    print("Adding local assets (py scripts mainly)...")
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()
-    builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
+    builder.add_sweep_definition( update_sim_random_seed, range(10))
+    builder.add_sweep_definition( update_killing_config_effectiveness, [0.0, 0.2, 0.4, 0.8, 1.0] )
 
     # create experiment from builder
     print( f"Prompting for COMPS creds if necessary..." )
-    experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
+    experiment  = Experiment.from_builder(builder, task, name="Malaria SpaceSpraying sweep ReportVectorGenetics")
 
     #other_assets = AssetCollection.from_id(pl.run())
     #experiment.assets.add_assets(other_assets)
@@ -263,12 +324,11 @@ def general_sim( erad_path, ep4_scripts ):
     
 
 def run_test( erad_path ):
-    general_sim( erad_path, manifest.my_ep4_assets )
-
+    general_sim( erad_path, ["dtk_post_process.py"] )
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
-    plan = EradicationBambooBuilds.MALARIA_LINUX 
+    plan = EradicationBambooBuilds.MALARIA_LINUX
     print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files( plan, manifest )
     print("...done.") 

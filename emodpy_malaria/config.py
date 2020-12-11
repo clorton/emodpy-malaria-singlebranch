@@ -9,13 +9,16 @@ insecticides = list()
 # PUBLIC API section
 #
 def set_resistances( config ):
+    """
+    Use this function after you're done calling add_resistance. config is the input and the output
+    """
     for insect in insecticides:
         config.parameters.Insecticides.append( insect )
     return config
 
 def add_alleles( allele_names_in, allele_inits_in ):
     """
-    This is public API function for user to add alleles.
+    This is public API function for user to add alleles. User specifies the list of alleles and corresponding initial distribution.
     """
     allele_dict = _allele_data_to_dict( allele_names_in, allele_inits_in )
     alleles.append( allele_dict )
@@ -23,7 +26,8 @@ def add_alleles( allele_names_in, allele_inits_in ):
 def add_mutation( from_allele, to_allele, rate ):
     # Need to worry about allele sets
     """
-    Public API function for user to add mutations.
+    Public API function for user to add mutations as part of vector genetics configuration.
+    A mutation is specified with a source allele, a destination allele, and a rate
     """
     mut_dict = dict()
     key = f"{from_allele}:{to_allele}"
@@ -34,9 +38,9 @@ def add_mutation( from_allele, to_allele, rate ):
     mutations[allele_set_uniq_key].update( mut_dict )
 
 def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
-    """
+    """ 
+    Use this function to add traits as part of vector genetics configuration.
     Should produce something like:: 
-
         {
            "Allele_Combinations": [["X", "X"],["a0", "a1"]],
            "Trait_Modifiers": {"INFECTED_BY_HUMAN": 0}
@@ -59,11 +63,10 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
     # Store these and put them in config later
     traits.append( trait )
 
-def add_resistance( manifest, name, species, combo, blocking = 1.0, killing = 1.0 ):
-    # combo is a list of allele pairs
-    # needs to end up as:
+def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, killing = 1.0 ):
     """
-    ::
+        Use this function to add insecticide resistances. An insecticide can have a list of resistances.
+        Add each resistance separately with the same name.
     
         Insecticides = [
         {
@@ -83,16 +86,25 @@ def add_resistance( manifest, name, species, combo, blocking = 1.0, killing = 1.
          ]
         },
     """
-    insecticide = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Insecticide"] )
-    insecticide.parameters.Name = name
+    def get_insecticide_by_name( insecticide_name ):
+        for cide in insecticides:
+            if cide.Name == insecticide_name:
+                return cide
+        new_insecticide = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Insecticide"] )
+        new_insecticide.parameters.Name = insecticide_name
+        return new_insecticide 
+
+    insecticide = get_insecticide_by_name( insecticide_name )
+
     resistance = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:AlleleComboProbabilityConfig"] )
     resistance.parameters.Blocking_Modifier = blocking
     resistance.parameters.Killing_Modifier = killing
     resistance.parameters.Species = species
     resistance.parameters.Allele_Combinations = combo
     resistance.parameters.finalize()
-    # TBD: It's totally possible to add a new resistance to an existing insecticide and we don't support that yet.
+
     insecticide.parameters.Resistances.append( resistance.parameters )
+
     insecticide.parameters.finalize()
     insecticides.append( insecticide.parameters )
 
@@ -113,8 +125,7 @@ def _allele_data_to_dict( allele_names, allele_values ):
 
 def set_genetics( vsp, manifest ):
     """
-    Don't need to pass these anymore since they are module variables. But actually need to try with more than
-    one set and see where I end up in terms of design.
+    set_genetics is a bit of glue code that needs to be called towards end of setting up VectorSpeciesParmeters.
     """
     for allele_dict in alleles:
         genes = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorGene"] )
