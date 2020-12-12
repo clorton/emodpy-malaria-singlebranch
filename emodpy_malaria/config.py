@@ -41,6 +41,7 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
     """ 
     Use this function to add traits as part of vector genetics configuration.
     Should produce something like:: 
+
         {
            "Allele_Combinations": [["X", "X"],["a0", "a1"]],
            "Trait_Modifiers": {"INFECTED_BY_HUMAN": 0}
@@ -66,25 +67,25 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
 def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, killing = 1.0 ):
     """
         Use this function to add insecticide resistances. An insecticide can have a list of resistances.
-        Add each resistance separately with the same name.
+        Add each resistance separately with the same name::
     
-        Insecticides = [
-        {
-          "Name": "pyrethroid",
-          "Resistances": [
+            Insecticides = [
             {
-              "Allele_Combinations": [
-              [
-                "a1",
-                "a1"
-              ]
-             ],
-            "Blocking_Modifier": 1.0,
-            "Killing_Modifier": pyrethroid_killing,
-            "Species": "gambiae"
-          }
-         ]
-        },
+              "Name": "pyrethroid",
+              "Resistances": [
+                {
+                  "Allele_Combinations": [
+                  [
+                    "a1",
+                    "a1"
+                  ]
+                 ],
+                "Blocking_Modifier": 1.0,
+                "Killing_Modifier": pyrethroid_killing,
+                "Species": "gambiae"
+              }
+             ]
+            },
     """
     def get_insecticide_by_name( insecticide_name ):
         for cide in insecticides:
