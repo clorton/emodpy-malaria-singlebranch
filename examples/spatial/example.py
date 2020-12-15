@@ -229,11 +229,16 @@ def general_sim( erad_path ):
 
     # Create a platform
     # Show how to dynamically set priority and node_group
-    platform = Platform("SLURM", num_cores=16) 
-    pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+    # platform = Platform("SLURM", num_cores=16)
+    platform = Platform("SLURM")
+    pl = RequirementsToAssetCollection( platform,
+                                        requirements_path=manifest.requirements )
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
+
+    platform = None
+    platform = Platform("SLURM", num_cores=16)
     
     task = EMODTask.from_default2(
             config_path="my_config.json",
@@ -241,7 +246,7 @@ def general_sim( erad_path ):
             campaign_builder=build_camp,
             schema_path=manifest.schema_file,
             param_custom_cb=set_param_fn,
-            ep4_custom_cb=ep4_fn,
+            ep4_custom_cb=None,
             demog_builder=build_demog,
             plugin_report=None # report
         )
