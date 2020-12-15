@@ -46,6 +46,6 @@ class MalariaTestImports(unittest.TestCase):
         import emodpy_malaria.demographics.MalariaDemographics as Demographics
 
         self.expected_items = [
-            "DT", "Demographics", "Node", "fromBasicNode"
+            "from_pop_csv", "fromBasicNode"
         ]
         self.verify_expected_items_present(namespace=Demographics)
