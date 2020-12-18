@@ -1,4 +1,4 @@
-# TBHIV Example Scenario
+# Malaria Example Scenario
 
 ## (Windows) Environment Prep
 - Open a terminal/shell/console.
