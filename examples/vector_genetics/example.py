@@ -16,7 +16,7 @@ from emodpy.emod_task import EMODTask
 import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy.reporters.builtin import ReportVectorGenetics
+from emodpy_malaria.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
 import pdb
 

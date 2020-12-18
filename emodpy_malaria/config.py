@@ -3,7 +3,7 @@ import emod_api.config.default_from_schema_no_validation as dfs
 alleles = list()
 mutations = dict()
 traits = list()
-insecticides = list()
+insecticides = dict()
 
 #
 # PUBLIC API section
@@ -12,8 +12,9 @@ def set_resistances( config ):
     """
     Use this function after you're done calling add_resistance. config is the input and the output
     """
-    for insect in insecticides:
-        config.parameters.Insecticides.append( insect )
+    for name, insect in insecticides.items():
+        insect.parameters.finalize()
+        config.parameters.Insecticides.append( insect.parameters )
     return config
 
 def add_alleles( allele_names_in, allele_inits_in ):
@@ -87,12 +88,15 @@ def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, 
              ]
             },
     """
-    def get_insecticide_by_name( insecticide_name ):
-        for cide in insecticides:
-            if cide.Name == insecticide_name:
-                return cide
+    def get_insecticide_by_name( insecticide_name ): 
+        if insecticide_name in insecticides:
+            #  print( "Found existing insecticide." )
+            return insecticides[ insecticide_name ]
+
         new_insecticide = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:Insecticide"] )
         new_insecticide.parameters.Name = insecticide_name
+        insecticides[ insecticide_name ] = new_insecticide
+        #  print( "New insecticide." )
         return new_insecticide 
 
     insecticide = get_insecticide_by_name( insecticide_name )
@@ -105,9 +109,6 @@ def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, 
     resistance.parameters.finalize()
 
     insecticide.parameters.Resistances.append( resistance.parameters )
-
-    insecticide.parameters.finalize()
-    insecticides.append( insecticide.parameters )
 
 # 
 # INTERNAL VEC-GEN FUNCTIONS
