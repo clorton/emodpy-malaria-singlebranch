@@ -12,6 +12,7 @@ class MalariaDemographics(Demog.Demographics):
         super().SetDefaultNodeAttributes(birth=True)
         DT.InitPrevUniform( self, 0.2 )
         DT.FullRisk( self )
+        super().SetDefaultFromTemplate(DT.NoMigrationHeterogeneity())
 
 def fromBasicNode(lat=0, lon=0, pop=1e6, name=1, forced_id=1, implicit_config_fns = None ):
     """
@@ -24,3 +25,9 @@ def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", s
     generic_demog = Demog.from_pop_csv( pop_filename_in, pop_filename_out, site )
     nodes = generic_demog.nodes
     return MalariaDemographics(nodes=nodes, idref=site, implicits=implicit_config_fns)
+
+def from_synth_pop(tot_pop=1e6, num_nodes=100, frac_rural=0.3, id_ref="from_synth_pop", implicits=None ):
+    generic_demog = Demog.from_synth_pop(tot_pop, num_nodes, frac_rural, id_ref, implicits )
+    nodes = generic_demog.nodes
+    return MalariaDemographics(nodes=nodes, idref=id_ref, implicits=implicits )
+

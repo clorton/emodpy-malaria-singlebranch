@@ -28,9 +28,33 @@ class ReportVectorStats(BuiltInReporter):
 
 @dataclass
 class MalariaSummaryReport(BuiltInReporter):
-    class_name: str = field(default="MalariaSummaryReport")
+    def config(self, config_builder, manifest):
+        self.class_name ="MalariaSummaryReport"
+        report_params = s2c.get_class_with_defaults( "MalariaSummaryReport", manifest.schema_file ) 
+        report_params = config_builder( report_params )
+        report_params.finalize()
+        report_params.pop( "Sim_Types" )  #  maybe that should be in finalize
+        self.parameters.update( dict( report_params ) )
 
 
 @dataclass
 class MalariaPatientJSONReport(BuiltInReporter):
-    class_name: str = field(default="MalariaPatientJSONReport")
+    def config(self, config_builder, manifest):
+        self.class_name = "MalariaPatientJSONReport"
+        report_params = s2c.get_class_with_defaults( "MalariaPatientJSONReport", manifest.schema_file ) 
+        report_params = config_builder( report_params )
+        report_params.finalize()
+        report_params.pop( "Sim_Types" )  #  maybe that should be in finalize
+        self.parameters.update( dict( report_params ) )
+
+
+@dataclass
+class MalariaTransmissionReport(BuiltInReporter):
+    def config(self, config_builder, manifest):
+        self.class_name = "MalariaTransmissionReport"
+        report_params = s2c.get_class_with_defaults( "MalariaTransmissionReport", manifest.schema_file ) 
+        report_params = config_builder( report_params )
+        report_params.finalize()
+        report_params.pop( "Sim_Types" )  #  maybe that should be in finalize
+        self.parameters.update( dict( report_params ) )
+
