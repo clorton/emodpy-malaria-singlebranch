@@ -123,9 +123,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertNotIn('Demographic_Coverage', self.event_coordinator)
         pass
 
-    @unittest.skip("NYI")
-    def test_ivermectin_no_killing_effect(self):
-        pass
     # endregion
 
 
