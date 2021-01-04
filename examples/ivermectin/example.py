@@ -40,18 +40,7 @@ def build_camp():
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
-    
-    # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( irs.IRSHousingModification(
-        camp,
-        start_day=100,
-        coverage=0.5,
-        killing_eff=0.5,
-        blocking_eff=0.5 ) )
-    camp.add( drug.AntiMalarialDrug(
-        camp,
-        start_day=300,
-        coverage=0.5 ) )
+
     camp.add(ivermectin.Ivermectin(
         schema_path_container=camp
         , start_day=10
@@ -70,6 +59,22 @@ def build_camp():
         schema_path_container=camp
         , start_day=20
         , target_coverage=0.45
+        , killing_effect=0.65
+        , killing_duration_box=2
+        , killing_duration_exponential=4
+    ))
+    camp.add(ivermectin.Ivermectin(
+        schema_path_container=camp
+        , start_day=20
+        , target_coverage=0.45
+        , killing_effect=0.65
+        , killing_duration_box=2
+        , killing_duration_exponential=4
+    ))
+    camp.add(ivermectin.Ivermectin(
+        schema_path_container=camp
+        , start_day=20
+        , target_num_individuals=751
         , killing_effect=0.65
         , killing_duration_box=2
         , killing_duration_exponential=4
