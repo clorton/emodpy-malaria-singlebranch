@@ -43,7 +43,7 @@ class TestMalariaInterventions(unittest.TestCase):
                          , target_num_individuals=None
                          , killing_effect=1.0
                          , killing_duration_box=0
-                         , killing_duration_exponential=0):
+                         , killing_exponential_rate=0):
         self.tmp_intervention = Ivermectin(
             schema_path_container=schema_path_file
             , start_day=start_day
@@ -51,7 +51,7 @@ class TestMalariaInterventions(unittest.TestCase):
             , target_num_individuals=target_num_individuals
             , killing_effect=killing_effect
             , killing_duration_box=killing_duration_box
-            , killing_duration_exponential=killing_duration_exponential
+            , killing_exponential_decay_rate=killing_exponential_rate
         )
         self.parse_intervention_parts()
         self.killing_config = self.intervention_config['Killing_Config']
@@ -79,9 +79,9 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_ivermectin_exponential_default(self):
         self.is_debugging = False
-        self.ivermectin_build(killing_duration_exponential=5)
+        self.ivermectin_build(killing_exponential_rate=0.1)
         self.assertEqual(self.killing_config['Initial_Effect'], 1.0)
-        self.assertEqual(self.killing_config['Decay_Time_Constant'], 5)
+        self.assertEqual(self.killing_config['Decay_Time_Constant'], 10)
         self.assertIn('Box_Duration', self.killing_config)
         self.assertEqual(self.killing_config['Box_Duration'], 0)
         self.assertEqual(self.killing_config['class'], 'WaningEffectBoxExponential')
@@ -89,11 +89,11 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_ivermectin_boxexponential_default(self):
         self.is_debugging = False
-        self.ivermectin_build(killing_duration_exponential=5,
+        self.ivermectin_build(killing_exponential_rate=0.25,
                               killing_duration_box=3,
                               killing_effect=0.8)
         self.assertEqual(self.killing_config['Initial_Effect'], 0.8)
-        self.assertEqual(self.killing_config['Decay_Time_Constant'], 5)
+        self.assertEqual(self.killing_config['Decay_Time_Constant'], 4)
         self.assertEqual(self.killing_config['Box_Duration'], 3)
         self.assertEqual(self.killing_config['class'], 'WaningEffectBoxExponential')
         pass
@@ -104,7 +104,7 @@ class TestMalariaInterventions(unittest.TestCase):
             target_coverage=0.87,
             killing_effect=0.76,
             killing_duration_box=12,
-            killing_duration_exponential=5
+            killing_exponential_rate=0.2
         )
         self.assertEqual(self.start_day, 123)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 0.87)

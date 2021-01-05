@@ -9,7 +9,7 @@ def Ivermectin (
         , target_coverage=1.0
         , target_num_individuals=None
         , killing_duration_box=0
-        , killing_duration_exponential=0
+        , killing_exponential_decay_rate=0
 ):
     """
 
@@ -19,7 +19,7 @@ def Ivermectin (
         target_num_individuals: number of individuals to choose
         killing_effect: initial parasite killing effect
         killing_duration_box: box duration for killing effect
-        killing_duration_exponential: decay_time_constant for killing effect
+        killing_exponential_decay_rate: rate at which killing effect decays per day. Use 0 for box duration only.
 
     Returns: campaign event
 
@@ -41,6 +41,9 @@ def Ivermectin (
     efficacy_profile = None
 
     killing = s2c.get_class_with_defaults("WaningEffectBoxExponential", schema_path)
+    killing_duration_exponential = 0
+    if killing_exponential_decay_rate > 0:
+        killing_duration_exponential = 1/killing_exponential_decay_rate
     killing.Decay_Time_Constant = killing_duration_exponential
     killing.Box_Duration = killing_duration_box
     killing.Initial_Effect = killing_effect

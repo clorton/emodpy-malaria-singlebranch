@@ -53,7 +53,7 @@ def build_camp():
         , start_day=15
         , target_num_individuals=123
         , killing_effect=0.76
-        , killing_duration_exponential=5
+        , killing_exponential_decay_rate=0.2
     ))
     camp.add(ivermectin.Ivermectin(
         schema_path_container=camp
@@ -61,7 +61,7 @@ def build_camp():
         , target_coverage=0.45
         , killing_effect=0.65
         , killing_duration_box=2
-        , killing_duration_exponential=4
+        , killing_exponential_decay_rate=0.25
     ))
     camp.add(ivermectin.Ivermectin(
         schema_path_container=camp
@@ -69,7 +69,7 @@ def build_camp():
         , target_coverage=0.45
         , killing_effect=0.65
         , killing_duration_box=2
-        , killing_duration_exponential=4
+        , killing_exponential_decay_rate=0.25
     ))
     camp.add(ivermectin.Ivermectin(
         schema_path_container=camp
@@ -77,7 +77,7 @@ def build_camp():
         , target_num_individuals=751
         , killing_effect=0.65
         , killing_duration_box=2
-        , killing_duration_exponential=4
+        , killing_exponential_decay_rate=0.25
     ))
     return camp
 
