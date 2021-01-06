@@ -1,6 +1,9 @@
 import unittest
 import json
+import os, sys
 
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
 import schema_path_file
 
 from emodpy_malaria.interventions.ivermectin import Ivermectin
