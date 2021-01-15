@@ -60,6 +60,8 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
     # Trait_Modifiers is a keys-as-value thing so don't really have any schema help here.
     trait_dict = dict()
     trait_dict[ trait_name ] = trait_value
+    # Need to purge out the schema-provided defaults first coz they're ebogus
+    trait.parameters.Trait_Modifiers.finalize()
     trait.parameters.Trait_Modifiers.update( trait_dict )
     trait.parameters.finalize()
     # Store these and put them in config later

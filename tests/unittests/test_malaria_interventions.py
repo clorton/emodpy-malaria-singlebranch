@@ -7,6 +7,27 @@ sys.path.append(file_dir)
 import schema_path_file
 
 from emodpy_malaria.interventions.ivermectin import Ivermectin
+from emodpy_malaria.interventions.bednet import Bednet
+from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
+
+
+class WaningEffects:
+    B = "WaningEffectBox"
+    C = "WaningEffectConstant"
+    X = "WaningEffectExponential"
+    BEX = "WaningEffectBoxExponential"
+
+
+class WaningParams:
+    BD = "Box_Duration"
+    DTC = "Decay_Time_Constant"
+    IE = "Initial_Effect"
+    C = "class"
+
+
+class schema_17Dec20:
+    schema_path = schema_path_file.schema_file_17Dec20
+
 
 class TestMalariaInterventions(unittest.TestCase):
 
@@ -19,6 +40,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.event_coordinator = None
         self.intervention_config = None
         self.killing_config = None # Used in ivermectin
+        self.schema_file = schema_path_file
         return
 
     def write_debug_files(self):
@@ -46,9 +68,9 @@ class TestMalariaInterventions(unittest.TestCase):
                          , target_num_individuals=None
                          , killing_effect=1.0
                          , killing_duration_box=0
-                         , killing_exponential_rate=0):
+                         , killing_exponential_rate=0.0):
         self.tmp_intervention = Ivermectin(
-            schema_path_container=schema_path_file
+            schema_path_container=self.schema_file
             , start_day=start_day
             , target_coverage=target_coverage
             , target_num_individuals=target_num_individuals
@@ -74,20 +96,20 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.start_day, 0)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'],
                          1.0)
-        self.assertEqual(self.killing_config['Initial_Effect'], 1.0)
-        self.assertIn('Decay_Time_Constant', self.killing_config)
-        self.assertEqual(self.killing_config['Decay_Time_Constant'], 0)
-        self.assertEqual(self.killing_config['class'], 'WaningEffectBoxExponential')
+        self.assertEqual(self.killing_config[WaningParams.IE], 1.0)
+        self.assertIn(WaningParams.DTC, self.killing_config)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 0)
+        self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
         return
 
     def test_ivermectin_exponential_default(self):
         self.is_debugging = False
         self.ivermectin_build(killing_exponential_rate=0.1)
-        self.assertEqual(self.killing_config['Initial_Effect'], 1.0)
-        self.assertEqual(self.killing_config['Decay_Time_Constant'], 10)
+        self.assertEqual(self.killing_config[WaningParams.IE], 1.0)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 10)
         self.assertIn('Box_Duration', self.killing_config)
-        self.assertEqual(self.killing_config['Box_Duration'], 0)
-        self.assertEqual(self.killing_config['class'], 'WaningEffectBoxExponential')
+        self.assertEqual(self.killing_config[WaningParams.BD], 0)
+        self.assertEqual(self.killing_config['class'], WaningEffects.BEX)
         pass
 
     def test_ivermectin_boxexponential_default(self):
@@ -95,6 +117,10 @@ class TestMalariaInterventions(unittest.TestCase):
         self.ivermectin_build(killing_exponential_rate=0.25,
                               killing_duration_box=3,
                               killing_effect=0.8)
+        self.assertEqual(self.killing_config[WaningParams.IE], 0.8)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 4)
+        self.assertEqual(self.killing_config[WaningParams.BD], 3)
+        self.assertEqual(self.killing_config['class'], WaningEffects.BEX)
         self.assertEqual(self.killing_config['Initial_Effect'], 0.8)
         self.assertEqual(self.killing_config['Decay_Time_Constant'], 4)
         self.assertEqual(self.killing_config['Box_Duration'], 3)
@@ -111,14 +137,14 @@ class TestMalariaInterventions(unittest.TestCase):
         )
         self.assertEqual(self.start_day, 123)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 0.87)
-        self.assertEqual(self.killing_config['Initial_Effect'], 0.76)
-        self.assertEqual(self.killing_config['Box_Duration'], 12)
-        self.assertEqual(self.killing_config['Decay_Time_Constant'], 5)
-        self.assertEqual(self.killing_config['class'], 'WaningEffectBoxExponential')
+        self.assertEqual(self.killing_config[WaningParams.IE], 0.76)
+        self.assertEqual(self.killing_config[WaningParams.BD], 12)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 5)
+        self.assertEqual(self.killing_config['class'], WaningEffects.BEX)
         pass
 
     def test_ivermectin_num_individuals(self):
-        self.is_debugging = True
+        self.is_debugging = False
         self.ivermectin_build(target_num_individuals=354,
                               killing_duration_box=3)
         self.assertEqual(self.event_coordinator['Target_Num_Individuals'], 354)
@@ -130,6 +156,281 @@ class TestMalariaInterventions(unittest.TestCase):
 
     # endregion
 
+    # region bednet
+    def bednet_build(self
+                      , start_day=1
+                      , coverage=1.0
+                      , blocking_eff=1.0
+                      , killing_eff=1.0
+                      , repelling_eff=1.0
+                      , usage_eff=1.0
+                      , blocking_decay_rate=0.0
+                      , blocking_predecay_duration=365
+                      , killing_decay_rate=0.0
+                      , killing_predecay_duration=365
+                      , repelling_decay_rate=0.0
+                      , repelling_predecay_duration=365
+                      , usage_decay_rate=0.0
+                      , usage_predecay_duration=365
+                      , node_ids=None
+                      , insecticide=None
+                      ):
+        if not self.tmp_intervention:
+            self.tmp_intervention = Bednet(
+                camp=self.schema_file
+                , start_day=start_day
+                , coverage=coverage
+                , blocking_eff=blocking_eff
+                , killing_eff=killing_eff
+                , repelling_eff=repelling_eff
+                , usage_eff=usage_eff
+                , blocking_decay_rate=blocking_decay_rate
+                , blocking_predecay_duration=blocking_predecay_duration
+                , killing_decay_rate=killing_decay_rate
+                , killing_predecay_duration=killing_predecay_duration
+                , repelling_decay_rate=repelling_decay_rate
+                , repelling_predecay_duration=repelling_predecay_duration
+                , usage_decay_rate=usage_decay_rate
+                , usage_predecay_duration=usage_predecay_duration
+                , node_ids=node_ids
+                , insecticide=insecticide
+            )
+        self.parse_intervention_parts()
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config']
+        self.all_configs = [
+            self.killing_config
+            , self.blocking_config
+            , self.repelling_config
+            , self.usage_config
+        ]
+        return
+
+    def test_bednet_default_throws_exception(self):
+        with self.assertRaises(TypeError) as context:
+            Bednet(camp=schema_path_file)
+        self.assertIn("start_day", str(context.exception))
+        return
+
+    def test_bednet_needs_only_start_day(self):
+        self.is_debugging = False
+        specific_day = 39
+
+        # call emodpy-malaria code directly
+        self.tmp_intervention = Bednet(camp=schema_path_file,
+                                       start_day=specific_day)
+
+        self.bednet_build() # tmp_intervention already set
+        # self.bednet_build(start_day=specific_day)
+
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'], 1.0)
+        self.assertEqual(self.start_day, specific_day)
+        for wc in self.all_configs:
+            self.assertEqual(wc[WaningParams.IE], 1)
+            self.assertEqual(wc[WaningParams.BD], 365)
+            self.assertEqual(wc[WaningParams.DTC], 0)
+            self.assertEqual(wc[WaningParams.C], WaningEffects.BEX)
+
+        self.assertEqual(self.event_coordinator['Individual_Selection_Type']
+                         , "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(self.nodeset['class'], "NodeSetAll")
+        return
+
+    def test_bednet_all_constant_waning(self):
+
+        self.bednet_build(start_day=13
+                          , blocking_predecay_duration=-1
+                          , killing_predecay_duration=-1
+                          , repelling_predecay_duration=-1
+                          , usage_predecay_duration=-1)
+        for wc in self.all_configs:
+            self.assertEqual(
+                wc[WaningParams.C]
+                , WaningEffects.C) # class is WaningEffectConstant
+        return
+
+    def test_bednet_all_waning_effectiveness(self):
+        self.is_debugging = False
+        block_effect = 0.9
+        kill_effect = 0.8
+        repell_effect = 0.7
+        usage_effect = 0.6
+
+        self.bednet_build(blocking_eff=block_effect
+                          , killing_eff=kill_effect
+                          , repelling_eff=repell_effect
+                          , usage_eff=usage_effect)
+
+        self.assertEqual(self.killing_config[WaningParams.IE], kill_effect)
+        self.assertEqual(self.blocking_config[WaningParams.IE], block_effect)
+        self.assertEqual(self.repelling_config[WaningParams.IE], repell_effect)
+        self.assertEqual(self.usage_config[WaningParams.IE], usage_effect)
+        return
+
+    def test_bednet_all_exponential_waning(self):
+        self.bednet_build(blocking_decay_rate=0.2
+                          , blocking_predecay_duration=0
+                          , killing_decay_rate=0.1
+                          , killing_predecay_duration=0
+                          , usage_decay_rate=0.01
+                          , usage_predecay_duration=0
+                          , repelling_decay_rate=0.5
+                          , repelling_predecay_duration=0)
+
+        # All of these should have no box duration
+        # All of these should be box exponential
+        for wc in self.all_configs:
+            self.assertEqual(wc[WaningParams.BD], 0)
+            self.assertEqual(wc[WaningParams.C], WaningEffects.BEX)
+
+        # Each of the Delay_Time_Constants is the reciprocal of the decay rate
+        self.assertEqual(self.blocking_config[WaningParams.DTC], 5.0)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 10.0)
+        self.assertEqual(self.usage_config[WaningParams.DTC], 100.0)
+        self.assertEqual(self.repelling_config[WaningParams.DTC], 2.0)
+        return
+
+    def test_bednet_nodeset_custom(self):
+        specific_ids = [1, 12, 123, 1234]
+        self.bednet_build(node_ids=specific_ids
+                          , blocking_eff=0.3
+                          , killing_predecay_duration=730
+                          , repelling_predecay_duration=0
+                          , repelling_decay_rate=0.02
+                          , usage_decay_rate=0.01
+                          , usage_predecay_duration=50
+                          )
+
+        self.assertEqual(self.nodeset['class'],
+                         "NodeSetNodeList")
+        self.assertEqual(self.nodeset['Node_List'],
+                         specific_ids)
+        self.assertEqual(self.blocking_config[WaningParams.IE], 0.3)
+
+        self.assertEqual(self.killing_config[WaningParams.BD], 730)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 0)
+
+        self.assertEqual(self.repelling_config[WaningParams.BD], 0)
+        self.assertEqual(self.repelling_config[WaningParams.DTC], 50)
+
+        self.assertEqual(self.usage_config[WaningParams.DTC], 100)
+        self.assertEqual(self.usage_config[WaningParams.BD], 50)
+        return
+
+    def test_bednet_coverage_custom(self):
+        specific_coverage = 0.365
+        self.bednet_build(coverage=specific_coverage
+
+                          , killing_eff=0.3
+
+                          , repelling_predecay_duration=730
+
+                          , usage_predecay_duration=0
+                          , usage_decay_rate=0.02
+
+                          , blocking_decay_rate=0.01
+                          , blocking_predecay_duration=50
+                          )
+
+        self.assertEqual(self.nodeset['class'],
+                         'NodeSetAll')
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'],
+                         specific_coverage)
+        self.assertEqual(self.killing_config[WaningParams.IE], 0.3)
+
+        self.assertEqual(self.repelling_config[WaningParams.BD], 730)
+        self.assertEqual(self.repelling_config[WaningParams.DTC], 0)
+
+        self.assertEqual(self.usage_config[WaningParams.BD], 0)
+        self.assertEqual(self.usage_config[WaningParams.DTC], 50)
+
+        self.assertEqual(self.blocking_config[WaningParams.DTC], 100)
+        self.assertEqual(self.blocking_config[WaningParams.BD], 50)
+        return
+
+    # endregion
+
+    # region OutdoorRestKill
+    def outdoorrestkill_build(self
+                              , killing_effect=0.02
+                              , start_day=1
+                              , coverage=1.0
+                              , insecticide_name=None
+                              , killing_predecay_duration=0
+                              , killing_decay_rate=0.0
+                              , node_ids=None):
+        if not self.tmp_intervention:
+            self.tmp_intervention = OutdoorRestKill(
+                schema_path_container=self.schema_file
+                , killing_effect=killing_effect
+                , insecticide_name=insecticide_name
+                , start_day=start_day
+                , target_coverage=coverage
+                , killing_predecay_duration=killing_predecay_duration
+                , killing_decay_rate=killing_decay_rate
+                , node_ids=node_ids
+            )
+        self.parse_intervention_parts()
+        self.killing_config = self.intervention_config['Killing_Config']
+        return
+
+    def test_outdoorrestkill_default_throws_exception(self):
+        with self.assertRaises(TypeError) as context:
+            OutdoorRestKill(schema_path_container=self.schema_file)
+        self.assertIn("killing_effect", str(context.exception))
+        return
+
+
+    def test_outdoorrestkill_only_needs_killing_effect(self):
+        specific_effect=0.311
+        self.tmp_intervention = OutdoorRestKill(
+            schema_path_container=self.schema_file
+        , killing_effect=specific_effect
+        )
+
+        self.outdoorrestkill_build() # tmp_intervention already built
+        self.assertEqual(self.killing_config[WaningParams.IE], specific_effect)
+        self.assertEqual(self.nodeset[WaningParams.C], "NodeSetAll")
+        return
+
+    def test_outdoorrestkill_all_custom(self):
+        specific_start_day = 123
+        specific_insecticide_name = "Vinegar"
+        specific_coverage = 0.63
+        specific_killing_effect = 0.15
+        specific_box_duration = 100
+        specific_decay_rate = 0.05
+        specific_nodes = [1, 2, 3, 5, 8, 13, 21, 34]
+
+        self.outdoorrestkill_build(
+            killing_effect=specific_killing_effect
+            , start_day=specific_start_day
+            , coverage=specific_coverage
+            , killing_predecay_duration=specific_box_duration
+            , killing_decay_rate=specific_decay_rate
+            , node_ids=specific_nodes
+        )
+
+        self.assertEqual(self.start_day, specific_start_day)
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'], specific_coverage)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], specific_insecticide_name)
+        self.assertEqual(self.killing_config[WaningParams.DTC], 1/specific_decay_rate)
+        self.assertEqual(self.killing_config[WaningParams.BD], specific_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.IE], specific_killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
+        self.assertEqual(self.nodeset['class'], 'NodeSetList')
+        self.assertEqual(self.nodeset['NodeSetNodeList'], specific_nodes)
+        return
+
+    # endregion
+
+class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
+
+    def setUp(self):
+        super(TestMalariaInterventions_17Dec20, self).setUp()
+        self.schema_file = schema_17Dec20
 
 
 if __name__ == '__main__':

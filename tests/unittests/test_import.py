@@ -25,20 +25,59 @@ class MalariaTestImports(unittest.TestCase):
         checks = [dir(package) for package in [emod_api, emodpy_malaria, emodpy]]
         for package in checks:
             self.assertIn('__package__', package)
+        return
 
     def test_intervention_bednet(self):
-        from emodpy_malaria import interventions
         from emodpy_malaria.interventions import bednet
 
         self.expected_items = [
-            "Bednet"
+            "Bednet", "BabyBednet", "utils"
         ]
         self.verify_expected_items_present(namespace=bednet)
+        return
+
+    def test_intervention_drug(self):
+        from emodpy_malaria.interventions import drug
+
+        self.expected_items = [
+            "AntiMalarialDrug", "utils"
+        ]
+        self.verify_expected_items_present(namespace=drug)
+        return
+
+    def test_intervention_irs(self):
+        from emodpy_malaria.interventions import irs
+
+        self.expected_items = [
+            "IRSHousingModification", "utils"
+        ]
+        self.verify_expected_items_present(namespace=irs)
+        return
+
+    @unittest.skip("NYI")
+    def test_intervention_outdoorrestkill(self):
+        from emodpy_malaria.interventions import outdoorrestkill
+
+        self.expected_items = [
+            "OutdoorRestKill"
+        ]
+        self.verify_expected_items_present(namespace=outdoorrestkill)
+        return
+
+    def test_intervention_spacespraying(self):
+        from emodpy_malaria.interventions import spacespraying
+
+        self.expected_items = [
+            "SpaceSpraying", "utils"
+        ]
+
+        self.verify_expected_items_present(namespace=spacespraying)
+        return
 
     def test_intervention_sugartrap(self):
         from emodpy_malaria.interventions import sugartrap
         self.expected_items = [
-            "SugarTrap"
+            "SugarTrap", "utils"
         ]
         self.verify_expected_items_present(namespace=sugartrap)
 

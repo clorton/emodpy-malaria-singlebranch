@@ -248,8 +248,8 @@ def general_sim( erad_path, ep4_scripts ):
     #demog_path = build_demog()
     #task.common_assets.add_asset( demog_path )
 
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
+    #print("Adding asset dir...")
+    #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     def rvg_config_builder( params ):
         params.Include_Vector_State_Columns = False
         params.Allele_Combinations_For_Stratification = [

@@ -1,4 +1,5 @@
 from emod_api import schema_to_class as s2c
+from emod_api.interventions import utils
 import json
 
 schema_path = None
@@ -6,7 +7,15 @@ iv_name = "SugarTrap"
 #dupe_policy = "Replace" # or "Add" or "Abort" -- from covid branch
 # Note that duration (what we call waning profile) needs to be configurable, but in an intuitive way
 
-def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, constant_duration=100 ): 
+def SugarTrap(
+        camp,
+        start_day,
+        coverage=1.0,
+        killing_eff=1,
+        insecticide=None,
+        constant_duration=100,
+        node_ids=None
+    ): 
     """
     SugarTrap intervention wrapper.
     """
@@ -19,9 +28,7 @@ def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, c
         return ""
 
     intervention = s2c.get_class_with_defaults( "SugarTrap", schema_path )
-    efficacy_profile = "WaningEffectConstant"
-    killing = s2c.get_class_with_defaults( efficacy_profile, schema_path )
-    killing.Initial_Effect = killing_eff
+    killing = utils.get_waning_from_params( schema_path, killing_eff, 0, 0 ) # constant
 
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
@@ -39,6 +46,8 @@ def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, c
 
     intervention.Expiration_Constant = constant_duration
 
+    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
+
     # Fourth/finally, purge the schema bits
     coordinator.finalize()
     intervention.finalize()
@@ -48,13 +57,12 @@ def SugarTrap( camp, start_day, coverage=1.0, killing_eff=1, insecticide=None, c
 
     return event
 
-def new_intervention_as_file( start_day, filename=None ):
+def new_intervention_as_file( camp, start_day, filename=None ):
     campaign = {}
     campaign["Events"] = []
-    campaign["Events"].append( new_intervention( start_day, vaccine_type, iv_name ) )
+    campaign["Events"].append( SugarTrap( camp, start_day ) )
     if filename is None:
         filename = "SugarTrap.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
     return filename
-

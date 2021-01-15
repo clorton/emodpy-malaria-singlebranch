@@ -84,6 +84,7 @@ def set_mdp( config, manifest ):
     mdp.parameters.Drug_Hepatocyte_Killrate = 1
     mdp.parameters.Drug_PKPD_C50 = 1
     mdp.parameters.Drug_Vd = 1
+    mdp.parameters.Fractional_Dose_By_Upper_Age = []
     # This needs to be changed ASAP
     """
     mdp.parameters.Fractional_Dose_By_Upper_Age = [
@@ -240,8 +241,8 @@ def general_sim( erad_path, ep4_scripts ):
     #demog_path = build_demog()
     #task.common_assets.add_asset( demog_path )
 
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
+    #print("Adding asset dir...")
+    #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     def rvg_config_builder( params ):
         params.Include_Vector_State_Columns = False
         params.Allele_Combinations_For_Stratification = [

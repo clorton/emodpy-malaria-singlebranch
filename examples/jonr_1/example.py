@@ -220,7 +220,7 @@ def build_demog():
     import emodpy_malaria.demographics.MalariaDemographics as Demographics
     import emod_api.migration.Migration as Migration
 
-    demog = Demographics.from_synth_pop( tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", implicits=None )
+    demog = Demographics.from_synth_pop( tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria" )
     mig = Migration.from_synth_pop( pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", migration_type=Migration.Migration.REGIONAL ) 
 
     return demog, mig

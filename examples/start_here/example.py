@@ -53,7 +53,7 @@ def print_params():
     print("nSims: ", params.nSims)
 
 
-def set_mdp( config, manifest ):
+def set_mdp( config, mani ):
     """
     Use 
     dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
@@ -67,7 +67,7 @@ def set_mdp( config, manifest ):
     # This initial code is just fumbling my way towards a solution; this code will be deeper down in a util function when done.
     # I'd rather these next two lines be under-the-hood
     mdp_default = { "parameters": { "schema": {} } }
-    mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
+    mdp = dfs.schema_to_config_subnode(mani.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
 
     # Just demonstrating that we can set drug params. Values mean nothing at this time.
     mdp.parameters.Bodyweight_Exponent = 45
@@ -83,14 +83,12 @@ def set_mdp( config, manifest ):
     mdp.parameters.Drug_PKPD_C50 = 1
     mdp.parameters.Drug_Vd = 1
     # This needs to be changed ASAP
-    """
     mdp.parameters.Fractional_Dose_By_Upper_Age = [
                 {
                     "Fraction_Of_Adult_Dose": 0.5,
                     "Upper_Age_In_Years": 5
                 }
             ]
-    """
     mdp.parameters.Max_Drug_IRBC_Kill = 1
  
     mdp_map = {}
@@ -101,10 +99,10 @@ def set_mdp( config, manifest ):
     return config
 
 
-def set_vsp( config, manifest ):
+def set_vsp( config, mani ):
     vsp_default = { "parameters": { "schema": {} } } 
 
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
+    vsp = dfs.schema_to_config_subnode(mani.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
 
     # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
     # These are here, commented out, just to show what can be set. If we want some preset groups, we could have some functions
@@ -179,7 +177,7 @@ def build_camp():
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5 ) )
+    camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
     return camp
 
 
@@ -195,7 +193,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321 )
+    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.1 )
     return demog
 
 
@@ -224,8 +222,8 @@ def general_sim( erad_path, ep4_scripts ):
             plugin_report=None # report
         )
 
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
+    #print("Adding asset dir...")
+    #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     print("Adding local assets (py scripts mainly)...")
 
     if ep4_scripts is not None:

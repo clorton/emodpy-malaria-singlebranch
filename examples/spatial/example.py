@@ -84,6 +84,7 @@ def set_mdp( config, manifest ):
     mdp.parameters.Drug_Hepatocyte_Killrate = 1
     mdp.parameters.Drug_PKPD_C50 = 1
     mdp.parameters.Drug_Vd = 1
+    mdp.parameters.Fractional_Dose_By_Upper_Age = []
     # This needs to be changed ASAP
     """
     mdp.parameters.Fractional_Dose_By_Upper_Age = [
@@ -158,7 +159,8 @@ def set_param_fn(config):
     config.parameters.Enable_Vector_Species_Report = 1
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
-
+    config.parameters.Custom_Individual_Events = [ "Bednet_Got_New_One", "Bednet_Using", "Bednet_Discarded" ]
+    
     # Set MalariaDrugParams
     config = set_mdp( config, manifest )
 
@@ -186,12 +188,15 @@ def build_camp():
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
     import emodpy_malaria.interventions.bednet as bednet
+    import emodpy_malaria.interventions.udbednet as udb
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid" ) )
+    nodes = [1402941398, 1402941399, 1402941400, 1402941401, 1402941404, 1402941410, 1403072469, 1403072470, 1403072471, 1403072472 ]
+    camp.add( udb.REIBednet( camp, start_day=10, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, insecticide="pyrethroid", node_ids=nodes ) )
+    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid", node_ids=nodes ) )
     return camp
 
 
@@ -254,8 +259,8 @@ def general_sim( erad_path ):
     #demog_path = build_demog()
     #task.common_assets.add_asset( demog_path )
 
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
+    #print("Adding asset dir...")
+    #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     def rvg_config_builder( params ):
         params.Include_Vector_State_Columns = False
         params.Allele_Combinations_For_Stratification = [
