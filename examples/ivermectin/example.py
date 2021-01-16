@@ -93,10 +93,9 @@ def build_demog():
 
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics
-    # import emod_api.migration.Migration as Migration
 
-    demog = Demographics.from_synth_pop( tot_pop=2e4, num_nodes=1, frac_rural=0.5, id_ref="cwiswell_single_node_malaria", implicits=None )
-    # mig = Migration.from_synth_pop( pop=2e4, num_nodes=1, frac_rural=0.3, id_ref="cwiswell_single_node_malaria" )
+    demog = Demographics.from_synth_pop(tot_pop=2e4, num_nodes=1, frac_rural=0.5,
+                                         id_ref="cwiswell_single_node_malaria")
 
     return demog
 

@@ -90,6 +90,7 @@ def set_mdp( config, manifest ):
     mdp.parameters.Drug_Hepatocyte_Killrate = 1
     mdp.parameters.Drug_PKPD_C50 = 1
     mdp.parameters.Drug_Vd = 1
+    mdp.parameters.Fractional_Dose_By_Upper_Age = []
     # This needs to be changed ASAP
     """
     mdp.parameters.Fractional_Dose_By_Upper_Age = [
@@ -297,7 +298,7 @@ def general_sim( erad_path, ep4_scripts ):
 
     # create experiment from builder
     print( f"Prompting for COMPS creds if necessary..." )
-    experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
+    experiment  = Experiment.from_builder(builder, task, name="Vector Genetics Campaign Sweep")
 
     #other_assets = AssetCollection.from_id(pl.run())
     #experiment.assets.add_assets(other_assets)

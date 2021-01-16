@@ -160,6 +160,12 @@ def set_param_fn(config):
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
     config.parameters.Custom_Individual_Events = [ "Bednet_Got_New_One", "Bednet_Using", "Bednet_Discarded" ]
+    config.parameters.Enable_Spatial_Output = 1 # remove when emodpy-malaria #35 is closed
+    config.parameters.Spatial_Output_Channels = [
+        "Adult_Vectors"
+        , "New_Infections"
+        , "Infectious_Vectors"
+    ]
     
     # Set MalariaDrugParams
     config = set_mdp( config, manifest )
