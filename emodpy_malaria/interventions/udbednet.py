@@ -281,3 +281,14 @@ def REIBednet(
     event.finalize()
 
     return event
+
+
+def new_intervention_as_file(camp, start_day, filename=None):
+    campaign = {}
+    campaign["Events"] = []
+    campaign["Events"].append(REIBednet(camp, start_day))
+    if filename is None:
+        filename = "UsageDependentBednet.json"
+    with open(filename, "w") as camp_file:
+        json.dump(campaign, camp_file, sort_keys=True, indent=4)
+    return filename
