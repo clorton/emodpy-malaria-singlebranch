@@ -266,15 +266,18 @@ def UDBednet(
         meta_intervention = s2c.get_class_with_defaults( "NodeLevelHealthTriggeredIV", schema_path )
         delay_intervention = s2c.get_class_with_defaults( "DelayedIntervention", schema_path )
         meta_intervention.Actual_IndividualIntervention_Config = delay_intervention
-        delay_intervention.Actual_IndividualIntervention_Config = intervention
+        delay_intervention.Actual_IndividualIntervention_Configs = [ intervention ]
         meta_intervention.Trigger_Condition_List.extend( triggers )
         if triggered_campaign_delay is not None:
             for param in triggered_campaign_delay: # better be literally usable Delayed Config settings, yuck
                 setattr(delay_intervention, param, triggered_campaign_delay[param])
+        else:
+            delay_intervention.Delay_Period_Constant = 0
         if check_eligibility_at_trigger:
             meta_intervention.Property_Restrictions = ind_property_restrictions # using this raw!?
         meta_intervention.Duration = duration 
         meta_intervention.finalize()
+        delay_intervention.finalize()
         coordinator.Intervention_Config = meta_intervention
 
     # Fourth/finally, purge the schema bits
