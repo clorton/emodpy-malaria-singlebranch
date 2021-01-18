@@ -67,7 +67,8 @@ def _get_age_times_and_values( schema_path, age_dependence ):
         
     return waning
 
-def REIBednet(
+
+def UDBednet(
     camp,
     start_day: int = 1,
     discard_config: dict = None,
@@ -263,10 +264,15 @@ def REIBednet(
 
     if triggers is not None:
         meta_intervention = s2c.get_class_with_defaults( "NodeLevelHealthTriggeredIV", schema_path )
-        meta_intervention.Actual_IndividualIntervention_Config = intervention
+        delay_intervention = s2c.get_class_with_defaults( "DelayedIntervention", schema_path )
+        meta_intervention.Actual_IndividualIntervention_Config = delay_intervention
+        delay_intervention.Actual_IndividualIntervention_Config = intervention
         meta_intervention.Trigger_Condition_List.extend( triggers )
-        #meta_intervention.Triggered_Campaign_Delay = triggered_campaign_delay 
-        #meta_intervention.Check_Eligibility_At_Trigger = check_eligibility_at_trigger 
+        if triggered_campaign_delay is not None:
+            for param in triggered_campaign_delay: # better be literally usable Delayed Config settings, yuck
+                setattr(delay_intervention, param, triggered_campaign_delay[param])
+        if check_eligibility_at_trigger:
+            meta_intervention.Property_Restrictions = ind_property_restrictions # using this raw!?
         meta_intervention.Duration = duration 
         meta_intervention.finalize()
         coordinator.Intervention_Config = meta_intervention
