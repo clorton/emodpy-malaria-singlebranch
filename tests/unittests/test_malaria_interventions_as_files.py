@@ -8,6 +8,7 @@ from emodpy_malaria.interventions.drug import new_intervention_as_file as drug_f
 from emodpy_malaria.interventions.irs import new_intervention_as_file as irs_file
 from emodpy_malaria.interventions.spacespraying import new_intervention_as_file as spacespray_file
 from emodpy_malaria.interventions.sugartrap import new_intervention_as_file as sugartrap_file
+from emodpy_malaria.interventions.udbednet import new_intervention_as_file as rei_bednet
 import emod_api.campaign as camp
 camp.schema_path = schema_path_file.schema_file
 
@@ -133,6 +134,19 @@ class MalariaInterventionFileTest(unittest.TestCase):
         self.file_path = None
         self.run_test()
         return
+
+    def test_udbednet_file(self):
+        self.is_debugging = False
+        self.method_under_test = rei_bednet
+        self.expected_intervention_class = "UsageDependentBednet"
+        self.run_test()
+
+    def test_udbednet_file_nofilename(self):
+        self.is_debugging = False
+        self.method_under_test = rei_bednet
+        self.expected_intervention_class = "UsageDependentBednet"
+        self.file_path = None
+        self.run_test()
 
 
 if __name__ == '__main__':
