@@ -81,6 +81,13 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=sugartrap)
 
+    def test_intervention_udbednet(self):
+        from emodpy_malaria.interventions import udbednet
+        self.expected_items = [
+            "REIBednet", "_get_seasonal_times_and_values", "_get_age_times_and_values"
+        ]
+        self.verify_expected_items_present(namespace=udbednet)
+
     def test_demographics_imports_emodapi(self):
         import emodpy_malaria.demographics.MalariaDemographics as Demographics
 

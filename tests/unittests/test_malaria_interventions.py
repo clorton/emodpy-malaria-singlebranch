@@ -9,6 +9,7 @@ import schema_path_file
 from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
+from emodpy_malaria.interventions.udbednet import REIBednet
 
 
 class WaningEffects:
@@ -422,6 +423,71 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
         self.assertEqual(self.nodeset['class'], 'NodeSetList')
         self.assertEqual(self.nodeset['NodeSetNodeList'], specific_nodes)
+        return
+
+    # endregion
+
+    # region UsageDependentBednet
+    def usagebednet_build(self
+                          , start_day=1
+                          , coverage=1.0
+                          , discard_config=None
+                          , property_restrictions=None
+                          , blocking_eff=1.0
+                          , blocking_decay_rate=0.0
+                          , blocking_predecay_duration=365
+                          , killing_eff=0.6
+                          , killing_decay_rate=0.0
+                          , killing_predecay_duration=0
+                          , repelling_eff=1.0
+                          , repelling_decay_rate=0.0
+                          , repelling_predecay_duration=365
+                          , intervention_name="UsageDependentBednet"
+                          , age_dependence:dict=None
+                          , seasonal_dependence:dict=None
+                          , insecticide:str=None
+                          , cost:int=5
+                          , node_ids:list=None
+                          , triggered_campaign_delay:int=0
+                          , triggers:list=None
+                          , duration:int=-1
+                          , check_eligibility_at_trigger:bool=False
+
+
+                      , node_ids=None
+                      , insecticide=None
+                      ):
+        if not self.tmp_intervention:
+            self.tmp_intervention = Bednet(
+                camp=self.schema_file
+                , start_day=start_day
+                , coverage=coverage
+                , blocking_eff=blocking_eff
+                , killing_eff=killing_eff
+                , repelling_eff=repelling_eff
+                , usage_eff=usage_eff
+                , blocking_decay_rate=blocking_decay_rate
+                , blocking_predecay_duration=blocking_predecay_duration
+                , killing_decay_rate=killing_decay_rate
+                , killing_predecay_duration=killing_predecay_duration
+                , repelling_decay_rate=repelling_decay_rate
+                , repelling_predecay_duration=repelling_predecay_duration
+                , usage_decay_rate=usage_decay_rate
+                , usage_predecay_duration=usage_predecay_duration
+                , node_ids=node_ids
+                , insecticide=insecticide
+            )
+        self.parse_intervention_parts()
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config']
+        self.all_configs = [
+            self.killing_config
+            , self.blocking_config
+            , self.repelling_config
+            , self.usage_config
+        ]
         return
 
     # endregion
