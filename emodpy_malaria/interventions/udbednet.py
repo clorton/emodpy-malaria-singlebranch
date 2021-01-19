@@ -225,7 +225,6 @@ def UDBednet(
     event = s2c.get_class_with_defaults( "CampaignEvent", schema_path )
     coordinator = s2c.get_class_with_defaults( "StandardEventCoordinator", schema_path )
     intervention = s2c.get_class_with_defaults( "UsageDependentBednet", schema_path )
-    coordinator.Demographic_Coverage = coverage
     seasonal_waning = _get_seasonal_times_and_values( schema_path, seasonal_dependence )
     age_waning = _get_age_times_and_values( schema_path, age_dependence )
     intervention.Usage_Config_List = list()
@@ -244,9 +243,6 @@ def UDBednet(
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
     coordinator.Intervention_Config = intervention
-    #coordinator.Property_Restrictions_Within_Node = ind_property_restrictions
-    if ind_property_restrictions:
-        coordinator.Property_Restrictions = ind_property_restrictions # using this raw!?
     Intervention_Config = intervention
     intervention.Killing_Config = killing 
     intervention.Blocking_Config = blocking 
@@ -266,6 +262,7 @@ def UDBednet(
 
     if triggers is not None:
         meta_intervention = s2c.get_class_with_defaults( "NodeLevelHealthTriggeredIV", schema_path )
+        meta_intervention.pop( "Actual_NodeIntervention_Config" )
         delay_intervention = s2c.get_class_with_defaults( "DelayedIntervention", schema_path )
         meta_intervention.Actual_IndividualIntervention_Config = delay_intervention
         delay_intervention.Actual_IndividualIntervention_Configs = [ intervention ]
@@ -281,6 +278,12 @@ def UDBednet(
         meta_intervention.finalize()
         delay_intervention.finalize()
         coordinator.Intervention_Config = meta_intervention
+        coordinator.pop( "Target_Gender" )
+    else:
+        #coordinator.Property_Restrictions_Within_Node = ind_property_restrictions
+        coordinator.Demographic_Coverage = coverage
+        if ind_property_restrictions:
+            coordinator.Property_Restrictions = ind_property_restrictions # using this raw!?
 
     # Fourth/finally, purge the schema bits
     coordinator.finalize()
