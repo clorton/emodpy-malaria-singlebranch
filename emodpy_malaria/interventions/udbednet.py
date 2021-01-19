@@ -37,6 +37,7 @@ def _get_seasonal_times_and_values( schema_path, seasonal_dependence ):
     waning.Initial_Effect = 1.0
     waning.Durability_Map.Times = list(seasonal_times)
     waning.Durability_Map.Values = list(seasonal_values)
+    waning.Durability_Map.finalize()
     waning.finalize()
         
     return waning
@@ -63,6 +64,7 @@ def _get_age_times_and_values( schema_path, age_dependence ):
     waning.Initial_Effect = 1.0
     waning.Durability_Map.Times = age_times
     waning.Durability_Map.Values = age_values
+    waning.Durability_Map.finalize()
     waning.finalize()
         
     return waning
