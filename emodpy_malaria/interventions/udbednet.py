@@ -272,7 +272,7 @@ def UDBednet(
                 setattr(delay_intervention, param, triggered_campaign_delay[param])
         else:
             delay_intervention.Delay_Period_Constant = 0
-        if check_eligibility_at_trigger:
+        if check_eligibility_at_trigger and ind_property_restrictions:
             meta_intervention.Property_Restrictions = ind_property_restrictions # using this raw!?
         meta_intervention.Duration = duration 
         meta_intervention.finalize()
