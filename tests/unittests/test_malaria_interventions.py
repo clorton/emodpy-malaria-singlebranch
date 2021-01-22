@@ -416,6 +416,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.outdoorrestkill_build(
             killing_effect=specific_killing_effect
             , start_day=specific_start_day
+            , insecticide_name = specific_insecticide_name 
             , coverage=specific_coverage
             , killing_predecay_duration=specific_box_duration
             , killing_decay_rate=specific_decay_rate
