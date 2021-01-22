@@ -407,6 +407,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.outdoorrestkill_build(
             killing_effect=specific_killing_effect
             , start_day=specific_start_day
+            , insecticide_name = specific_insecticide_name 
             , coverage=specific_coverage
             , killing_predecay_duration=specific_box_duration
             , killing_decay_rate=specific_decay_rate
@@ -420,8 +421,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.killing_config[WaningParams.BD], specific_box_duration)
         self.assertEqual(self.killing_config[WaningParams.IE], specific_killing_effect)
         self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
-        self.assertEqual(self.nodeset['class'], 'NodeSetList')
-        self.assertEqual(self.nodeset['NodeSetNodeList'], specific_nodes)
+        self.assertEqual(self.nodeset['class'], 'NodeSetNodeList')
+        self.assertEqual(self.nodeset['Node_List'], specific_nodes)
         return
 
     # endregion
