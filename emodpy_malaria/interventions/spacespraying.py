@@ -63,7 +63,7 @@ def new_intervention_as_file( camp, start_day, filename=None ):
     campaign["Events"] = []
     campaign["Events"].append( SpaceSpraying( camp, start_day ) )
     if filename is None:
-        filename = "SugarTrap.json"
+        filename = "SpaceSpraying.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
     return filename

@@ -9,6 +9,7 @@ import schema_path_file
 from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
+from emodpy_malaria.interventions.udbednet import REIBednet
 
 
 class WaningEffects:
@@ -23,6 +24,14 @@ class WaningParams:
     DTC = "Decay_Time_Constant"
     IE = "Initial_Effect"
     C = "class"
+
+
+class NodesetParams:
+    C = "class"
+    CNSA = "NodeSetAll"
+    CNSNL ="NodeSetNodeList"
+    NL = "Node_List"
+
 
 
 class schema_17Dec20:
@@ -235,7 +244,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
         self.assertEqual(self.event_coordinator['Individual_Selection_Type']
                          , "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(self.nodeset['class'], "NodeSetAll")
+        self.assertEqual(self.nodeset[NodesetParams.C],NodesetParams.CNSA)
         return
 
     def test_bednet_all_constant_waning(self):
@@ -303,9 +312,9 @@ class TestMalariaInterventions(unittest.TestCase):
                           , usage_predecay_duration=50
                           )
 
-        self.assertEqual(self.nodeset['class'],
-                         "NodeSetNodeList")
-        self.assertEqual(self.nodeset['Node_List'],
+        self.assertEqual(self.nodeset[NodesetParams.C],
+                         NodesetParams.CNSNL)
+        self.assertEqual(self.nodeset[NodesetParams.NL],
                          specific_ids)
         self.assertEqual(self.blocking_config[WaningParams.IE], 0.3)
 
@@ -334,8 +343,8 @@ class TestMalariaInterventions(unittest.TestCase):
                           , blocking_predecay_duration=50
                           )
 
-        self.assertEqual(self.nodeset['class'],
-                         'NodeSetAll')
+        self.assertEqual(self.nodeset[NodesetParams.C],
+                         NodesetParams.CNSA)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'],
                          specific_coverage)
         self.assertEqual(self.killing_config[WaningParams.IE], 0.3)
@@ -392,7 +401,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
         self.outdoorrestkill_build() # tmp_intervention already built
         self.assertEqual(self.killing_config[WaningParams.IE], specific_effect)
-        self.assertEqual(self.nodeset[WaningParams.C], "NodeSetAll")
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
         return
 
     def test_outdoorrestkill_all_custom(self):
@@ -421,9 +430,120 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.killing_config[WaningParams.BD], specific_box_duration)
         self.assertEqual(self.killing_config[WaningParams.IE], specific_killing_effect)
         self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
-        self.assertEqual(self.nodeset['class'], 'NodeSetNodeList')
-        self.assertEqual(self.nodeset['Node_List'], specific_nodes)
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSNL)
+        self.assertEqual(self.nodeset[NodesetParams.NL], specific_nodes)
         return
+
+    # endregion
+
+    # region UsageDependentBednet
+    def usagebednet_build(self
+                          , start_day=1
+                          , coverage=1.0
+                          , discard_config=None
+                          , property_restrictions=None
+                          , blocking_eff=1.0
+                          , blocking_decay_rate=0.0
+                          , blocking_predecay_duration=365
+                          , killing_eff=0.6
+                          , killing_decay_rate=0.0
+                          , killing_predecay_duration=0
+                          , repelling_eff=1.0
+                          , repelling_decay_rate=0.0
+                          , repelling_predecay_duration=365
+                          , intervention_name=None
+                          , age_dependence:dict=None
+                          , seasonal_dependence:dict=None
+                          , insecticide:str=None
+                          , cost:int=5
+                          , node_ids:list=None
+                          , triggered_campaign_delay:int=0
+                          , triggers:list=None
+                          , duration:int=-1
+                          , check_eligibility_at_trigger:bool=False
+                          ):
+        if not self.tmp_intervention:
+            if intervention_name is None:
+                self._testMethodName
+            self.tmp_intervention = REIBednet(
+                camp=self.schema_file
+                , iv_name=intervention_name
+                , start_day=start_day
+                , coverage=coverage
+                , discard_config=discard_config
+                , ind_property_restrictions=property_restrictions
+                , blocking_eff=blocking_eff
+                , blocking_decay_rate=blocking_decay_rate
+                , blocking_constant_duration=blocking_predecay_duration
+                , killing_eff=killing_eff
+                , killing_decay_rate=killing_decay_rate
+                , killing_constant_duration=killing_predecay_duration
+                , repelling_eff=repelling_eff
+                , repelling_decay_rate=repelling_decay_rate
+                , repelling_constant_duration=repelling_predecay_duration
+                , age_dependence=age_dependence
+                , seasonal_dependence=seasonal_dependence
+                , insecticide=insecticide
+                , cost=cost
+                , node_ids=node_ids
+                , triggered_campaign_delay=triggered_campaign_delay
+                , triggers=triggers
+                , duration=duration
+                , check_eligibility_at_trigger=check_eligibility_at_trigger
+            )
+        self.parse_intervention_parts()
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config_List']
+        self.all_configs = [
+            self.killing_config
+            , self.blocking_config
+            , self.repelling_config
+            , self.usage_config
+        ]
+        return
+
+    def test_usagebednet_only_needs_start_day(self):
+        specific_start_day=131415
+        self.tmp_intervention = REIBednet(camp=self.schema_file,
+                                          start_day=specific_start_day)
+        self.usagebednet_build()
+        self.assertEqual(self.start_day, specific_start_day)
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
+        self.assertEqual(self.event_coordinator['Individual_Selection_Type'],
+                         "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'],
+                         1.0)
+        self.assertEqual(self.intervention_config['Discard_Event'],
+                         'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'],
+                         'EXPONENTIAL_DISTRIBUTION')
+        return
+
+    def test_usagebednet_trigger_distribution(self):
+        self.is_debugging = True
+        specific_triggers = ["ColdOutside","HeavyMosquitoPresence"]
+        self.usagebednet_build(triggers=specific_triggers)
+
+        for trigger_condition in specific_triggers:
+            self.assertIn(trigger_condition, self.intervention_config['Trigger_Conditions'])
+        return
+
+    @unittest.skip("Trigger Delay is NYI yet")
+    def test_usagebednet_trigger_delay(self):
+        self.is_debugging = True
+        specific_triggers = ["WetOutside","ReceivesBednet"]
+        specific_delay = 13
+        self.usagebednet_build(triggers=specific_triggers,
+                               triggered_campaign_delay=specific_delay)
+
+        for trigger_condition in specific_triggers:
+            self.assertIn(trigger_condition, self.intervention_config['Trigger_Conditions'])
+        self.assertEqual(specific_delay, self.intervention_config['Trigger_Condition_Delay'])
+        return
+
+
 
     # endregion
 
