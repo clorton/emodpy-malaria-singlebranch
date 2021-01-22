@@ -492,6 +492,9 @@ class TestMalariaInterventions(unittest.TestCase):
                 , check_eligibility_at_trigger=check_eligibility_at_trigger
             )
         self.parse_intervention_parts()
+        if triggers:
+            self.intervention_config = \
+                self.intervention_config['Actual_IndividualIntervention_Config']
         self.killing_config = self.intervention_config['Killing_Config']
         self.blocking_config = self.intervention_config['Blocking_Config']
         self.repelling_config = self.intervention_config['Repelling_Config']
@@ -525,9 +528,10 @@ class TestMalariaInterventions(unittest.TestCase):
         self.is_debugging = True
         specific_triggers = ["ColdOutside","HeavyMosquitoPresence"]
         self.usagebednet_build(triggers=specific_triggers)
+        nlhtiv_config = self.event_coordinator['Intervention_Config']
 
         for trigger_condition in specific_triggers:
-            self.assertIn(trigger_condition, self.intervention_config['Trigger_Conditions'])
+            self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
         return
 
     @unittest.skip("Trigger Delay is NYI yet")
@@ -537,10 +541,10 @@ class TestMalariaInterventions(unittest.TestCase):
         specific_delay = 13
         self.usagebednet_build(triggers=specific_triggers,
                                triggered_campaign_delay=specific_delay)
-
+        nlhtiv_config = self.event_coordinator['Intervention_Config']
         for trigger_condition in specific_triggers:
-            self.assertIn(trigger_condition, self.intervention_config['Trigger_Conditions'])
-        self.assertEqual(specific_delay, self.intervention_config['Trigger_Condition_Delay'])
+            self.assertIn(trigger_condition, nlhtiv_config['Trigger_Conditions'])
+        self.assertEqual(specific_delay, nlhtiv_config['Trigger_Condition_Delay'])
         return
 
 
