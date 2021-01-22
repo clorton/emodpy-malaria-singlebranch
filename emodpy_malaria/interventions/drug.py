@@ -2,7 +2,7 @@ from emod_api import schema_to_class as s2c
 from emod_api.interventions import utils
 import json
 
-iv_name = "AntiMalarialDrug"
+iv_name = "AntimalarialDrug"
 
 def AntiMalarialDrug( 
         camp, 
@@ -55,7 +55,7 @@ def new_intervention_as_file( camp, start_day, filename=None ):
     campaign["Events"] = []
     campaign["Events"].append( AntiMalarialDrug( camp, start_day ) )
     if filename is None:
-        filename = "AntiMalarialDrug.json"
+        filename = "AntimalarialDrug.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
     return filename
