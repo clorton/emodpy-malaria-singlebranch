@@ -525,7 +525,7 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def test_usagebednet_trigger_distribution(self):
-        self.is_debugging = True
+        self.is_debugging = False
         specific_triggers = ["ColdOutside","HeavyMosquitoPresence"]
         self.usagebednet_build(triggers=specific_triggers)
         nlhtiv_config = self.event_coordinator['Intervention_Config']
@@ -536,7 +536,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     @unittest.skip("Trigger Delay is NYI yet")
     def test_usagebednet_trigger_delay(self):
-        self.is_debugging = True
+        self.is_debugging = False
         specific_triggers = ["WetOutside","ReceivesBednet"]
         specific_delay = 13
         self.usagebednet_build(triggers=specific_triggers,
