@@ -534,20 +534,77 @@ class TestMalariaInterventions(unittest.TestCase):
             self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
         return
 
-    @unittest.skip("Trigger Delay is NYI yet")
+    @unittest.skip("emodpy-malaria #62")
     def test_usagebednet_trigger_delay(self):
-        self.is_debugging = False
+        self.is_debugging = True
         specific_triggers = ["WetOutside","ReceivesBednet"]
         specific_delay = 13
         self.usagebednet_build(triggers=specific_triggers,
                                triggered_campaign_delay=specific_delay)
         nlhtiv_config = self.event_coordinator['Intervention_Config']
         for trigger_condition in specific_triggers:
-            self.assertIn(trigger_condition, nlhtiv_config['Trigger_Conditions'])
+            self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
         self.assertEqual(specific_delay, nlhtiv_config['Trigger_Condition_Delay'])
         return
 
+    def test_usagebednet_seasonal_dependence_timesvalues(self):
+        self.is_debugging = True
+        specific_times = [0, 90, 180, 270]
+        specific_values = [10, 50, 15, 75]
+        specific_seasonality = {
+            'Times': specific_times,
+            'Values': specific_values
+        }
+        self.usagebednet_build(seasonal_dependence=specific_seasonality)
+        usage_configs = self.intervention_config['Usage_Config_List']
+        found_seasonal = False
+        for durability in usage_configs:
+            if durability['class'] == 'WaningEffectMapLinearSeasonal':
+                found_seasonal = True
+                map = durability['Durability_Map']
+                self.assertEqual(map['Times'], specific_times)
+                self.assertEqual(map['Values'], specific_values)
+        self.assertTrue(found_seasonal)
+        pass
 
+    def test_usagebednet_seasonal_dependence_minmax_coverage(self):
+        self.is_debugging = True
+        specific_min_val = 0.1
+        specific_seasonality = {
+            'min_cov': specific_min_val,
+            'max_day': 185 # July 4 in non leap years
+        }
+        self.usagebednet_build(seasonal_dependence=specific_seasonality)
+        usage_configs = self.intervention_config['Usage_Config_List']
+        found_seasonal = False
+        for durability in usage_configs:
+            if durability['class'] == 'WaningEffectMapLinearSeasonal':
+                found_seasonal = True
+                map = durability['Durability_Map']
+                self.assertEqual(min['Values'], specific_min_val)
+        self.assertTrue(found_seasonal)
+        pass
+
+    @unittest.skip("NYI")
+    def test_usagebednet_seasonal_dependence_minzero_coverage(self):
+        specific_seasonality = {
+            'min_cov': 0.0,
+            'max_day': 185 # July 4 in non leap years
+        }
+        self.usagebednet_build(seasonal_dependence=specific_seasonality)
+        pass
+
+    @unittest.skip("NYI")
+    def test_usagebednet_age_dependence_one(self):
+        pass
+
+    @unittest.skip("NYI")
+    def test_usagebednet_age_dependence_two(self):
+        pass
+
+    @unittest.skip("NYI")
+    def test_usagebednet_age_dependence_three(self):
+        pass
 
     # endregion
 

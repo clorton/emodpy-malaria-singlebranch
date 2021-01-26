@@ -5,6 +5,7 @@ from emod_api import schema_to_class as s2c
 from emod_api.interventions import utils
 import json
 import numpy as np
+import sys
 
 def _get_seasonal_times_and_values( schema_path, seasonal_dependence ):
     # Assign seasonal net usage
