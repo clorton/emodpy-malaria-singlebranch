@@ -9,7 +9,7 @@ import schema_path_file
 from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
-from emodpy_malaria.interventions.udbednet import REIBednet
+from emodpy_malaria.interventions.udbednet import UDBednet
 
 
 class WaningEffects:
@@ -457,7 +457,7 @@ class TestMalariaInterventions(unittest.TestCase):
                           , insecticide:str=None
                           , cost:int=5
                           , node_ids:list=None
-                          , triggered_campaign_delay:int=0
+                          , triggered_campaign_delay:int=None
                           , triggers:list=None
                           , duration:int=-1
                           , check_eligibility_at_trigger:bool=False
@@ -465,7 +465,7 @@ class TestMalariaInterventions(unittest.TestCase):
         if not self.tmp_intervention:
             if intervention_name is None:
                 self._testMethodName
-            self.tmp_intervention = REIBednet(
+            self.tmp_intervention = UDBednet(
                 camp=self.schema_file
                 , iv_name=intervention_name
                 , start_day=start_day
@@ -509,7 +509,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_usagebednet_only_needs_start_day(self):
         specific_start_day=131415
-        self.tmp_intervention = REIBednet(camp=self.schema_file,
+        self.tmp_intervention = UDBednet(camp=self.schema_file,
                                           start_day=specific_start_day)
         self.usagebednet_build()
         self.assertEqual(self.start_day, specific_start_day)
