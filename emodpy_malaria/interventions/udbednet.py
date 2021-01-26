@@ -37,6 +37,7 @@ def _get_seasonal_times_and_values( schema_path, seasonal_dependence ):
     waning.Initial_Effect = 1.0
     waning.Durability_Map.Times = list(seasonal_times)
     waning.Durability_Map.Values = list(seasonal_values)
+    waning.Durability_Map.finalize()
     waning.finalize()
         
     return waning
@@ -63,11 +64,13 @@ def _get_age_times_and_values( schema_path, age_dependence ):
     waning.Initial_Effect = 1.0
     waning.Durability_Map.Times = age_times
     waning.Durability_Map.Values = age_values
+    waning.Durability_Map.finalize()
     waning.finalize()
         
     return waning
 
-def REIBednet(
+
+def UDBednet(
     camp,
     start_day: int = 1,
     discard_config: dict = None,
@@ -222,7 +225,6 @@ def REIBednet(
     event = s2c.get_class_with_defaults( "CampaignEvent", schema_path )
     coordinator = s2c.get_class_with_defaults( "StandardEventCoordinator", schema_path )
     intervention = s2c.get_class_with_defaults( "UsageDependentBednet", schema_path )
-    coordinator.Demographic_Coverage = coverage
     seasonal_waning = _get_seasonal_times_and_values( schema_path, seasonal_dependence )
     age_waning = _get_age_times_and_values( schema_path, age_dependence )
     intervention.Usage_Config_List = list()
@@ -241,9 +243,6 @@ def REIBednet(
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
     coordinator.Intervention_Config = intervention
-    #coordinator.Property_Restrictions_Within_Node = ind_property_restrictions
-    if ind_property_restrictions:
-        coordinator.Property_Restrictions = ind_property_restrictions # using this raw!?
     Intervention_Config = intervention
     intervention.Killing_Config = killing 
     intervention.Blocking_Config = blocking 
@@ -263,13 +262,28 @@ def REIBednet(
 
     if triggers is not None:
         meta_intervention = s2c.get_class_with_defaults( "NodeLevelHealthTriggeredIV", schema_path )
-        meta_intervention.Actual_IndividualIntervention_Config = intervention
+        meta_intervention.pop( "Actual_NodeIntervention_Config" )
+        delay_intervention = s2c.get_class_with_defaults( "DelayedIntervention", schema_path )
+        meta_intervention.Actual_IndividualIntervention_Config = delay_intervention
+        delay_intervention.Actual_IndividualIntervention_Configs = [ intervention ]
         meta_intervention.Trigger_Condition_List.extend( triggers )
-        #meta_intervention.Triggered_Campaign_Delay = triggered_campaign_delay 
-        #meta_intervention.Check_Eligibility_At_Trigger = check_eligibility_at_trigger 
+        if triggered_campaign_delay is not None:
+            for param in triggered_campaign_delay: # better be literally usable Delayed Config settings, yuck
+                setattr(delay_intervention, param, triggered_campaign_delay[param])
+        else:
+            delay_intervention.Delay_Period_Constant = 0
+        if check_eligibility_at_trigger and ind_property_restrictions:
+            meta_intervention.Property_Restrictions = ind_property_restrictions # using this raw!?
         meta_intervention.Duration = duration 
         meta_intervention.finalize()
+        delay_intervention.finalize()
         coordinator.Intervention_Config = meta_intervention
+        coordinator.pop( "Target_Gender" )
+    else:
+        #coordinator.Property_Restrictions_Within_Node = ind_property_restrictions
+        coordinator.Demographic_Coverage = coverage
+        if ind_property_restrictions:
+            coordinator.Property_Restrictions = ind_property_restrictions # using this raw!?
 
     # Fourth/finally, purge the schema bits
     coordinator.finalize()
