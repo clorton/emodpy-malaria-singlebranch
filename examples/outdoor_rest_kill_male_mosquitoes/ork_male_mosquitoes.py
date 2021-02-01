@@ -56,42 +56,44 @@ def update_killing_config_effectiveness(simulation, value):
 
 
 def set_vsp( config, manifest ):
-    vsp_default = { "parameters": { "schema": {} } } 
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
-
     # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
     # These are here, commented out, just to show what can be set. If we want some preset groups, we could have some functions
     # in the emodpy-malaria module.
 
     # This needs to be changed once the schema for Larval_Habitat_Types is fixed. 
     # Keys-as-values means we have to do this
-    vsp.parameters.Larval_Habitat_Types = {
-        "TEMPORARY_RAINFALL": 11250000000
-    }
-    vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
-    vsp = malconf.set_genetics( vsp, manifest ) # , alleles, allele_inits ) 
-    vsp.parameters.Name = "Gambiae"
-    vsp.parameters.finalize()
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
+    lhm.parameters.finalize()
+    vsp = malconf.get_species_params( config, "gambiae" )
+    vsp.Larval_Habitat_Types.append( lhm.parameters )
+    vsp.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
+    malconf.set_genetics( vsp, manifest ) # , alleles, allele_inits ) 
 
     vsp2 = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
-    vsp2.parameters.Larval_Habitat_Types = {
-        "TEMPORARY_RAINFALL": 11250000000
-    }
     vsp2.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
     vsp2 = malconf.set_genetics(vsp2, manifest)  # , alleles, allele_inits )
     vsp2.parameters.Name = "SillySkeeter"
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
+    lhm.parameters.finalize()
+    vsp2.parameters.Larval_Habitat_Types.append( lhm.parameters )
     vsp2.parameters.finalize()
 
     vsp3 = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
-    vsp3.parameters.Larval_Habitat_Types = {
-        "TEMPORARY_RAINFALL": 11250000000
-    }
     vsp3.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
     vsp3 = malconf.set_genetics(vsp3, manifest)  # , alleles, allele_inits )
     vsp3.parameters.Name = "SuperSkeeter"
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
+    lhm.parameters.finalize()
+    vsp3.parameters.Larval_Habitat_Types.append( lhm.parameters )
     vsp3.parameters.finalize()
 
-    config.parameters.Vector_Species_Params.append(vsp.parameters)
+    #config.parameters.Vector_Species_Params.append(vsp.parameters)
     config.parameters.Vector_Species_Params.append(vsp2.parameters)
     config.parameters.Vector_Species_Params.append(vsp3.parameters)
     return config
@@ -101,7 +103,9 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config( config )
+    config = set_config.set_config(config)
+    config = malconf.set_team_defaults(config, manifest)
+    malconf.set_species(config, ["gambiae"])
 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
@@ -117,9 +121,9 @@ def set_param_fn(config):
     # Vector Genetics
     malconf.add_resistance(manifest,
                            insecticide_name="only_kill_male_silly",
-                           species="Gambiae",
+                           species="gambiae",
                            combo=[["X", "*"]],
-                           killing=0.0) # Makes Gambiae unaffected
+                           killing=0.0) # Makes gambiae unaffected
     malconf.add_resistance(manifest,
                            insecticide_name="only_kill_male_silly",
                            species="SillySkeeter",
@@ -194,7 +198,7 @@ def general_sim( erad_path, ep4_scripts ):
     #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
 
     reporter_vstats = vrs.get_report_vector_stats(manifest,
-                                                  species_list=["Gambiae","SillySkeeter"])
+                                                  species_list=["gambiae","SillySkeeter"])
     task.reporters.add_reporter(reporter_vstats)
 
     # Set task.campaign to None to not send any campaign to comps since we are going to override it later with

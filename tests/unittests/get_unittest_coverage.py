@@ -3,6 +3,7 @@ import unittest
 loader = unittest.TestLoader()
 cov = coverage.Coverage(source=[
     "emodpy_malaria.demographics.MalariaDemographics"
+    , "emodpy_malaria.config"
     , "emodpy_malaria.interventions.bednet"
     , "emodpy_malaria.interventions.drug"
     , "emodpy_malaria.interventions.irs"
@@ -19,11 +20,13 @@ from test_import import MalariaTestImports
 from test_malaria_interventions import TestMalariaInterventions
 from test_malaria_interventions_as_files import MalariaInterventionFileTest
 from test_malaria_reporters import TestMalariaReport
+from test_malaria_config import TestMalariaConfig
 
 test_classes_to_run = [MalariaTestImports,
                        TestMalariaInterventions,
                        MalariaInterventionFileTest,
-                       TestMalariaReport]
+                       TestMalariaReport,
+                       TestMalariaConfig]
 
 suites_list = []
 for tc in test_classes_to_run:

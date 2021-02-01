@@ -1,2 +1,2 @@
 exp_name="Malaria Sandbox Example Experiment"
-nSims = 5
+nSims = 1

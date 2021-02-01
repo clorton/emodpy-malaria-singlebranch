@@ -27,6 +27,7 @@ class MalariaTestImports(unittest.TestCase):
             self.assertIn('__package__', package)
         return
 
+    # region interventions
     def test_intervention_bednet(self):
         from emodpy_malaria.interventions import bednet
 
@@ -54,7 +55,6 @@ class MalariaTestImports(unittest.TestCase):
         self.verify_expected_items_present(namespace=irs)
         return
 
-    @unittest.skip("NYI")
     def test_intervention_outdoorrestkill(self):
         from emodpy_malaria.interventions import outdoorrestkill
 
@@ -88,10 +88,32 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=udbednet)
 
-    def test_demographics_imports_emodapi(self):
+    # endregion
+
+    # region demographics
+    def test_demographics_imports(self):
         import emodpy_malaria.demographics.MalariaDemographics as Demographics
 
         self.expected_items = [
-            "from_pop_csv", "fromBasicNode"
+            "from_pop_csv", "fromBasicNode", "from_synth_pop"
         ]
         self.verify_expected_items_present(namespace=Demographics)
+
+    # endregion
+
+    # region config
+    def test_config_imports(self):
+        import emodpy_malaria.config as conf
+
+        self.expected_items = [
+            "alleles", "mutations", "traits", "insecticides",
+            "get_file_from_http", "set_team_defaults",
+            "set_team_vs_params", "get_species_params",
+            "set_team_drug_params", "get_drug_params",
+            "set_species", "set_resistances", "add_alleles",
+            "add_mutation", "add_trait", "add_resistance"
+        ]
+
+        self.verify_expected_items_present(namespace=conf)
+
+    # endregion

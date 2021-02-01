@@ -61,101 +61,32 @@ def print_params():
     print("exp_name: ", params.exp_name)
     print("nSims: ", params.nSims)
 
-def set_mdp( config, manifest ):
-    """
-    Use 
-    dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
-    to get default malaria drug param dict. Convert to schema-backed version (that's an emod_api responsibility)
-    dfs.load_config_as_rod
 
-    Set params as desired.
-    Do this for each malaria drug.
-    Add to config (through emod_api if necessary, this might end up being an insertion which would normally be forbidden by schema-backed non-insertable dict)
-    """
-    # This initial code is just fumbling my way towards a solution; this code will be deeper down in a util function when done.
-    # I'd rather these next two lines be under-the-hood
-    mdp_default = { "parameters": { "schema": {} } }
-    mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
-
-    # Just demonstrating that we can set drug params. Values mean nothing at this time.
-    mdp.parameters.Bodyweight_Exponent = 45
-    mdp.parameters.Drug_Cmax = 100
-    mdp.parameters.Drug_Decay_T1 = 1
-    mdp.parameters.Drug_Decay_T2 = 1
-    mdp.parameters.Drug_Dose_Interval = 1
-    mdp.parameters.Drug_Fulltreatment_Doses = 1
-    mdp.parameters.Drug_Gametocyte02_Killrate = 1
-    mdp.parameters.Drug_Gametocyte34_Killrate = 1
-    mdp.parameters.Drug_GametocyteM_Killrate = 1
-    mdp.parameters.Drug_Hepatocyte_Killrate = 1
-    mdp.parameters.Drug_PKPD_C50 = 1
-    mdp.parameters.Drug_Vd = 1
-    mdp.parameters.Fractional_Dose_By_Upper_Age = []
-    # This needs to be changed ASAP
-    """
-    mdp.parameters.Fractional_Dose_By_Upper_Age = [
-                {
-                    "Fraction_Of_Adult_Dose": 0.5,
-                    "Upper_Age_In_Years": 5
-                }
-            ]
-    """
-    mdp.parameters.Max_Drug_IRBC_Kill = 1
- 
-    mdp_map = {}
-    mdp.parameters.finalize()
-    mdp_map["Chloroquine"] = mdp.parameters
-
-    config.parameters.Malaria_Drug_Params = mdp_map
-    return config
-
-def set_vsp( config, manifest ):
-    vsp_default = { "parameters": { "schema": {} } } 
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
-
-    # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
-    # These are here, commented out, just to show what can be set. If we want some preset groups, we could have some functions
-    # in the emodpy-malaria module.
-    #vsp.parameters.Acquire_Modifier = 1
-    #vsp.parameters.Adult_Life_Expectancy = 1
-    #vsp.parameters.Anthropophily = 0.95
-    #vsp.parameters.Aquatic_Arrhenius_1 = 1
-    #vsp.parameters.Aquatic_Arrhenius_2 = 1
-    #vsp.parameters.Aquatic_Mortality_Rate = 1
-    ##vsp.parameters.Cycle_Arrhenius_1 = 1
-    ##vsp.parameters.Cycle_Arrhenius_2 = 1
-    ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
-    #vsp.parameters.Days_Between_Feeds = 1
-    #vsp.parameters.Drivers = []
-    #vsp.parameters.Egg_Batch_Size = 1
-    #vsp.parameters.Immature_Duration = 1
-    #vsp.parameters.Indoor_Feeding_Fraction = 1
-    #vsp.parameters.Infected_Arrhenius_1 = 1
-    #vsp.parameters.Infected_Arrhenius_2 = 1
-    #vsp.parameters.Infected_Egg_Batch_Factor = 1
-    #vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1
-    #vsp.parameters.Male_Life_Expectancy = 1
-    #vsp.parameters.Transmission_Rate = 1
-    #vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_NONE"
-
-    # This needs to be changed once the schema for Larval_Habitat_Types is fixed. 
-    # Keys-as-values means we have to do this
-    vsp.parameters.Larval_Habitat_Types = {
-        "TEMPORARY_RAINFALL": 11250000000
-    }
-    vsp = malconf.set_genetics( vsp, manifest ) # , alleles, allele_inits ) 
-    vsp.parameters.Name = "Gambiae"
-    vsp.parameters.finalize()
+def set_vsp( config, mani ):
+    vsp = malconf.set_genetics( malconf.get_species_params( config, "gambiae" ), mani )
 
     # config.parameters.Vector_Species_Params = list() # won't need this after schema is fixed.
-    config.parameters.Vector_Species_Params.append( vsp.parameters )
+    # I think the new way should just set this in place. Check this!!!
+    #config.parameters.Vector_Species_Params = vsp.parameters
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
+    lhm.parameters.finalize()
+    malconf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
     return config
 
 def set_param_fn(config): 
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config( config )
+    config = set_config.set_config( config ) # you can set scenario config params in a standalone file
+    import emodpy_malaria.config as conf
+    config = conf.set_team_defaults( config, manifest ) # team defaults
+    conf.set_species( config, [ "gambiae" ] )
+
+    # or you can set the here.
+    config.parameters.Base_Rainfall = 150
+    config.parameters.Simulation_Duration = 365
 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
@@ -166,9 +97,6 @@ def set_param_fn(config):
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
-    # Set MalariaDrugParams
-    config = set_mdp( config, manifest )
-
     # Vector Genetics
     malconf.add_alleles( [ "tom", "dick", "harry" ], [ 0.5, 0.5, 0 ] )
     malconf.add_mutation( from_allele="tom", to_allele="dick", rate=0.5 )
@@ -178,7 +106,7 @@ def set_param_fn(config):
     malconf.add_alleles( [ "this", "that", "the_other" ], [ 0.9, 0.05, 0.05 ] )
     malconf.add_mutation( from_allele="this", to_allele="that", rate=0.4444 )
     malconf.add_trait( manifest, [ "X", "X" ], [ "tom", "dick" ], "INFECTED_BY_HUMAN", 0 )
-    malconf.add_resistance( manifest, "pyrethroid", "Gambiae", [ [ "this", "that" ] ] )
+    malconf.add_resistance( manifest, "pyrethroid", "gambiae", [ [ "this", "that" ] ] )
     config = malconf.set_resistances( config )
 
     # Vector Species Params
@@ -249,8 +177,6 @@ def general_sim( erad_path, ep4_scripts ):
     #demog_path = build_demog()
     #task.common_assets.add_asset( demog_path )
 
-    #print("Adding asset dir...")
-    #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     def rvg_config_builder( params ):
         params.Include_Vector_State_Columns = False
         params.Allele_Combinations_For_Stratification = [
@@ -297,8 +223,8 @@ def general_sim( erad_path, ep4_scripts ):
     builder.add_sweep_definition( update_camp_start_day, range(params.nSims) )
 
     # create experiment from builder
-    print( f"Prompting for COMPS creds if necessary..." )
-    experiment  = Experiment.from_builder(builder, task, name="Vector Genetics Campaign Sweep")
+    print( f"Prompting for COMPS creds if necessary..." ) 
+    experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
 
     #other_assets = AssetCollection.from_id(pl.run())
     #experiment.assets.add_assets(other_assets)

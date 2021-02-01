@@ -24,20 +24,25 @@ def _get_seasonal_times_and_values( schema_path, seasonal_dependence ):
         seasonal_times = seasonal_dependence['Times']
         seasonal_values = seasonal_dependence['Values']
     elif all([k in seasonal_dependence.keys() for k in ['min_cov', 'max_day']]):
-        # Option 3: Create values from parameters
-        seasonal_times = [*range(0,361,30),365]
-        if seasonal_dependence['min_cov'] == 0:
-            seasonal_dependence['min_cov'] = seasonal_dependence['min_cov'] + sys.float_info.epsilon
-        seasonal_values = (1 - seasonal_dependence['min_cov']) / 2 * np.cos(
-            2 * np.pi / 365 * (seasonal_times - seasonal_dependence['max_day'])) + \
-                          (1 + seasonal_dependence['min_cov']) / 2
+        try:
+            # Option 3: Create values from parameters
+            seasonal_times = np.append(np.arange(0, 361, 30), 365)
+            if seasonal_dependence['min_cov'] == 0:
+                seasonal_dependence['min_cov'] = seasonal_dependence['min_cov'] + sys.float_info.epsilon
+            seasonal_values = (1 - seasonal_dependence['min_cov']) / 2 * np.cos(
+                2 * np.pi / 365 * (seasonal_times - seasonal_dependence['max_day'])) + \
+                              (1 + seasonal_dependence['min_cov']) / 2
+        except Exception as ex:
+            print( "Exception processing seasonal values with min_cov and max_day." )
+            print( str( ex ) )
+            print( seasonal_dependence )
     else:
         raise ValueError('Did not find all the keys were were looking for. Possible dictionaries can be:\n'
                          '{"Times":[], "Values":[]} or {"min_cov":0.45, "max_day":300}\n')
     waning = s2c.get_class_with_defaults( "WaningEffectMapLinearSeasonal", schema_path )
     waning.Initial_Effect = 1.0
-    waning.Durability_Map.Times = list(seasonal_times)
-    waning.Durability_Map.Values = list(seasonal_values)
+    waning.Durability_Map.Times = [float(x) for x in seasonal_times]
+    waning.Durability_Map.Values = [float(x) for x in seasonal_values]
     waning.Durability_Map.finalize()
     waning.finalize()
         
@@ -81,13 +86,13 @@ def UDBednet(
 
     blocking_eff: float = 0.9,
     blocking_constant_duration: int = 0,
-    blocking_decay_rate: int = 1/730.,
+    blocking_decay_rate: float = 1/730.,
     killing_eff: float = 0.6,
     killing_constant_duration: int = 0,
-    killing_decay_rate: int = 1/1460.,
+    killing_decay_rate: float = 1/1460.,
     repelling_eff: float = 0,
     repelling_constant_duration: int = 0,
-    repelling_decay_rate: int = 1/1460.,
+    repelling_decay_rate: float = 1/1460.,
     iv_name: str = "UsageDependentBednet",
 
     age_dependence: dict = None,
@@ -98,7 +103,7 @@ def UDBednet(
 
     node_ids: list = None,
     # birth_triggered: bool = False, # add Birth to tcl
-    triggered_campaign_delay: int = 0,
+    triggered_campaign_delay: dict = None,
     triggers: list = None,
     duration: int = -1,
     check_eligibility_at_trigger: bool = False):
@@ -178,7 +183,9 @@ def UDBednet(
         triggered_campaign_delay: (Optional) After the trigger is received,
             the number of time steps until the campaign starts. Eligibility
             of people or nodes for the campaign is evaluated on the start
-            day, not the triggered day.
+            day, not the triggered day. triggered_campaign_delay is a dict. 
+            Specify the actual delay distribution params, not the distribution type.
+            E.g., { "Delay_Distribution_Constant": 14" }
             Delay is in days
         trigger_condition_list: (Optional) A list of the events that will
             trigger the ITN intervention. If included, **start** is the day
@@ -268,11 +275,11 @@ def UDBednet(
         meta_intervention.Actual_IndividualIntervention_Config = delay_intervention
         delay_intervention.Actual_IndividualIntervention_Configs = [ intervention ]
         meta_intervention.Trigger_Condition_List.extend( triggers )
-        if triggered_campaign_delay is not None:
-            for param in triggered_campaign_delay: # better be literally usable Delayed Config settings, yuck
-                setattr(delay_intervention, param, triggered_campaign_delay[param])
-        else:
-            delay_intervention.Delay_Period_Constant = 0
+        if triggered_campaign_delay is None:
+            triggered_campaign_delay = dict()
+            triggered_campaign_delay[ "Delay_Period_Constant" ] = 7 
+        for param in triggered_campaign_delay: # better be literally usable Delayed Config settings, yuck
+            setattr(delay_intervention, param, triggered_campaign_delay[param])
         if check_eligibility_at_trigger and ind_property_restrictions:
             meta_intervention.Property_Restrictions = ind_property_restrictions # using this raw!?
         meta_intervention.Duration = duration 

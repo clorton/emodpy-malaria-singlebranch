@@ -128,7 +128,7 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("SLURMStage") 
+    platform = Platform("Calculon") 
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 

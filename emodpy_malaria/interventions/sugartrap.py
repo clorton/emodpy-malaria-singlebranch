@@ -17,7 +17,7 @@ def SugarTrap(
         node_ids=None
     ): 
     """
-    SugarTrap intervention wrapper.
+    SugarTrap intervention wrapper.  
     """
     schema_path = camp.schema_path
     # First, get the objects
@@ -42,7 +42,7 @@ def SugarTrap(
     if insecticide is None:
         intervention.pop( "Insecticide_Name" ) # this is not permanent
     else:
-        intervention.Insecticide_Name = insecticide
+        intervention.Insecticide_Name = insecticide 
 
     intervention.Expiration_Constant = constant_duration
 
@@ -50,8 +50,8 @@ def SugarTrap(
 
     # Fourth/finally, purge the schema bits
     coordinator.finalize()
-    intervention.finalize()
-    killing.finalize()
+    intervention.finalize() 
+    killing.finalize() 
     event.finalize()
     #event["Name"] = "MCV1" # ???
 
@@ -61,8 +61,11 @@ def new_intervention_as_file( camp, start_day, filename=None ):
     campaign = {}
     campaign["Events"] = []
     campaign["Events"].append( SugarTrap( camp, start_day ) )
+
     if filename is None:
         filename = "SugarTrap.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
+
     return filename
+

@@ -13,5 +13,5 @@ plugins_folder = "download/reporter_plugins"
 
 ep4_dir="ep4_dir"
 #requirements = "./requirements.txt"
-population_input_path="../../data/facebook_pop_clipped.csv"
+population_input_path="facebook_pop_clipped.csv"
 requirements = "./requirements.txt"

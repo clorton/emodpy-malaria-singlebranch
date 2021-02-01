@@ -33,9 +33,12 @@ class NodesetParams:
     NL = "Node_List"
 
 
-
 class schema_17Dec20:
     schema_path = schema_path_file.schema_file_17Dec20
+
+
+class schema_10Jan21:
+    schema_path = schema_path_file.schema_file_10Jan21
 
 
 class TestMalariaInterventions(unittest.TestCase):
@@ -53,7 +56,7 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def write_debug_files(self):
-        with open(f'DEBUG_{self.id()}.json', 'w') as outfile:
+        with open(f'DEBUG_{self._testMethodName}.json', 'w') as outfile:
             json.dump(self.tmp_intervention, outfile, indent=4, sort_keys=True)
         return
 
@@ -457,7 +460,7 @@ class TestMalariaInterventions(unittest.TestCase):
                           , insecticide:str=None
                           , cost:int=5
                           , node_ids:list=None
-                          , triggered_campaign_delay:int=None
+                          , triggered_campaign_delay:dict=None
                           , triggers:list=None
                           , duration:int=-1
                           , check_eligibility_at_trigger:bool=False
@@ -493,8 +496,10 @@ class TestMalariaInterventions(unittest.TestCase):
             )
         self.parse_intervention_parts()
         if triggers:
+            self.delay_intervention = self.intervention_config['Actual_IndividualIntervention_Config']
+            self.delay_intervention_distro = self.delay_intervention['Delay_Period_Distribution']
             self.intervention_config = \
-                self.intervention_config['Actual_IndividualIntervention_Config']
+                self.delay_intervention['Actual_IndividualIntervention_Configs'][0]
         self.killing_config = self.intervention_config['Killing_Config']
         self.blocking_config = self.intervention_config['Blocking_Config']
         self.repelling_config = self.intervention_config['Repelling_Config']
@@ -534,21 +539,26 @@ class TestMalariaInterventions(unittest.TestCase):
             self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
         return
 
-    @unittest.skip("emodpy-malaria #62")
-    def test_usagebednet_trigger_delay(self):
+    def test_usagebednet_trigger_delay_constant(self):
         self.is_debugging = True
         specific_triggers = ["WetOutside","ReceivesBednet"]
-        specific_delay = 13
+        specific_delay_param = 'Delay_Period_Constant'
+        specific_delay_value = 9
+        specific_delay_dict = {specific_delay_param: specific_delay_value}
+        specific_distribution = "CONSTANT_DISTRIBUTION"
         self.usagebednet_build(triggers=specific_triggers,
-                               triggered_campaign_delay=specific_delay)
+                               triggered_campaign_delay=specific_delay_dict)
         nlhtiv_config = self.event_coordinator['Intervention_Config']
         for trigger_condition in specific_triggers:
             self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
-        self.assertEqual(specific_delay, nlhtiv_config['Trigger_Condition_Delay'])
+
+        self.assertEqual(self.delay_intervention_distro, specific_distribution)
+        self.assertEqual(self.delay_intervention[specific_delay_param],
+                         specific_delay_value)
         return
 
     def test_usagebednet_seasonal_dependence_timesvalues(self):
-        self.is_debugging = True
+        self.is_debugging = False
         specific_times = [0, 90, 180, 270]
         specific_values = [10, 50, 15, 75]
         specific_seasonality = {
@@ -568,11 +578,12 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     def test_usagebednet_seasonal_dependence_minmax_coverage(self):
-        self.is_debugging = True
+        self.is_debugging = False
         specific_min_val = 0.1
+        specific_max_day = 73 # March 14 in non leap years
         specific_seasonality = {
             'min_cov': specific_min_val,
-            'max_day': 185 # July 4 in non leap years
+            'max_day': specific_max_day
         }
         self.usagebednet_build(seasonal_dependence=specific_seasonality)
         usage_configs = self.intervention_config['Usage_Config_List']
@@ -581,7 +592,22 @@ class TestMalariaInterventions(unittest.TestCase):
             if durability['class'] == 'WaningEffectMapLinearSeasonal':
                 found_seasonal = True
                 map = durability['Durability_Map']
-                self.assertEqual(min['Values'], specific_min_val)
+                actual_min = min(map['Values'])
+                actual_min_diff = abs(actual_min - specific_min_val)
+                self.assertLessEqual(actual_min_diff, 0.02)
+
+                target_index = -1
+                next_index = target_index + 1 # Find out the index that contains the max_day
+                while map['Times'][next_index] < specific_max_day: # So until the next index is too high...
+                    target_index += 1
+                    next_index += 1
+                actual_max_index = map['Values'].index(max(map['Values'])) # Get the index of the actually highest day
+                self.assertEqual(target_index, actual_max_index,
+                                 msg=f"Expected value in bucket {target_index}"
+                                     f": {map['Values'][target_index]} to be max, "
+                                     f"but index {actual_max_index}: {map['Values'][actual_max_index]} "
+                                     f"was higher.")
+
         self.assertTrue(found_seasonal)
         pass
 
@@ -613,6 +639,12 @@ class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
     def setUp(self):
         super(TestMalariaInterventions_17Dec20, self).setUp()
         self.schema_file = schema_17Dec20
+
+class TestMalariaInterventions_10Jan21(TestMalariaInterventions):
+
+    def setUp(self):
+        super(TestMalariaInterventions_10Jan21, self).setUp()
+        self.schema_file = schema_10Jan21
 
 
 if __name__ == '__main__':

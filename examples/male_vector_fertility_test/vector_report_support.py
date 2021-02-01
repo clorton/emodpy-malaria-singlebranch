@@ -60,6 +60,7 @@ def _rvs_config_builder( params ):
 def get_report_vector_stats(manifest, species_list=None):
     reporter = ReportVectorStats()
     if species_list:
+        global _rvs_species_list
         _rvs_species_list = species_list
     reporter.config(_rvs_config_builder, manifest)
     return reporter
