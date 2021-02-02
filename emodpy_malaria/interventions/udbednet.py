@@ -7,35 +7,30 @@ import json
 import numpy as np
 import sys
 
-def _get_seasonal_times_and_values( schema_path, seasonal_dependence ):
-    # Assign seasonal net usage
-    # Times are days of the year
-    # Input can be provided either as (times, values) for linear spline or (min coverage, day of maximum coverage)
-    # under the assumption of sinusoidal dynamics. In the first case, the same value should be provided
-    # for both 0 and 365; times > 365 will be ignored.
+def _get_seasonal_times_and_values(schema_path, seasonal_dependence):    
+    #Assign seasonal net usage 
+    #Times are days of the year
+    #Input can be provided either as (times, values) for linear spline or (min coverage, day of maximum coverage)
+    #under the assumption of sinusoidal dynamics. In the first case, the same value should be provided
+    #for both 0 and 365; times > 365 will be ignored.
     seasonal_times = None
     seasonal_values = None
-    if not seasonal_dependence:
+    if not seasonal_dependence:        
         # Option 1: Nothing specified, our default, uniform. But why not just not have a seasonal multiplier?
         seasonal_times = [*range(0,361,30),365]
         seasonal_values = len(seasonal_times) * [1]
-    elif all([k in seasonal_dependence.keys() for k in ['Times', 'Values']]):
+    elif all([k in seasonal_dependence.keys() for k in ['Times', 'Values']]):        
         # Option 2: Take raw values from user
         seasonal_times = seasonal_dependence['Times']
         seasonal_values = seasonal_dependence['Values']
-    elif all([k in seasonal_dependence.keys() for k in ['min_cov', 'max_day']]):
-        try:
-            # Option 3: Create values from parameters
-            seasonal_times = np.append(np.arange(0, 361, 30), 365)
-            if seasonal_dependence['min_cov'] == 0:
-                seasonal_dependence['min_cov'] = seasonal_dependence['min_cov'] + sys.float_info.epsilon
-            seasonal_values = (1 - seasonal_dependence['min_cov']) / 2 * np.cos(
-                2 * np.pi / 365 * (seasonal_times - seasonal_dependence['max_day'])) + \
-                              (1 + seasonal_dependence['min_cov']) / 2
-        except Exception as ex:
-            print( "Exception processing seasonal values with min_cov and max_day." )
-            print( str( ex ) )
-            print( seasonal_dependence )
+    elif all([k in seasonal_dependence.keys() for k in ['min_cov', 'max_day']]):        
+        # Option 3: Create values from parameters
+        seasonal_times = [*range(0,361,30),365]
+        if seasonal_dependence['min_cov'] == 0:
+            seasonal_dependence['min_cov'] = seasonal_dependence['min_cov'] + sys.float_info.epsilon
+        seasonal_values = (1 - seasonal_dependence['min_cov']) / 2 * np.cos(
+            2 * np.pi / 365 * (seasonal_times - seasonal_dependence['max_day'])) + \
+                          (1 + seasonal_dependence['min_cov']) / 2
     else:
         raise ValueError('Did not find all the keys were were looking for. Possible dictionaries can be:\n'
                          '{"Times":[], "Values":[]} or {"min_cov":0.45, "max_day":300}\n')
@@ -47,11 +42,12 @@ def _get_seasonal_times_and_values( schema_path, seasonal_dependence ):
     waning.finalize()
         
     return waning
+    
 
-def _get_age_times_and_values( schema_path, age_dependence ):
+def _get_age_times_and_values(schema_path, age_dependence):    
     # Assign age-dependent net usage #
     # Times are ages in years (note difference from seasonal dependence)
-    age_times = [0, 125]  # Dan B has hard-coded an upper limit of 125, will return error for larger values
+    age_times = [0, 125] # Dan B has hard-coded an upper limit of 125, will return error for larger values
     age_values = [1, 1]
     if not age_dependence:
         pass
@@ -118,6 +114,7 @@ def UDBednet(
         * Bednet_Discarded
         * Bednet_Got_New_One
         * Bednet_Using
+
     Args:
         start: The day on which to start distributing the bednets
             (**Start_Day** parameter).
@@ -125,57 +122,73 @@ def UDBednet(
         blocking_config: The value passed gets directly assigned to the Blocking_Config parameter.
             Durations are in days.
             Default is blocking_config= WaningEffectExponential(Decay_Time_Constant=730, Initial_Effect=0.9)
-            This could be dictionary such as:
-            {
-                "Box_Duration": 3650,
-                "Initial_Effect": 0,
-                "class": "WaningEffectBox"
-            }
+            
+            This could be dictionary such as::
+
+                {
+                    "Box_Duration": 3650,
+                    "Initial_Effect": 0,
+                    "class": "WaningEffectBox"
+                }
+
         killing_config: The value passed gets directly assigned to the Killing_Config parameter.
             Durations are in days.
             Default is killing_config = WaningEffectExponential(Decay_Time_Constant=1460, Initial_Effect=0.6)
-            This could be dictionary such as:
-            {
-                "Box_Duration": 3650,
-                "Initial_Effect": 0,
-                "Decay_Time_Constant": 150,
-                "class": "WaningEffectBoxExponential"
-            }
+            
+            This could be dictionary such as::
+
+                {
+                    "Box_Duration": 3650,
+                    "Initial_Effect": 0,
+                    "Decay_Time_Constant": 150,
+                    "class": "WaningEffectBoxExponential"
+                }
+
         repelling_config: The value passed gets directly assigned to the Repelling_Config parameter.
             Durations are in days.
             Default is repelling_config = WaningEffectExponential(Decay_Time_Constant=1460, Initial_Effect=0.0)
-            This could be dictionary such as:
-            {
-                "Box_Duration": 3650,
-                "Initial_Effect": 0,
-                "Decay_Time_Constant": 150,
-                "class": "WaningEffectBoxExponential"
-            }
+            
+            This could be dictionary such as::
+
+                {
+                    "Box_Duration": 3650,
+                    "Initial_Effect": 0,
+                    "Decay_Time_Constant": 150,
+                    "class": "WaningEffectBoxExponential"
+                }
+
         discard_config: A dictionary of parameters needed to define expiration distribution.
             No need to definite the distribution with all its parameters
             Default is bednet being discarded with EXPONENTIAL_DISTRIBUTION with Expiration_Period_Exponential of 10 years
-            Examples:
-                for Gaussian: {"Expiration_Period_Distribution": "GAUSSIAN_DISTRIBUTION",
-                    "Expiration_Period_Gaussian_Mean": 20, "Expiration_Period_Gaussian_Std_Dev":10}
-                for Exponential {"Expiration_Period_Distribution": "EXPONENTIAL_DISTRIBUTION",
-                    "Expiration_Period_Exponential":150}
+            
+            Examples::
+
+                        for Gaussian: {"Expiration_Period_Distribution": "GAUSSIAN_DISTRIBUTION",
+                            "Expiration_Period_Gaussian_Mean": 20, "Expiration_Period_Gaussian_Std_Dev":10}
+                        for Exponential {"Expiration_Period_Distribution": "EXPONENTIAL_DISTRIBUTION",
+                            "Expiration_Period_Exponential":150}
+
         age_dependence: A dictionary defining the age dependence of net use.
             Must contain a list of ages in years and list of usage rate. Default
             is uniform across all ages.
             Times are in years of age
-            Examples:
+            Examples::
+
                 {"Times":[], "Values":[]} or {"youth_cov":0.7, "youth_min_age":3, "youth_max_age":13}
+
         seasonal_dependence: A dictionary defining the seasonal dependence of net use.
             Default is constant use during the year. Times are given in days
             of the year; values greater than 365 are ignored. Dictionaries
             can be (times, values) for linear spline or (minimum coverage,
             day of maximum coverage) for sinusoidal dynamics.
             Times are days of the year
-            Examples:
+            Examples::
+
                 {"Times":[], "Values":[]} or {"min_cov":0.45, "max_day":300}
-        cost: The per-unit cost (**Cost_To_Consumer** parameter).
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
+                cost: The per-unit cost (**Cost_To_Consumer** parameter).
+                nodeIDs: The list of nodes to apply this intervention to (**Node_List**
+                parameter). If not provided, set value of NodeSetAll.
+
         birth_triggered: If true, event is specified as a birth-triggered intervention.
         duration: If run as a birth-triggered event or a trigger_condition_list,
             specifies the duration for the distribution to continue. Default
@@ -203,15 +216,17 @@ def UDBednet(
             or when the event is actually distributed after delay.
     Returns:
         None
+
     NOTE:
-        Previous was of setting discard config is no longer available, you can translate it to the current way by:
-        discard_config the old way {'halflife1': 260, 'halflife2': 2106, 'fraction1': float(table_dict['fast_fraction'])
-        discard_config translated = {"Expiration_Period_Distribution": "DUAL_EXPONENTIAL_DISTRIBUTION",
-                 "Expiration_Period_Mean_1": discard_halflife, or halflife1
-                 "Expiration_Period_Mean_2": 365 * 40, or halflife2
-                 "Expiration_Period_Proportion_1": 1 or 'fraction1'}
-    Example:
-        ::
+    Previous was of setting discard config is no longer available, you can translate it to the current way by:
+    discard_config the old way {'halflife1': 260, 'halflife2': 2106, 'fraction1': float(table_dict['fast_fraction'])
+    discard_config translated = {"Expiration_Period_Distribution": "DUAL_EXPONENTIAL_DISTRIBUTION",
+    "Expiration_Period_Mean_1": discard_halflife, or halflife1
+    "Expiration_Period_Mean_2": 365 * 40, or halflife2
+    "Expiration_Period_Proportion_1": 1 or 'fraction1'}
+
+    Example::
+
             discard_config = {"Expiration_Period_Exponential": 10 * 365}
             age_dependence = {"Times": [0, 4, 10, 60],
                        "Values": [1, 0.9, 0.8, 0.5]}
@@ -219,6 +234,7 @@ def UDBednet(
                         blocking_config=blocking_config, discard_config = discard_config
                         age_dependence=age_dependence, cost=5, birht_triggered=True, duration=-1,
                         node_property_restrictions=[{"Place": "Rural"]):
+
     """
 
     if not discard_config:
