@@ -119,7 +119,7 @@ def build_camp():
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." ) 
     nodes = [1402941398, 1402941399, 1402941400, 1402941401, 1402941404, 1402941410, 1403072469, 1403072470, 1403072471, 1403072472 ]
-    camp.add( udb.UDBednet( camp, start_day=10, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, insecticide="pyrethroid", node_ids=nodes ) )
+    camp.add( udb.UDBednet( camp, start_day=10, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, node_ids=nodes ) )
     #camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid", node_ids=nodes ) )
     return camp
 
