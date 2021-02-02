@@ -25,7 +25,7 @@ def _get_seasonal_times_and_values(schema_path, seasonal_dependence):
         seasonal_values = seasonal_dependence['Values']
     elif all([k in seasonal_dependence.keys() for k in ['min_cov', 'max_day']]):        
         # Option 3: Create values from parameters
-        seasonal_times = [*range(0,361,30),365]
+        seasonal_times = np.append(np.arange(0, 361, 30), 365)
         if seasonal_dependence['min_cov'] == 0:
             seasonal_dependence['min_cov'] = seasonal_dependence['min_cov'] + sys.float_info.epsilon
         seasonal_values = (1 - seasonal_dependence['min_cov']) / 2 * np.cos(
