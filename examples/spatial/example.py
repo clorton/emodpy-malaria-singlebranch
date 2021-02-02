@@ -174,7 +174,7 @@ def general_sim( erad_path ):
             campaign_builder=build_camp,
             schema_path=manifest.schema_file,
             param_custom_cb=set_param_fn,
-            ep4_custom_cb=ep4_fn,
+            ep4_custom_cb=None,
             demog_builder=build_demog,
             plugin_report=None # report
         )
