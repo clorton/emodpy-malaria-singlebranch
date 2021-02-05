@@ -43,8 +43,27 @@ https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/examples
 
 # How do I set a vector species param value? Is there a helper function like set_species_param?
 
-TBD
+Here's an example:
+https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/examples/start_here/example.py#L72
 
+But there is a request to add a helper function that makes this 'even easier'. Stay tuned.
 
+# I see these calls to "finalize". What are those about and when do I need to do them?
 
+They are going away very soon. Disregard.
 
+# I pip installed emodpy-malaria, but I want to make changes. How should I do that?
+
+python package_setup.py develop
+
+There are some other options but that seems to be the most popular and proven. This means that the emodpy-malaria module in site-packages actually points to the same code as you have in your git checked-out repo. This link is useful for details: https://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install#19048754.
+
+But we want you to get the changes you like into the tested, versioned, released module before too long.
+
+# I see lots of MALARIA_SIM examples. Are there any VECTOR_SIM examples?
+
+Not at this time.
+
+# I notice that I can import emod_api.campaign and use that as an object. I haven't seen that before.
+
+Sure. Python modules are a lot like singletons. There's no need to add a static class inside that module in many cases. Think of the module (which can have variables and methods) as a static class.
