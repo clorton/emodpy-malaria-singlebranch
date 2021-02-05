@@ -21,11 +21,11 @@ manifest.py is designed to house ALL your input and output paths in a single loc
 
 ### How do I set config parameters?
 
-Provide a param-setting function and pass that function to the emodpy task creatorA
+Provide a param-setting function and pass that function to the emodpy task creator:
 https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/examples/start_here/example.py#L139
 
 In that function, you can set parameters directly, e.g.
-https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/examples/start_here/example.py#L75.
+https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/examples/start_here/example.py#L75
 
 Or you can call a function in a standalone script that does the config params. E.g.,
 https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/examples/start_here/example.py#L65
