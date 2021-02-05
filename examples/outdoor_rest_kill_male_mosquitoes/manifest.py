@@ -11,7 +11,5 @@ eradication_path="download/Eradication"
 assets_input_dir="Assets"
 plugins_folder = "download/reporter_plugins"
 
-ep4_dir="ep4_dir"
+ep4_path="python_scripts"
 #requirements = "./requirements.txt"
-population_input_path="facebook_pop_clipped.csv"
-requirements = "./requirements.txt"

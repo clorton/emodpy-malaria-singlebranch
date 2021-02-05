@@ -49,6 +49,7 @@ def get_report_vector_genetics(manifest, sex:VectorGender):
 
 
 _rvs_species_list = ["Gambiae"]
+
 def _rvs_config_builder( params ):
     params.Include_Gestation_Columns = True
     params.Species_List = _rvs_species_list

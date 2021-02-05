@@ -21,6 +21,7 @@ import subprocess
 import sys
 import sphinx_rtd_theme
 import configparser
+from datetime import datetime
 
 if sys.platform in ["linux", "darwin"]:
     subprocess.check_output(["make", "generate-api"], cwd=os.path.dirname(os.path.abspath(__file__)))
@@ -78,7 +79,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'emodpy-malaria'
-copyright = u'2020, Bill & Melinda Gates Foundation. All rights reserved.'
+copyright = f'1999 - {datetime.today().year}, Bill & Melinda Gates Foundation. All rights reserved.'
 author = u'Institute for Disease Modeling'
 
 # The version info for the project you're documenting, acts as replacement for

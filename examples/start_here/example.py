@@ -15,6 +15,7 @@ from idmtools.entities.experiment import Experiment
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
+from emodpy_malaria.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
 
 from emodpy_malaria import config as malconf
@@ -53,104 +54,24 @@ def print_params():
     print("nSims: ", params.nSims)
 
 
-def set_mdp( config, manifest ):
-    # Set malaria drug parameters
-    """
-    Use 
-    dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
-    to get default malaria drug param dict. Convert to schema-backed version (that's an emod_api responsibility)
-    dfs.load_config_as_rod
-
-    Set params as desired.
-    Do this for each malaria drug.
-    Add to config (through emod_api if necessary, this might end up being an insertion which would normally be forbidden by schema-backed non-insertable dict)
-    """
-    # This initial code is just fumbling my way towards a solution; this code will be deeper down in a util function when done.
-    # I'd rather these next two lines be under-the-hood
-    mdp_default = { "parameters": { "schema": {} } }
-    mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
-
-    # Just demonstrating that we can set drug params. Values mean nothing at this time.
-    mdp.parameters.Bodyweight_Exponent = 45
-    mdp.parameters.Drug_Cmax = 100
-    mdp.parameters.Drug_Decay_T1 = 1
-    mdp.parameters.Drug_Decay_T2 = 1
-    mdp.parameters.Drug_Dose_Interval = 1
-    mdp.parameters.Drug_Fulltreatment_Doses = 1
-    mdp.parameters.Drug_Gametocyte02_Killrate = 1
-    mdp.parameters.Drug_Gametocyte34_Killrate = 1
-    mdp.parameters.Drug_GametocyteM_Killrate = 1
-    mdp.parameters.Drug_Hepatocyte_Killrate = 1
-    mdp.parameters.Drug_PKPD_C50 = 1
-    mdp.parameters.Drug_Vd = 1
-    # This needs to be changed ASAP
-    """
-    mdp.parameters.Fractional_Dose_By_Upper_Age = [
-                {
-                    "Fraction_Of_Adult_Dose": 0.5,
-                    "Upper_Age_In_Years": 5
-                }
-            ]
-    """
-    mdp.parameters.Max_Drug_IRBC_Kill = 1
- 
-    mdp_map = {}
-    mdp.parameters.finalize()
-    mdp_map["Chloroquine"] = mdp.parameters
-
-    config.parameters.Malaria_Drug_Params = mdp_map
-    return config
-
-
-def set_vsp( config, manifest ):
-    # Set vector species parameters
-    vsp_default = { "parameters": { "schema": {} } } 
-
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
-
-    # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
-    # These are here, commented out, just to show what can be set. If we want some preset groups, we could have some functions
-    # in the emodpy-malaria module.
-    #vsp.parameters.Acquire_Modifier = 1
-    #vsp.parameters.Adult_Life_Expectancy = 1
-    #vsp.parameters.Anthropophily = 0.95
-    #vsp.parameters.Aquatic_Arrhenius_1 = 1
-    #vsp.parameters.Aquatic_Arrhenius_2 = 1
-    #vsp.parameters.Aquatic_Mortality_Rate = 1
-    ##vsp.parameters.Cycle_Arrhenius_1 = 1
-    ##vsp.parameters.Cycle_Arrhenius_2 = 1
-    ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
-    #vsp.parameters.Days_Between_Feeds = 1
-    #vsp.parameters.Drivers = []
-    #vsp.parameters.Immature_Duration = 1
-    #vsp.parameters.Indoor_Feeding_Fraction = 1
-    #vsp.parameters.Infected_Arrhenius_1 = 1
-    #vsp.parameters.Infected_Arrhenius_2 = 1
-    #vsp.parameters.Infected_Egg_Batch_Factor = 1
-    #vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1
-    #vsp.parameters.Male_Life_Expectancy = 1
-    #vsp.parameters.Transmission_Rate = 1
-    #vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_NONE"
-
-    # This needs to be changed once the schema for Larval_Habitat_Types is fixed. 
-    # Keys-as-values means we have to do this
-    vsp.parameters.Larval_Habitat_Types = {
-        "TEMPORARY_RAINFALL": 11250000000
-    }
-    vsp.parameters.Name = "Gambiae"
-    vsp.parameters.finalize()
-
-    # config.parameters.Vector_Species_Params = list() # won't need this after schema is fixed.
-    config.parameters.Vector_Species_Params.append( vsp.parameters )
-    return config
-
-
 def set_param_fn(config): 
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config( config )
+    # config = set_config.set_config( config )
 
+    import emodpy_malaria.config as conf
+    config = set_config.set_config(config)
+    config = conf.set_team_defaults(config, manifest)
+    conf.set_species( config, [ "gambiae" ] )
+
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
+    lhm.parameters.finalize()
+    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
+
+    conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
@@ -160,11 +81,6 @@ def set_param_fn(config):
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
-    # Set MalariaDrugParams
-    config = set_mdp( config, manifest )
-
-    # Vector Species Params
-    config = set_vsp( config, manifest )
     return config
 
 
@@ -180,8 +96,8 @@ def build_camp():
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
-    # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5 ) )
+    # print( f"Telling emod-api to use {manifest.schema_file} as schema." ) 
+    camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
     return camp
 
 
@@ -197,7 +113,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321 )
+    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.1 )
     return demog
 
 
@@ -226,8 +142,6 @@ def general_sim( erad_path, ep4_scripts ):
             plugin_report=None # report
         )
 
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     print("Adding local assets (py scripts mainly)...")
 
     if ep4_scripts is not None:

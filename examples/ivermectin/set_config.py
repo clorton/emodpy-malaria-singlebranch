@@ -1,5 +1,6 @@
 import emod_api.config.default_from_schema_no_validation as dfs
 import manifest
+import emodpy_malaria.config as conf
 
 def set_config( config ):
     config.parameters.Simulation_Type = "MALARIA_SIM" 
@@ -19,7 +20,6 @@ def set_config( config ):
     
     config.parameters.x_Base_Population =0.5
     config.parameters.Enable_Disease_Mortality =0
-    config.parameters.Enable_Malaria_CoTransmission = 1
     config.parameters.Max_Individual_Infections = 10
     config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION" # implicit
 
@@ -31,55 +31,6 @@ def set_config( config ):
     config.parameters.Local_Migration_Roundtrip_Probability = 1  # fraction that return
     """
 
-    return config
-
-
-def set_mdp(config, manifest):
-    """
-    Use
-    dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
-    to get default malaria drug param dict. Convert to schema-backed version (that's an emod_api responsibility)
-    dfs.load_config_as_rod
-
-    Set params as desired.
-    Do this for each malaria drug.
-    Add to config (through emod_api if necessary, this might end up being an insertion which would normally be forbidden by schema-backed non-insertable dict)
-    """
-    # This initial code is just fumbling my way towards a solution; this code will be deeper down in a util function when done.
-    # I'd rather these next two lines be under-the-hood
-    mdp_default = {"parameters": {"schema": {}}}
-    mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config", "MALARIA_SIM", "Malaria_Drug_Params",
-                                                              "<malaria_drug_name_goes_here>"])
-
-    # Just demonstrating that we can set drug params. Values mean nothing at this time.
-    mdp.parameters.Bodyweight_Exponent = 45
-    mdp.parameters.Drug_Cmax = 100
-    mdp.parameters.Drug_Decay_T1 = 1
-    mdp.parameters.Drug_Decay_T2 = 1
-    mdp.parameters.Drug_Dose_Interval = 1
-    mdp.parameters.Drug_Fulltreatment_Doses = 1
-    mdp.parameters.Drug_Gametocyte02_Killrate = 1
-    mdp.parameters.Drug_Gametocyte34_Killrate = 1
-    mdp.parameters.Drug_GametocyteM_Killrate = 1
-    mdp.parameters.Drug_Hepatocyte_Killrate = 1
-    mdp.parameters.Drug_PKPD_C50 = 1
-    mdp.parameters.Drug_Vd = 1
-    # This needs to be changed ASAP
-    """
-    mdp.parameters.Fractional_Dose_By_Upper_Age = [
-                {
-                    "Fraction_Of_Adult_Dose": 0.5,
-                    "Upper_Age_In_Years": 5
-                }
-            ]
-    """
-    mdp.parameters.Max_Drug_IRBC_Kill = 1
-
-    mdp_map = {}
-    mdp.parameters.finalize()
-    mdp_map["Chloroquine"] = mdp.parameters
-
-    config.parameters.Malaria_Drug_Params = mdp_map
     return config
 
 
@@ -114,19 +65,14 @@ def set_vsp(config, manifest):
     # vsp.parameters.Transmission_Rate = 1
     # vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_NONE"
 
-    # This needs to be changed once the schema for Larval_Habitat_Types is fixed.
-    # Keys-as-values means we have to do this
-    vsp.parameters.Larval_Habitat_Types = {
-        "LINEAR_SPLINE": { \
-            "Capacity_Distribution_Number_Of_Years": 1, \
-            "Capacity_Distribution_Over_Time": { \
-                "Times": [0, 30.417, 60.833, 91.25, 121.667, 152.083, 182.5, 212.917, 243.333, 273.75, 304.167,
-                          334.583],
-                "Values": [3, 0.8, 1.25, 0.1, 2.7, 10, 6, 35, 2.8, 1.5, 1.6, 2.1]
-            },
-            "Max_Larval_Capacity": 398107170.5534969
-        }
-    }
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 398107170.5534969
+    lhm.parameters.Vector_Habitat_Type = "LINEAR_SPLINE"
+    lhm.parameters.Capacity_Distribution_Number_Of_Years = 1
+    lhm.parameters.Capacity_Distribution_Over_Time.Times = [0, 30.417, 60.833, 91.25, 121.667, 152.083, 182.5, 212.917, 243.333, 273.75, 304.167, 334.583]
+    lhm.parameters.Capacity_Distribution_Over_Time.Values = [3, 0.8, 1.25, 0.1, 2.7, 10, 6, 35, 2.8, 1.5, 1.6, 2.1]
+    lhm.parameters.finalize()
+    vsp.parameters.Larval_Habitat_Types.append( lhm.parameters )
     vsp.parameters.finalize()
 
     # config.parameters.Vector_Species_Params = list() # won't need this after schema is fixed.
@@ -140,15 +86,24 @@ def set_param_fn(config):
     """
     config = set_config( config )
 
+    config = conf.set_team_defaults( config, manifest )
+
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 398107170.5534969
+    lhm.parameters.Vector_Habitat_Type = "LINEAR_SPLINE"
+    lhm.parameters.Capacity_Distribution_Number_Of_Years = 1
+    lhm.parameters.Capacity_Distribution_Over_Time.Times = [0, 30.417, 60.833, 91.25, 121.667, 152.083, 182.5, 212.917, 243.333, 273.75, 304.167, 334.583]
+    lhm.parameters.Capacity_Distribution_Over_Time.Values = [3, 0.8, 1.25, 0.1, 2.7, 10, 6, 35, 2.8, 1.5, 1.6, 2.1]
+    lhm.parameters.finalize()
+    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
+
     config.parameters.Simulation_Duration = 365*5
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
     config.parameters.Enable_Vector_Species_Report = 1
     config.parameters.pop( "Serialized_Population_Filenames" )
 
-    # Set MalariaDrugParams
-    config = set_mdp( config, manifest )
-
     # Vector Species Params
     config = set_vsp( config, manifest )
+    conf.set_species( config, [ "SillySkeeter" ] )
     return config

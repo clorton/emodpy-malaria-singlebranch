@@ -1,11 +1,19 @@
 from emod_api import schema_to_class as s2c
+from emod_api.interventions import utils
 import json
 
 schema_path = None
 iv_name = "SpaceSpraying"
 
-def SpaceSpraying( camp, start_day, coverage=1.0, killing_eff=1,
-                   insecticide=None, constant_duration=100 ):
+def SpaceSpraying(
+        camp,
+        start_day,
+        coverage=1.0,
+        killing_eff=1,
+        insecticide=None,
+        constant_duration=100,
+        node_ids=None
+    ):
     """
     MCV1 Campaign
     :param coverage: Demographic Coverage
@@ -22,9 +30,7 @@ def SpaceSpraying( camp, start_day, coverage=1.0, killing_eff=1,
         return ""
 
     intervention = s2c.get_class_with_defaults( "SpaceSpraying", schema_path )
-    efficacy_profile = "WaningEffectConstant"
-    killing = s2c.get_class_with_defaults( efficacy_profile, schema_path )
-    killing.Initial_Effect = killing_eff
+    killing = utils.get_waning_from_params( schema_path, killing_eff, constant_duration, 0 ) # box-style
 
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
@@ -41,6 +47,7 @@ def SpaceSpraying( camp, start_day, coverage=1.0, killing_eff=1,
         intervention.Insecticide_Name = insecticide
 
     #intervention.Duplicate_Policy = dupe_policy
+    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
 
     # Fourth/finally, purge the schema bits
     coordinator.finalize()
@@ -51,13 +58,12 @@ def SpaceSpraying( camp, start_day, coverage=1.0, killing_eff=1,
 
     return event
 
-def new_intervention_as_file( start_day, filename=None ):
+def new_intervention_as_file( camp, start_day, filename=None ):
     campaign = {}
     campaign["Events"] = []
-    campaign["Events"].append( new_intervention( start_day, vaccine_type, iv_name ) )
+    campaign["Events"].append( SpaceSpraying( camp, start_day ) )
     if filename is None:
-        filename = "SugarTrap.json"
+        filename = "SpaceSpraying.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
     return filename
-

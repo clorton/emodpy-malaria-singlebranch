@@ -18,7 +18,6 @@ from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 from emodpy_malaria.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
-import pdb
 
 from emodpy_malaria import config as malconf
 import params
@@ -55,100 +54,21 @@ def print_params():
     print("exp_name: ", params.exp_name)
     print("nSims: ", params.nSims)
 
-def set_mdp( config, manifest ):
-    """
-    Use 
-    dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
-    to get default malaria drug param dict. Convert to schema-backed version (that's an emod_api responsibility)
-    dfs.load_config_as_rod
-
-    Set params as desired.
-    Do this for each malaria drug.
-    Add to config (through emod_api if necessary, this might end up being an insertion which would normally be forbidden by schema-backed non-insertable dict)
-    """
-    # This initial code is just fumbling my way towards a solution; this code will be deeper down in a util function when done.
-    # I'd rather these next two lines be under-the-hood
-    mdp_default = { "parameters": { "schema": {} } }
-    mdp = dfs.schema_to_config_subnode(manifest.schema_file, ["config","MALARIA_SIM","Malaria_Drug_Params","<malaria_drug_name_goes_here>"] )
-
-    # Just demonstrating that we can set drug params. Values mean nothing at this time.
-    mdp.parameters.Bodyweight_Exponent = 45
-    mdp.parameters.Drug_Cmax = 100
-    mdp.parameters.Drug_Decay_T1 = 1
-    mdp.parameters.Drug_Decay_T2 = 1
-    mdp.parameters.Drug_Dose_Interval = 1
-    mdp.parameters.Drug_Fulltreatment_Doses = 1
-    mdp.parameters.Drug_Gametocyte02_Killrate = 1
-    mdp.parameters.Drug_Gametocyte34_Killrate = 1
-    mdp.parameters.Drug_GametocyteM_Killrate = 1
-    mdp.parameters.Drug_Hepatocyte_Killrate = 1
-    mdp.parameters.Drug_PKPD_C50 = 1
-    mdp.parameters.Drug_Vd = 1
-    # This needs to be changed ASAP
-    """
-    mdp.parameters.Fractional_Dose_By_Upper_Age = [
-                {
-                    "Fraction_Of_Adult_Dose": 0.5,
-                    "Upper_Age_In_Years": 5
-                }
-            ]
-    """
-    mdp.parameters.Max_Drug_IRBC_Kill = 1
- 
-    mdp_map = {}
-    mdp.parameters.finalize()
-    mdp_map["Chloroquine"] = mdp.parameters
-
-    config.parameters.Malaria_Drug_Params = mdp_map
-    return config
-
-def set_vsp( config, manifest ):
-    vsp_default = { "parameters": { "schema": {} } } 
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
-
-    # Add a Vector Species Params set. Opposite of MDP, go with defaults wherever possible
-    # These are here, commented out, just to show what can be set. If we want some preset groups, we could have some functions
-    # in the emodpy-malaria module.
-    #vsp.parameters.Acquire_Modifier = 1
-    #vsp.parameters.Adult_Life_Expectancy = 1
-    #vsp.parameters.Anthropophily = 0.95
-    #vsp.parameters.Aquatic_Arrhenius_1 = 1
-    #vsp.parameters.Aquatic_Arrhenius_2 = 1
-    #vsp.parameters.Aquatic_Mortality_Rate = 1
-    ##vsp.parameters.Cycle_Arrhenius_1 = 1
-    ##vsp.parameters.Cycle_Arrhenius_2 = 1
-    ##vsp.parameters.Cycle_Arrhenius_Reduction_Factor = 1
-    #vsp.parameters.Days_Between_Feeds = 1
-    #vsp.parameters.Drivers = []
-    #vsp.parameters.Egg_Batch_Size = 1
-    #vsp.parameters.Immature_Duration = 1
-    #vsp.parameters.Indoor_Feeding_Fraction = 1
-    #vsp.parameters.Infected_Arrhenius_1 = 1
-    #vsp.parameters.Infected_Arrhenius_2 = 1
-    #vsp.parameters.Infected_Egg_Batch_Factor = 1
-    #vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1
-    #vsp.parameters.Male_Life_Expectancy = 1
-    #vsp.parameters.Transmission_Rate = 1
-    #vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_NONE"
-
-    # This needs to be changed once the schema for Larval_Habitat_Types is fixed. 
-    # Keys-as-values means we have to do this
-    vsp.parameters.Larval_Habitat_Types = {
-        "TEMPORARY_RAINFALL": 11250000000
-    }
-    vsp = malconf.set_genetics( vsp, manifest ) # , alleles, allele_inits ) 
-    vsp.parameters.Name = "Gambiae"
-    vsp.parameters.finalize()
-
-    # config.parameters.Vector_Species_Params = list() # won't need this after schema is fixed.
-    config.parameters.Vector_Species_Params.append( vsp.parameters )
-    return config
-
 def set_param_fn(config): 
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     config = set_config.set_config( config )
+
+    import emodpy_malaria.config as conf
+    config = conf.set_team_defaults( config, manifest )
+    conf.set_species( config, [ "gambiae" ] )
+
+    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
+    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
+    lhm.parameters.finalize()
+    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
@@ -159,9 +79,15 @@ def set_param_fn(config):
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
-    # Set MalariaDrugParams
-    config = set_mdp( config, manifest )
+    config.parameters.Custom_Individual_Events = [ "Bednet_Got_New_One", "Bednet_Using", "Bednet_Discarded" ]
+    config.parameters.Enable_Spatial_Output = 1 # remove when emodpy-malaria #35 is closed
+    config.parameters.Spatial_Output_Channels = [
+        "Adult_Vectors"
+        , "New_Infections"
+        , "Infectious_Vectors"
+    ]
 
+    """
     # Vector Genetics
     malconf.add_alleles( [ "tom", "dick", "harry" ], [ 0.5, 0.5, 0 ] )
     malconf.add_mutation( from_allele="tom", to_allele="dick", rate=0.5 )
@@ -171,11 +97,11 @@ def set_param_fn(config):
     malconf.add_alleles( [ "this", "that", "the_other" ], [ 0.9, 0.05, 0.05 ] )
     malconf.add_mutation( from_allele="this", to_allele="that", rate=0.4444 )
     malconf.add_trait( manifest, [ "X", "X" ], [ "tom", "dick" ], "INFECTED_BY_HUMAN", 0 )
-    malconf.add_resistance( manifest, "pyrethroid", "Gambiae", [ [ "this", "that" ] ] )
+    malconf.add_resistance( manifest, "pyrethroid", "gambiae", [ [ "this", "that" ] ] )
     config = malconf.set_resistances( config )
+    """
 
     # Vector Species Params
-    config = set_vsp( config, manifest )
     return config
 
 def build_camp():
@@ -185,13 +111,16 @@ def build_camp():
     """
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
-    import emodpy_malaria.interventions.bednet as bednet
+    import emodpy_malaria.interventions.bednet as bednet 
+    import emodpy_malaria.interventions.udbednet as udb
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
-    # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid" ) )
+    # print( f"Telling emod-api to use {manifest.schema_file} as schema." ) 
+    nodes = [1402941398, 1402941399, 1402941400, 1402941401, 1402941404, 1402941410, 1403072469, 1403072470, 1403072471, 1403072472 ]
+    camp.add( udb.UDBednet( camp, start_day=10, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, node_ids=nodes ) )
+    #camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid", node_ids=nodes ) )
     return camp
 
 
@@ -207,9 +136,10 @@ def build_demog():
     import emod_api.demographics.DemographicsTemplates as DT
 
     #demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
-    demog = Demographics.from_pop_csv( manifest.population_input_path, site='burkina' )
+    input_file = malconf.get_file_from_http( "http://ipadvweb02.linux.idm.ctr:8000/" + manifest.population_input_path )
+    demog = Demographics.from_pop_csv( input_file, site='burkina' )
 
-    import emod_api.migration.Migration as mig
+    import emod_api.migration.Migration as mig 
     mig_partial = partial( mig.from_demog_and_param_gravity, gravity_params = [7.50395776e-06, 9.65648371e-01, 9.65648371e-01, -1.10305489e+00], id_ref='burkina', migration_type=mig.Migration.REGIONAL ) 
 
     return demog, mig_partial
@@ -229,17 +159,15 @@ def general_sim( erad_path ):
 
     # Create a platform
     # Show how to dynamically set priority and node_group
-    # platform = Platform("SLURM", num_cores=16)
-    platform = Platform("SLURM")
-    pl = RequirementsToAssetCollection( platform,
-                                        requirements_path=manifest.requirements )
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
 
     platform = None
     platform = Platform("SLURM", num_cores=16)
-    
+    pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+
+    # create EMODTask
     task = EMODTask.from_default2(
             config_path="my_config.json",
             eradication_path=manifest.eradication_path,
@@ -254,38 +182,6 @@ def general_sim( erad_path ):
     #demog_path = build_demog()
     #task.common_assets.add_asset( demog_path )
 
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
-    def rvg_config_builder( params ):
-        params.Include_Vector_State_Columns = False
-        params.Allele_Combinations_For_Stratification = [
-            ["tom"],
-            ["dick"]
-        ]
-        # params.Alleles_For_Stratification = [ "tom", "dick" ] # this works
-        # params.Specific_Genome_Combinations_For_Stratification = 
-        """
-        E.g.,
-        [
-            {
-                "Allele_Combination": [
-                    ["X", "X"],
-                    ["a1", "*"]
-                ]
-            },
-            {
-                "Allele_Combination": [
-                    ["X", "X"],
-                    ["a0", "a0"]
-                ]
-            }
-        ]
-        """
-        return params
-
-    reporter = ReportVectorGenetics()  # Create the reporter
-    reporter.config( rvg_config_builder, manifest )  # Config the reporter
-    task.reporters.add_reporter(reporter)  # Add thre reporter
 
     # Set task.campaign to None to not send any campaign to comps since we are going to override it later with
     # dtk-pre-process.

@@ -1,4 +1,5 @@
 from emod_api import schema_to_class as s2c
+from emod_api.interventions import utils
 import json
 
 schema_path = None
@@ -6,7 +7,15 @@ iv_name = "IRSHousingModification"
 #dupe_policy = "Replace" # or "Add" or "Abort" -- from covid branch
 # Note that duration (what we call waning profile) needs to be configurable, but in an intuitive way
 
-def IRSHousingModification( camp, start_day, coverage=1.0, blocking_eff=1, killing_eff=1, insecticide=None ):
+def IRSHousingModification(
+        camp,
+        start_day,
+        coverage=1.0,
+        blocking_eff=1,
+        killing_eff=1,
+        insecticide=None,
+        node_ids=None
+    ):
     """
     MCV1 Campaign
     :param coverage: Demographic Coverage
@@ -24,16 +33,10 @@ def IRSHousingModification( camp, start_day, coverage=1.0, blocking_eff=1, killi
         return ""
 
     intervention = s2c.get_class_with_defaults( "IRSHousingModification", schema_path )
-    efficacy_profile = "WaningEffectBoxExponential"
-    blocking = s2c.get_class_with_defaults( efficacy_profile, schema_path )
-    killing = s2c.get_class_with_defaults( efficacy_profile, schema_path )
-    blocking.Initial_Effect = blocking_eff
-    blocking.Decay_Time_Constant=150
-    blocking.Box_Duration=90
-    killing.Initial_Effect = killing_eff
-    killing.Decay_Time_Constant=150
-    killing.Box_Duration=90
-    
+
+    blocking = utils.get_waning_from_params( schema_path, blocking_eff, 90, 1./150 ) 
+    killing = utils.get_waning_from_params( schema_path, killing_eff, 90, 1./90 )
+
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
     coordinator.Intervention_Config = intervention
@@ -50,6 +53,8 @@ def IRSHousingModification( camp, start_day, coverage=1.0, blocking_eff=1, killi
         intervention.Insecticide_Name = insecticide
     #intervention.Duplicate_Policy = dupe_policy
 
+    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
+
     # Fourth/finally, purge the schema bits
     coordinator.finalize()
     intervention.finalize()
@@ -60,13 +65,12 @@ def IRSHousingModification( camp, start_day, coverage=1.0, blocking_eff=1, killi
 
     return event
 
-def new_intervention_as_file( start_day, filename=None ):
+def new_intervention_as_file( camp, start_day, filename=None ):
     campaign = {}
     campaign["Events"] = []
-    campaign["Events"].append( new_intervention( start_day, vaccine_type, iv_name ) )
+    campaign["Events"].append( IRSHousingModification( camp, start_day ) )
     if filename is None:
-        filename = "IRS.json"
+        filename = "IRSHousingModification.json"
     with open( filename, "w" ) as camp_file:
         json.dump( campaign, camp_file, sort_keys=True, indent=4 )
     return filename
-

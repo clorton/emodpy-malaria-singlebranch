@@ -16,7 +16,6 @@ def set_config( config ):
     
     config.parameters.x_Base_Population =0.5
     config.parameters.Enable_Disease_Mortality =0
-    config.parameters.Enable_Malaria_CoTransmission = 1
     config.parameters.Max_Individual_Infections = 10
     config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION" # implicit
 
