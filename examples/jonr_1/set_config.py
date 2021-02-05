@@ -1,6 +1,4 @@
 def set_config( config ):
-    config.parameters.Simulation_Type = "MALARIA_SIM" 
-
     config.parameters.Acquisition_Blocking_Immunity_Decay_Rate = 0
     config.parameters.Acquisition_Blocking_Immunity_Duration_Before_Decay = 0
     config.parameters.Infectious_Period_Constant = 0

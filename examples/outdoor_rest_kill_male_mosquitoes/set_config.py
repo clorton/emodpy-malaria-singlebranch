@@ -1,6 +1,4 @@
-def set_config( config, tmp_loc = [],
-                rate= 1.0, infectivity = 1.0 ):
-    config.parameters.Simulation_Type = "MALARIA_SIM" 
+def set_config( config ):
     config.parameters.Infectious_Period_Constant = 0
     config.parameters.Enable_Demographics_Birth = 1
     config.parameters.Enable_Demographics_Reporting = 0

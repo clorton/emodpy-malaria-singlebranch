@@ -58,10 +58,12 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config( config )
+    config.parameters.Simulation_Type = "MALARIA_SIM"
+
     import emodpy_malaria.config as conf
     config = conf.set_team_defaults( config, manifest )
     conf.set_species( config, [ "gambiae" ] )
+    config = set_config.set_config( config )
 
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 11250000000
@@ -69,13 +71,10 @@ def set_param_fn(config):
     lhm.parameters.finalize()
 
     conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
-    #config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365*5
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
-    #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
-    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     return config
