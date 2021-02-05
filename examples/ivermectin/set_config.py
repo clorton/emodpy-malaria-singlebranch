@@ -3,8 +3,6 @@ import manifest
 import emodpy_malaria.config as conf
 
 def set_config( config ):
-    config.parameters.Simulation_Type = "MALARIA_SIM" 
-
     config.parameters.Acquisition_Blocking_Immunity_Decay_Rate = 0
     config.parameters.Acquisition_Blocking_Immunity_Duration_Before_Decay = 0
     config.parameters.Infectious_Period_Constant = 0
@@ -84,9 +82,9 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config( config )
-
+    config.parameters.Simulation_Type = "MALARIA_SIM"
     config = conf.set_team_defaults( config, manifest )
+    config = set_config( config )
 
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 398107170.5534969

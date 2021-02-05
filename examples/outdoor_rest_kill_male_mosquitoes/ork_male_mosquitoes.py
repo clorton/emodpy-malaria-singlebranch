@@ -103,9 +103,11 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config(config)
+    config.parameters.Simulation_Type = "MALARIA_SIM"
+
     config = malconf.set_team_defaults(config, manifest)
     malconf.set_species(config, ["gambiae"])
+    config = set_config.set_config(config)
 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
@@ -178,7 +180,7 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("SLURMStage") 
+    platform = Platform("Calculon") 
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")

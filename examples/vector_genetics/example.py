@@ -72,19 +72,20 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config( config ) # you can set scenario config params in a standalone file
+    config.parameters.Simulation_Type = "MALARIA_SIM"
+
     import emodpy_malaria.config as conf
     config = conf.set_team_defaults( config, manifest ) # team defaults
     conf.set_species( config, [ "gambiae" ] )
+
+    config = set_config.set_config( config ) # you can set scenario config params in a standalone file
 
     # or you can set the here.
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
-    #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
-    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     # Vector Genetics, the main purpose of this example.

@@ -58,11 +58,11 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    # config = set_config.set_config( config )
+    config.parameters.Simulation_Type = "MALARIA_SIM"
 
     import emodpy_malaria.config as conf
-    config = set_config.set_config(config)
     config = conf.set_team_defaults(config, manifest)
+    config = set_config.set_config(config)
     conf.set_species( config, [ "gambiae" ] )
 
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )

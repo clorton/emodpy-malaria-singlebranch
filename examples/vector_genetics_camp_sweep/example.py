@@ -79,10 +79,12 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config = set_config.set_config( config ) # you can set scenario config params in a standalone file
+    config.parameters.Simulation_Type = "MALARIA_SIM"
+
     import emodpy_malaria.config as conf
     config = conf.set_team_defaults( config, manifest ) # team defaults
     conf.set_species( config, [ "gambiae" ] )
+    config = set_config.set_config( config ) # you can set scenario config params in a standalone file
 
     # or you can set the here.
     config.parameters.Base_Rainfall = 150
