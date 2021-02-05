@@ -54,6 +54,7 @@ def print_params():
 
 
 def set_mdp( config, manifest ):
+    # Set malaria drug parameters
     """
     Use 
     dfs._set_defaults_for_schema_group(default,schema_json["config"]["MALARIA_SIM"]["Malaria_Drug_Params"]["<malaria_drug_name_goes_here>"])
@@ -102,6 +103,7 @@ def set_mdp( config, manifest ):
 
 
 def set_vsp( config, manifest ):
+    # Set vector species parameters
     vsp_default = { "parameters": { "schema": {} } } 
 
     vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
