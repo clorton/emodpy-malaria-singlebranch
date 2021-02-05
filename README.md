@@ -67,3 +67,7 @@ Not at this time.
 # I notice that I can import emod_api.campaign and use that as an object. I haven't seen that before.
 
 Sure. Python modules are a lot like singletons. There's no need to add a static class inside that module in many cases. Think of the module (which can have variables and methods) as a static class.
+
+# I want to just load a demographics.json, not create one programmatically.
+
+OK, but be aware that one of the benefits of emodpy/emodapi is that you get guaranteed consistency between demographics settings and config params. But if you really want to use a raw demographics.json that you are very confident in, you can open that in your demog builder. An example of that is TBD.
