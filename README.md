@@ -17,7 +17,7 @@ Just comment out the call to 'get_model_files'.
 
 ### What is the purpose of the manifest.py file?
 
-manifest.py is designed to house ALL your input and output paths in a single location. It also includes the path of your choice for where model binaries (and schema) and downloaded to and uploaded from. This is because even though you can happily ignore these files if you want, you'll have a better EMOD experience if you can easily reference the schema file and sometimes it's nice to be able to have access to the binary itself.
+manifest.py is designed to house ALL your input and output paths in a single location. It also includes the path of your choice for where model binaries (and schema) are downloaded to and uploaded from. This is because even though you can happily ignore these files if you want, you'll have a better EMOD experience if you can easily reference the schema file and sometimes it's nice to be able to have access to the binary itself.
 
 ### How do I set config parameters?
 
