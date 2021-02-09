@@ -70,4 +70,15 @@ Sure. Python modules are a lot like singletons. There's no need to add a static 
 
 ### I want to just load a demographics.json, not create one programmatically.
 
-OK, but be aware that one of the benefits of emodpy/emodapi is that you get guaranteed consistency between demographics settings and config params. But if you really want to use a raw demographics.json that you are very confident in, you can open that in your demog builder. An example of that is TBD.
+OK, but be aware that one of the benefits of emodpy/emodapi is that you get guaranteed consistency between demographics settings and config params. But if you really want to use a raw demographics.json that you are very confident in, you can open that in your demog builder. An example of that is:
+
+```
+def build_demog():
+    import emod_api.demographics.Demographics as Demographics
+    demog = Demographics.from_file( "demographics.json" )
+    return demog
+```
+
+### What happens if I don't VPN in?
+
+You can't access Bamboo and download the Eradication binaries (including pluglins and schema)
