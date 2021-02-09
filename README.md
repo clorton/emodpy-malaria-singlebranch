@@ -79,3 +79,6 @@ def build_demog():
     return demog
 ```
 
+### What happens if I don't VPN in?
+
+You can't access Bamboo and download the Eradication binaries (including pluglins and schema)
