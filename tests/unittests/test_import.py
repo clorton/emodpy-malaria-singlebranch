@@ -32,7 +32,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import bednet
 
         self.expected_items = [
-            "Bednet", "BabyBednet", "utils", "new_intervention_as_file"
+            "Bednet", "BabyBednet", "utils"
         ]
         self.verify_expected_items_present(namespace=bednet)
         return
