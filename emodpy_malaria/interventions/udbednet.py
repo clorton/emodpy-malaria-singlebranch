@@ -22,7 +22,7 @@ def _get_seasonal_times_and_values(schema_path, seasonal_dependence):
     elif all([k in seasonal_dependence.keys() for k in ['Times', 'Values']]):        
         # Option 2: Take raw values from user
         seasonal_times = seasonal_dependence['Times']
-        seasonal_values = seasonal_dependence['Values']
+        seasonal_values = seasonal_dependence['Values'] 
     elif all([k in seasonal_dependence.keys() for k in ['min_cov', 'max_day']]):        
         # Option 3: Create values from parameters
         seasonal_times = np.append(np.arange(0, 361, 30), 365)
@@ -38,9 +38,7 @@ def _get_seasonal_times_and_values(schema_path, seasonal_dependence):
     waning.Initial_Effect = 1.0
     waning.Durability_Map.Times = [float(x) for x in seasonal_times]
     waning.Durability_Map.Values = [float(x) for x in seasonal_values]
-    waning.Durability_Map.finalize()
-    waning.finalize()
-        
+
     return waning
     
 
@@ -66,9 +64,7 @@ def _get_age_times_and_values(schema_path, age_dependence):
     waning.Initial_Effect = 1.0
     waning.Durability_Map.Times = age_times
     waning.Durability_Map.Values = age_values
-    waning.Durability_Map.finalize()
-    waning.finalize()
-        
+
     return waning
 
 
@@ -299,8 +295,7 @@ def UDBednet(
         if check_eligibility_at_trigger and ind_property_restrictions:
             meta_intervention.Property_Restrictions = ind_property_restrictions # using this raw!?
         meta_intervention.Duration = duration 
-        meta_intervention.finalize()
-        delay_intervention.finalize()
+
         coordinator.Intervention_Config = meta_intervention
         coordinator.pop( "Target_Gender" )
     else:
@@ -308,15 +303,6 @@ def UDBednet(
         coordinator.Demographic_Coverage = coverage
         if ind_property_restrictions:
             coordinator.Property_Restrictions = ind_property_restrictions # using this raw!?
-
-    # Fourth/finally, purge the schema bits
-    coordinator.finalize()
-    intervention.finalize()
-    blocking.finalize()
-    killing.finalize()
-    repelling.finalize()
-
-    event.finalize()
 
     return event
 

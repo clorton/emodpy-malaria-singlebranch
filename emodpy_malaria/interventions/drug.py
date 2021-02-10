@@ -41,12 +41,6 @@ def AntiMalarialDrug(
 
     event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
 
-    # Fourth/finally, purge the schema bits
-    coordinator.finalize()
-    intervention.finalize()
-    event.finalize()
-    #event["Name"] = "MCV1" # ???
-
     return event
 
 

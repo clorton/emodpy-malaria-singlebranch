@@ -47,11 +47,5 @@ def OutdoorRestKill (
     event.Start_Day = float(start_day)
     event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
 
-    # Third, cleanup
-    killing.finalize()
-    intervention.finalize()
-    coordinator.finalize()
-    event.finalize()
-
     return event
 

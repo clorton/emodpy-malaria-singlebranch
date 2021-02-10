@@ -53,11 +53,5 @@ def Ivermectin (
     coordinator.Intervention_Config = intervention
     intervention.Killing_Config = killing
 
-    # Third, cleanup
-    killing.finalize()
-    intervention.finalize()
-    coordinator.finalize()
-    event.finalize()
-
     return event
 
