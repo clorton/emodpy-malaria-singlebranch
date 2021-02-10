@@ -88,6 +88,30 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=udbednet)
 
+    def test_drug_campaign(self):
+        from emodpy_malaria.interventions import drug_campaign
+        self.expected_items = [
+            "add_MDA", "add_MSAT",
+            "add_drug_campaign", "add_fMDA",
+            "add_rfMDA", "add_rfMSAT", "drug_configs_from_code",
+            "fmda_cfg", "get_event_override"
+        ]
+        self.verify_expected_items_present(namespace=drug_campaign)
+
+    def test_ivermectin(self):
+        from emodpy_malaria.interventions import ivermectin
+        self.expected_items = [
+            "Ivermectin"
+        ]
+        self.verify_expected_items_present(namespace=ivermectin)
+
+    def test_diagnostic_survey(self):
+        from emodpy_malaria.interventions import diag_survey
+        self.expected_items = [
+            "add_diagnostic_survey"
+        ]
+        self.verify_expected_items_present(namespace=diag_survey)
+
     # endregion
 
     # region demographics
@@ -123,27 +147,3 @@ class MalariaTestImports(unittest.TestCase):
         ]
 
         self.verify_expected_items_present(namespace=common)
-
-    def test_diag_survey(self):
-        from emodpy_malaria.interventions import diag_survey
-        self.expected_items = [
-            "add_diagnostic_survey"
-        ]
-        self.verify_expected_items_present(namespace=diag_survey)
-
-    def test_drug_campaign(self):
-        from emodpy_malaria.interventions import drug_campaign
-        self.expected_items = [
-            "add_MDA", "add_MSAT",
-            "add_drug_campaign", "add_fMDA",
-            "add_rfMDA", "add_rfMSAT", "drug_configs_from_code",
-            "fmda_cfg", "get_event_override"
-        ]
-        self.verify_expected_items_present(namespace=drug_campaign)
-
-    def test_ivermectin(self):
-        from emodpy_malaria.interventions import ivermectin
-        self.expected_items = [
-            "Ivermectin"
-        ]
-        self.verify_expected_items_present(namespace=ivermectin)
