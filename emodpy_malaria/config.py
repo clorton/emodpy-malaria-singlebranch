@@ -21,7 +21,8 @@ def get_file_from_http( url ):
     path = tempfile.NamedTemporaryFile()
     path.close()
     req.urlretrieve( url, path.name )
-    return path.name
+    return path.name 
+
 
 def set_team_defaults( config, mani ):
     """
@@ -170,7 +171,6 @@ def set_team_vs_params( config, mani ):
             vsp.parameters.Male_Life_Expectancy = float( row[ header.index( "Male_Life_Expectancy" ) ] )
             vsp.parameters.Transmission_Rate = float( row[ header.index( "Transmission_Rate" ) ] )
             vsp.parameters.Vector_Sugar_Feeding_Frequency = row[ header.index( "Vector_Sugar_Feeding_Frequency" ) ]
-            vsp.parameters.finalize() 
             config.parameters.Vector_Species_Params.append( vsp.parameters )
     return config
 
@@ -243,8 +243,6 @@ def set_team_drug_params( config, mani ):
                 #fdbua.finalize()
                 mdp.parameters.Fractional_Dose_By_Upper_Age.append( fdbua )
 
-            mdp.parameters.finalize()
-
             config.parameters.Malaria_Drug_Params.append( mdp.parameters )
     # end
     
@@ -294,7 +292,6 @@ def set_resistances( config ):
     Use this function after you're done calling add_resistance. config is the input and the output
     """
     for name, insect in insecticides.items():
-        insect.parameters.finalize()
         config.parameters.Insecticides.append( insect.parameters ) 
     return config
 
@@ -343,11 +340,8 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
     # Trait_Modifiers is a keys-as-value thing so don't really have any schema help here.  
     trait_mod = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:TraitModifier"] )
     trait_mod.parameters.Trait = trait_name
-    trait_mod.parameters.Modifier = trait_value
-    trait_mod.parameters.finalize()
+    trait_mod.parameters.Modifier = trait_value 
     trait.parameters.Trait_Modifiers.append( trait_mod.parameters )
-
-    trait.parameters.finalize()
     # Store these and put them in config later
     traits.append( trait )
 
@@ -392,8 +386,6 @@ def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, 
     resistance.parameters.Killing_Modifier = killing
     resistance.parameters.Species = species
     resistance.parameters.Allele_Combinations = combo
-    resistance.parameters.finalize() 
-
     insecticide.parameters.Resistances.append( resistance.parameters )
 
 # 
@@ -424,7 +416,6 @@ def set_genetics( vsp, manifest ):
             allele_from_schema = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorAllele"] )
             allele_from_schema.parameters.Name = allele_name
             allele_from_schema.parameters.Initial_Allele_Frequency = allele_value
-            allele_from_schema.parameters.finalize()
             genes.parameters.Alleles.append( allele_from_schema.parameters )
             allele_set_uniq_key = [ x for x in allele_dict.keys() ][ 0 ] # get 'hash' for dict
             if allele_set_uniq_key  in mutations.keys():
@@ -437,7 +428,6 @@ def set_genetics( vsp, manifest ):
                     mutation.parameters.finalize()
                     # Mutations - each element has three parameters "Mutate_From", "Mutate_To", and "Probability_Of_Mutation"
                     genes.parameters.Mutations.append( mutation.parameters )
-        genes.parameters.finalize()
         vsp.Genes.append( genes.parameters ) # too many 'parameters' 
     for trait in traits:
         vsp.Gene_To_Trait_Modifiers.append( trait.parameters )

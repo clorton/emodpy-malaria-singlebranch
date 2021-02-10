@@ -59,19 +59,10 @@ def Bednet(
         intervention.Insecticide_Name = insecticide
     #intervention.Duplicate_Policy = dupe_policy
 
-    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
-
-
-    # Fourth/finally, purge the schema bits
-    coordinator.finalize()
-    intervention.finalize()
-    blocking.finalize()
-    killing.finalize()
-    repelling.finalize()
-    usage.finalize()
-    event.finalize()
+    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids ) 
 
     return event
+
 
 def BabyBednet( camp, start_day, coverage=1.0, blocking_eff=1, killing_eff=1, repelling_eff=1, usage_eff=1, insecticide=None ):
     """

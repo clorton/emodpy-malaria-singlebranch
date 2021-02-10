@@ -49,13 +49,6 @@ def SpaceSpraying(
     #intervention.Duplicate_Policy = dupe_policy
     event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
 
-    # Fourth/finally, purge the schema bits
-    coordinator.finalize()
-    intervention.finalize()
-    killing.finalize()
-    event.finalize()
-    #event["Name"] = "MCV1" # ???
-
     return event
 
 def new_intervention_as_file( camp, start_day, filename=None ):
