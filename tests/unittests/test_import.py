@@ -112,6 +112,14 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=diag_survey)
 
+    def test_common_imports(self):
+        from emodpy_malaria.interventions import common
+        self.expected_items = [
+            "AntiMalarialDrug", "MalariaDiagnostic"
+        ]
+
+        self.verify_expected_items_present(namespace=common)
+
     # endregion
 
     # region demographics
@@ -139,11 +147,3 @@ class MalariaTestImports(unittest.TestCase):
         ]
 
         self.verify_expected_items_present(namespace=conf)
-
-    def test_common_imports(self):
-        from emodpy_malaria.interventions import common
-        self.expected_items = [
-            "AntiMalarialDrug", "MalariaDiagnostic"
-        ]
-
-        self.verify_expected_items_present(namespace=common)
