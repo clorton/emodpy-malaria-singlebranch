@@ -189,7 +189,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.diagnostic, diagnostic, msg=f"Diagnostic type not equal {diagnostic}  with campaign type {campaign_type} and configuration of {config}")
 
     def test_drug_campaign_MDA(self):
-        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "MDA"
         for config in configs:
@@ -207,7 +207,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
 
     def test_drug_campaign_MSAT(self):
-        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "MSAT"
         for config in configs:
@@ -224,7 +224,7 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_fMDA(self):
-        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "fMDA"
         for config in configs:
@@ -241,7 +241,7 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_rfMDA(self):
-        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "rfMDA"
         for config in configs:
@@ -258,7 +258,7 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_rfMSAT(self):
-        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "rfMSAT"
         for config in configs:
