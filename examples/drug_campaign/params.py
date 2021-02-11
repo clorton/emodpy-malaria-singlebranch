@@ -1,2 +1,2 @@
-exp_name="Malaria Sandbox Example Experiment"
+exp_name="Malaria Drug Campaign Example"
 nSims = 1
