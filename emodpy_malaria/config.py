@@ -130,6 +130,67 @@ def set_team_defaults( config, mani ):
     config.parameters.Gametocyte_Smear_Sensitivity = 0.1
     config.parameters.Parasite_Smear_Sensitivity = 0.1  # 10/uL
 
+    # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
+    config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION"
+    config.parameters.Incubation_Period_Constant = 25
+
+    config.parameters.Infectious_Period_Distribution = "EXPONENTIAL_DISTRIBUTION"
+    config.parameters.Infectious_Period_Exponential = 180
+    config.parameters.Base_Infectivity = 1
+
+    config.parameters.Enable_Superinfection = 1
+    config.parameters.Max_Individual_Infections = 5
+    config.parameters.Infection_Updates_Per_Timestep = 1
+
+    config.parameters.Post_Infection_Acquisition_Multiplier = 1
+    config.parameters.Post_Infection_Mortality_Multiplier = 1
+    config.parameters.Post_Infection_Transmission_Multiplier = 1
+
+    config.parameters.Enable_Vector_Species_Report =  0
+    config.parameters.Vector_Sampling_Type = "VECTOR_COMPARTMENTS_NUMBER"
+    config.parameters.Mosquito_Weight = 1
+
+    config.parameters.Enable_Vector_Aging = 0
+    config.parameters.Enable_Vector_Mortality = 1
+    config.parameters.Enable_Vector_Migration = 0
+    config.parameters.Enable_Vector_Migration_Human = 0
+    config.parameters.Enable_Vector_Migration_Local = 0
+    config.parameters.Enable_Vector_Migration_Wind = 0
+    config.parameters.Enable_Temperature_Dependent_Feeding_Cycle = 0
+    config.parameters.Enable_Vector_Migration_Regional = 0
+    config.parameters.x_Vector_Migration_Local = 0
+    config.parameters.x_Vector_Migration_Regional = 0
+    config.parameters.Vector_Migration_Filename_Local = ""
+    config.parameters.Vector_Migration_Filename_Regional = ""
+
+    # placeholder param values
+    config.parameters.Vector_Migration_Habitat_Modifier = 6.5
+    config.parameters.Vector_Migration_Food_Modifier = 0
+    config.parameters.Vector_Migration_Stay_Put_Modifier = 0.3
+
+    config.parameters.Age_Dependent_Biting_Risk_Type = "SURFACE_AREA_DEPENDENT"
+    config.parameters.Newborn_Biting_Risk_Multiplier = 0.2  # for LINEAR option (also picked up by InputEIR)
+    config.parameters.Human_Feeding_Mortality = 0.1
+
+    config.parameters.Wolbachia_Infection_Modification = 1.0
+    config.parameters.Wolbachia_Mortality_Modification = 1.0
+    config.parameters.HEG_Homing_Rate = 0.0
+    config.parameters.HEG_Fecundity_Limiting = 0.0
+    config.parameters.HEG_Model = "OFF"
+
+    config.parameters.x_Temporary_Larval_Habitat = 1
+    config.parameters.Vector_Species_Params = []
+    config.parameters.Egg_Hatch_Density_Dependence = "NO_DENSITY_DEPENDENCE"
+    config.parameters.Enable_Temperature_Dependent_Egg_Hatching = 0
+    config.parameters.Enable_Egg_Mortality = 0
+    config.parameters.Enable_Drought_Egg_Hatch_Delay = 0
+    config.parameters.Temperature_Dependent_Feeding_Cycle = "NO_TEMPERATURE_DEPENDENCE"
+    config.parameters.Insecticides = []
+    config.parameters.Genome_Markers = []
+
+
+
+
     # params obsolete in Jan 2018 DTK update of MalariaDiagnostic
     #config.parameters.Fever_Detection_Threshold = ... # not in config schema
     #config.parameters.PCR_Sensitivity = 20  # 0.05/u... # not in config schema
