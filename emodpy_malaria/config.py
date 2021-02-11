@@ -188,6 +188,39 @@ def set_team_defaults( config, mani ):
     config.parameters.Insecticides = []
     config.parameters.Genome_Markers = []
 
+    # Other defaults from dtk-tools transition  #fixme very likely needs pruning
+    config.parameters.Base_Individual_Sample_Rate = 1
+    config.parameters.Base_Mortality = 1
+    config.parameters.Enable_Initial_Prevalence = 1
+    config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
+    config.parameters.Enable_Demographics_Initial = 1
+    config.parameters.Enable_Demographics_Other = 1
+    config.parameters.Enable_Demographics_Risk = 1
+    config.parameters.Enable_Demographics_Reporting = 0
+    config.parameters.Enable_Demographics_Birth = 0
+    config.parameters.Enable_Disease_Mortality = 0
+    config.parameters.Enable_Natural_Mortality = 0
+    config.parameters.Enable_Nondisease_Mortality = 0
+    config.parameters.Enable_Immunity = 1
+    config.parameters.Enable_Initial_Prevalence = 1
+    config.parameters.Enable_Rainfall_Stochasticity = 1
+    config.parameters.Max_Node_Population_Samples = 40
+    config.parameters.Minimum_Adult_Age_Years = 15
+    config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 90
+    config.parameters.Node_Grid_Size = 0.042
+    config.parameters.Number_Substrains = 1
+    config.parameters.Population_Density_C50 = 30
+    config.parameters.Population_Scale_Type = "FIXED_SCALING"
+    config.parameters.Post_Infection_Acquisition_Multiplier = 1
+    config.parameters.Post_Infection_Mortality_Multiplier = 1
+    config.parameters.Post_Infection_Transmission_Multiplier = 1
+    config.parameters.Python_Script_Path = ""
+    config.parameters.Susceptibility_Initialization_Distribution_Type = "DISTRIBUTION_OFF"
+    config.parameters.Susceptibility_Scale_Type = "CONSTANT_SUSCEPTIBILITY"
+    config.parameters.Symptomatic_Infectious_Offset = 0
+    config.parameters.Transmission_Blocking_Immunity_Decay_Rate = 0.01
+    config.parameters.Transmission_Blocking_Immunity_Duration_Before_Decay = 90
+
 
 
 
