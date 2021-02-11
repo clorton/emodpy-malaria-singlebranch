@@ -190,7 +190,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_drug_campaign_MDA(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "MDA"
         for config in configs:
             drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
@@ -208,7 +208,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_drug_campaign_MSAT(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "MSAT"
         for config in configs:
             drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
@@ -225,7 +225,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_drug_campaign_fMDA(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "fMDA"
         for config in configs:
             drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
@@ -242,7 +242,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_drug_campaign_rfMDA(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "rfMDA"
         for config in configs:
             drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
@@ -259,7 +259,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_drug_campaign_rfMSAT(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "rfMSAT"
         for config in configs:
             drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
