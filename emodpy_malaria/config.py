@@ -139,7 +139,6 @@ def set_team_defaults( config, mani ):
     config.parameters.Base_Infectivity = 1
 
     config.parameters.Enable_Superinfection = 1
-    config.parameters.Max_Individual_Infections = 5
     config.parameters.Infection_Updates_Per_Timestep = 1
 
     config.parameters.Post_Infection_Acquisition_Multiplier = 1
@@ -153,10 +152,7 @@ def set_team_defaults( config, mani ):
     config.parameters.Enable_Vector_Aging = 0
     config.parameters.Enable_Vector_Mortality = 1
     config.parameters.Enable_Vector_Migration = 0
-    config.parameters.Enable_Vector_Migration_Human = 0
     config.parameters.Enable_Vector_Migration_Local = 0
-    config.parameters.Enable_Vector_Migration_Wind = 0
-    config.parameters.Enable_Temperature_Dependent_Feeding_Cycle = 0
     config.parameters.Enable_Vector_Migration_Regional = 0
     config.parameters.x_Vector_Migration_Local = 0
     config.parameters.x_Vector_Migration_Regional = 0
@@ -174,9 +170,6 @@ def set_team_defaults( config, mani ):
 
     config.parameters.Wolbachia_Infection_Modification = 1.0
     config.parameters.Wolbachia_Mortality_Modification = 1.0
-    config.parameters.HEG_Homing_Rate = 0.0
-    config.parameters.HEG_Fecundity_Limiting = 0.0
-    config.parameters.HEG_Model = "OFF"
 
     config.parameters.x_Temporary_Larval_Habitat = 1
     config.parameters.Vector_Species_Params = []
@@ -193,14 +186,14 @@ def set_team_defaults( config, mani ):
     config.parameters.Base_Mortality = 1
     config.parameters.Enable_Initial_Prevalence = 1
     config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
-    config.parameters.Enable_Demographics_Initial = 1
-    config.parameters.Enable_Demographics_Other = 1
+    # config.parameters.Enable_Demographics_Initial = 1 # not in schema
+    # config.parameters.Enable_Demographics_Other = 1 # not in schema
     config.parameters.Enable_Demographics_Risk = 1
     config.parameters.Enable_Demographics_Reporting = 0
     config.parameters.Enable_Demographics_Birth = 0
     config.parameters.Enable_Disease_Mortality = 0
     config.parameters.Enable_Natural_Mortality = 0
-    config.parameters.Enable_Nondisease_Mortality = 0
+    # config.parameters.Enable_Nondisease_Mortality = 0 # not in schema
     config.parameters.Enable_Immunity = 1
     config.parameters.Enable_Initial_Prevalence = 1
     config.parameters.Enable_Rainfall_Stochasticity = 1
@@ -208,15 +201,14 @@ def set_team_defaults( config, mani ):
     config.parameters.Minimum_Adult_Age_Years = 15
     config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 90
     config.parameters.Node_Grid_Size = 0.042
-    config.parameters.Number_Substrains = 1
+    # config.parameters.Number_Substrains = 1 # not in schema
     config.parameters.Population_Density_C50 = 30
     config.parameters.Population_Scale_Type = "FIXED_SCALING"
     config.parameters.Post_Infection_Acquisition_Multiplier = 1
     config.parameters.Post_Infection_Mortality_Multiplier = 1
     config.parameters.Post_Infection_Transmission_Multiplier = 1
-    config.parameters.Python_Script_Path = ""
     config.parameters.Susceptibility_Initialization_Distribution_Type = "DISTRIBUTION_OFF"
-    config.parameters.Susceptibility_Scale_Type = "CONSTANT_SUSCEPTIBILITY"
+    # config.parameters.Susceptibility_Scale_Type = "CONSTANT_SUSCEPTIBILITY" # not in schema
     config.parameters.Symptomatic_Infectious_Offset = 0
     config.parameters.Transmission_Blocking_Immunity_Decay_Rate = 0.01
     config.parameters.Transmission_Blocking_Immunity_Duration_Before_Decay = 90
