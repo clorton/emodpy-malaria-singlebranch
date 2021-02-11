@@ -88,7 +88,7 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=udbednet)
 
-def test_drug_campaign(self):
+    def test_drug_campaign(self):
         from emodpy_malaria.interventions import drug_campaign
         self.expected_items = [
             "add_MDA", "add_MSAT",
@@ -149,4 +149,3 @@ def test_drug_campaign(self):
         self.verify_expected_items_present(namespace=conf)
 
     # endregion
-
