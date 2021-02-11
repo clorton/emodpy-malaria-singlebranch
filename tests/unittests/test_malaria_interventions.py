@@ -168,6 +168,49 @@ class TestMalariaInterventions(unittest.TestCase):
 
     # endregion
 
+    # region drug_campaign
+    def test_drug_campaign_default(self):
+        self.is_debugging = False
+        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        campaign_types = ["MDA", "MSAT", "fMDA", "rfMSAT", "rfMDA"]
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+
+        # Testing all campaign types
+        for index, camp_type in enumerate(campaign_types):
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = camp_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, configs[index]))
+
+        # Testing remaining config types
+        for config in configs[5:]:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = 'MDA', adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.loads(file)
+
+        for event in campaign['Events']:
+            self.parse_event(event)
+            self.validate_drug_campaign()
+
+        os.remove("campaign.json")
+    
+    def parse_event(self, event):
+        # grabs coverage, sensitivity, specificity, and diagnostic type
+        coord_config = event['Event_Coordinator_Config']
+        self.coverage = coord_config['Demographic_Coverage']
+        intervention_config = coord_config['Intervention_Config']
+        intervention = intervention_config["Intervention_List"][0]
+        self.sensitivity = intervention['Base_Sensitivity']
+        self.specificity = intervention['Base_Specificity']
+        self.diagnostic = intervention['MalariaDiagnostic']
+
+    def validate_drug_campaign(self, coverage=1, sensitivity=1, specificity=1, diagnostic=1):
+        self.assertEqual(self.coverage, 1)
+        self.assertEqual(self.sensitivity, 1)
+        self.assertEqual(self.specificity, 1)
+        self.assertEqual(self.diagnostic, "BLOOD_SMEAR_PARASITES")
+
+    # end region
+
     # region bednet
     def bednet_build(self
                       , start_day=1
