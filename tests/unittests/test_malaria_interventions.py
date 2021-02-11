@@ -10,6 +10,8 @@ from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+from emod_api import campaign as camp
 
 
 class WaningEffects:
@@ -53,6 +55,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.intervention_config = None
         self.killing_config = None # Used in ivermectin
         self.schema_file = schema_path_file
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         return
 
     def write_debug_files(self):
@@ -167,6 +170,101 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     # endregion
+
+    # region drug_campaign
+  
+    def parse_drug_campaign_event(self, event):
+        # name and coverage
+        coord_config = event['Event_Coordinator_Config']
+        self.coverage = coord_config['Demographic_Coverage']
+        intervention_config = coord_config['Intervention_Config']
+        if "Intervention_List" in intervention_config:
+            intervention = intervention_config["Intervention_List"][0]
+        else:
+            intervention = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
+        
+        self.vacc_type = intervention['class']
+
+    def validate_drug_campaign(self, campaign_type, coverage=1, sensitivity=1, specificity=1, diagnostic="BLOOD_SMEAR_PARASITES", vacc_type=["AntimalarialDrug", "MalariaDiagnostic", "BroadcastEventToOtherNodes", "DelayedIntervention"]):
+        self.assertEqual(self.coverage, coverage, msg=f"Coverage not equal to {coverage} with campaign type {campaign_type}")
+        self.assertTrue(self.vacc_type in vacc_type, msg=f"Vaccine type not equal to {vacc_type} instead was {self.vacc_type} with campaign type {campaign_type}")
+
+    def test_drug_campaign_MDA(self):
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "MDA"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+
+        for event in campaign['Events']:  
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type) # want to add config details later
+        os.remove("campaign.json")
+
+    def test_drug_campaign_MSAT(self):
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "MSAT"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+
+        for event in campaign['Events']:  
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type) # want to add config details later
+        os.remove("campaign.json")
+
+    def test_drug_campaign_fMDA(self):
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "fMDA"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+
+        for event in campaign['Events']:  
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type) # want to add config details later
+        os.remove("campaign.json")
+
+    def test_drug_campaign_rfMDA(self):
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "rfMDA"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+
+        for event in campaign['Events']:  
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type) # want to add config details later
+        os.remove("campaign.json")
+
+    def test_drug_campaign_rfMSAT(self):
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "rfMSAT"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+
+        for event in campaign['Events']:  
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type) # want to add config details later
+        os.remove("campaign.json")
+
+    # end region
 
     # region bednet
     def bednet_build(self
