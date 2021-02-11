@@ -10,6 +10,8 @@ from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
+import emodpy_malaria.interventions.drug_campaign as drug_campaign
+from emod_api import campaign as camp
 
 
 class WaningEffects:
