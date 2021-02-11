@@ -173,20 +173,21 @@ class TestMalariaInterventions(unittest.TestCase):
     # region drug_campaign
   
     def parse_drug_campaign_event(self, event):
-        # grabs coverage, sensitivity, specificity, and diagnostic type
+        # name and coverage
         coord_config = event['Event_Coordinator_Config']
         self.coverage = coord_config['Demographic_Coverage']
         intervention_config = coord_config['Intervention_Config']
-        intervention = intervention_config["Intervention_List"][0]
-        self.sensitivity = intervention['Base_Sensitivity']
-        self.specificity = intervention['Base_Specificity']
-        self.diagnostic = intervention['MalariaDiagnostic']
+        if "Intervention_List" in intervention_config:
+            intervention = intervention_config["Intervention_List"][0]
+        else:
+            intervention = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
+        
+        self.vacc_type = intervention['class']
 
-    def validate_drug_campaign(self, campaign_type, config, coverage=1, sensitivity=1, specificity=1, diagnostic="BLOOD_SMEAR_PARASITES"):
-        self.assertEqual(self.coverage, coverage, msg=f"Coverage not equal to {coverage} with campaign type {campaign_type} and configuration of {config}")
-        self.assertEqual(self.sensitivity, sensitivity, msg=f"Sensitivity not equal to {sensitivity} with campaign type {campaign_type} and configuration of {config}")
-        self.assertEqual(self.specificity, specificity, msg=f"Specificity not equal to {specificity} with campaign type {campaign_type} and configuration of {config}")
-        self.assertEqual(self.diagnostic, diagnostic, msg=f"Diagnostic type not equal {diagnostic}  with campaign type {campaign_type} and configuration of {config}")
+    def validate_drug_campaign(self, campaign_type, coverage=1, sensitivity=1, specificity=1, diagnostic="BLOOD_SMEAR_PARASITES", vacc_type=["AntimalarialDrug", "MalariaDiagnostic", "BroadcastEventToOtherNodes", "DelayedIntervention"]):
+        self.assertEqual(self.coverage, coverage, msg=f"Coverage not equal to {coverage} with campaign type {campaign_type}")
+        self.assertTrue(self.vacc_type in vacc_type, msg=f"Vaccine type not equal to {vacc_type} instead was {self.vacc_type} with campaign type {campaign_type}")
+
 
     def test_drug_campaign_MDA(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
@@ -197,14 +198,12 @@ class TestMalariaInterventions(unittest.TestCase):
 
         camp.save()
         with open("campaign.json") as file:
-            campaign = json.loads(file)
+            campaign = json.load(file)
 
-        for index, event in enumerate(campaign['Events']):
+        for event in campaign['Events']:  
             self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type, configs[index])
-
+            self.validate_drug_campaign(campaign_type) # want to add config details later
         os.remove("campaign.json")
-
 
     def test_drug_campaign_MSAT(self):
         camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
@@ -215,12 +214,11 @@ class TestMalariaInterventions(unittest.TestCase):
 
         camp.save()
         with open("campaign.json") as file:
-            campaign = json.loads(file)
+            campaign = json.load(file)
 
-        for index, event in enumerate(campaign['Events']):
+        for event in campaign['Events']:  
             self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type, configs[index])
-
+            self.validate_drug_campaign(campaign_type) # want to add config details later
         os.remove("campaign.json")
 
     def test_drug_campaign_fMDA(self):
@@ -232,12 +230,11 @@ class TestMalariaInterventions(unittest.TestCase):
 
         camp.save()
         with open("campaign.json") as file:
-            campaign = json.loads(file)
+            campaign = json.load(file)
 
-        for index, event in enumerate(campaign['Events']):
+        for event in campaign['Events']:  
             self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type, configs[index])
-
+            self.validate_drug_campaign(campaign_type) # want to add config details later
         os.remove("campaign.json")
 
     def test_drug_campaign_rfMDA(self):
@@ -249,12 +246,11 @@ class TestMalariaInterventions(unittest.TestCase):
 
         camp.save()
         with open("campaign.json") as file:
-            campaign = json.loads(file)
+            campaign = json.load(file)
 
-        for index, event in enumerate(campaign['Events']):
+        for event in campaign['Events']:  
             self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type, configs[index])
-
+            self.validate_drug_campaign(campaign_type) # want to add config details later
         os.remove("campaign.json")
 
     def test_drug_campaign_rfMSAT(self):
@@ -266,12 +262,11 @@ class TestMalariaInterventions(unittest.TestCase):
 
         camp.save()
         with open("campaign.json") as file:
-            campaign = json.loads(file)
+            campaign = json.load(file)
 
-        for index, event in enumerate(campaign['Events']):
+        for event in campaign['Events']:  
             self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type, configs[index])
-
+            self.validate_drug_campaign(campaign_type) # want to add config details later
         os.remove("campaign.json")
 
     # end region
