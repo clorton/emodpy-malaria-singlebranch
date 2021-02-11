@@ -68,7 +68,6 @@ def set_param_fn(config):
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 11250000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    lhm.parameters.finalize()
     conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
 
     conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
@@ -79,7 +78,6 @@ def set_param_fn(config):
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
-    config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     return config
 
@@ -157,8 +155,8 @@ def general_sim( erad_path, ep4_scripts ):
     print( f"Prompting for COMPS creds if necessary..." )
     experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
 
-    #other_assets = AssetCollection.from_id(pl.run())
-    #experiment.assets.add_assets(other_assets)
+    print("Adding asset dir...")
+    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
