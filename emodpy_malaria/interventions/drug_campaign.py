@@ -69,21 +69,6 @@ def drug_configs_from_code( camp, drug_code: str = None ):
     return drug_configs
 
 
-def get_event_override( event ):
-    if camp.get_schema():
-        trigger_list = camp.get_schema()["idmTypes"]["idmAbstractType:EventCoordinator"]["BroadcastCoordinatorEvent"]["Broadcast_Event"]["enum"]
-    if event in trigger_list:
-        return_event = event
-    elif event in event_map:
-        return_event = camp.event_map[event]
-    else:
-        # get next entry in GP_EVENT_xxx
-        new_event_name = 'GP_EVENT_{:03d}'.format(len(event_map))
-        camp.event_map[event] = new_event_name 
-        return_event = camp.event_map[event]
-    return return_event
-
-
 def add_drug_campaign(camp,
                       campaign_type: str = 'MDA',
                       drug_code: str = None,
@@ -228,8 +213,6 @@ def add_drug_campaign(camp,
     Returns:
         Dictionary with drug campaign parameters
     """
-
-    #camp.get_event = get_event_override
 
     if not drug_code and not adherent_drug_configs:
         raise Exception("You have to pass in  drug_code(AL, DP, etc; allowable types defined in malaria_drugs.py) or"
