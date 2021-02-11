@@ -94,7 +94,7 @@ class MalariaTestImports(unittest.TestCase):
             "add_MDA", "add_MSAT",
             "add_drug_campaign", "add_fMDA",
             "add_rfMDA", "add_rfMSAT", "drug_configs_from_code",
-            "fmda_cfg", "get_event_override"
+            "fmda_cfg"
         ]
         self.verify_expected_items_present(namespace=drug_campaign)
 
@@ -147,3 +147,5 @@ class MalariaTestImports(unittest.TestCase):
         ]
 
         self.verify_expected_items_present(namespace=conf)
+
+    # endregion
