@@ -171,31 +171,8 @@ class TestMalariaInterventions(unittest.TestCase):
     # endregion
 
     # region drug_campaign
-    def test_drug_campaign_default(self):
-        self.is_debugging = False
-        camp.schema_path = "./old_schemas/schema28Jan21.json"
-        campaign_types = ["MDA", "MSAT", "fMDA", "rfMSAT", "rfMDA"]
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
-
-        # Testing all campaign types
-        for index, camp_type in enumerate(campaign_types):
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = camp_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, configs[index]))
-
-        # Testing remaining config types
-        for config in configs[5:]:
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = 'MDA', adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
-
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.loads(file)
-
-        for event in campaign['Events']:
-            self.parse_event(event)
-            self.validate_drug_campaign()
-
-        os.remove("campaign.json")
-    
-    def parse_event(self, event):
+  
+    def parse_drug_campaign_event(self, event):
         # grabs coverage, sensitivity, specificity, and diagnostic type
         coord_config = event['Event_Coordinator_Config']
         self.coverage = coord_config['Demographic_Coverage']
@@ -205,11 +182,97 @@ class TestMalariaInterventions(unittest.TestCase):
         self.specificity = intervention['Base_Specificity']
         self.diagnostic = intervention['MalariaDiagnostic']
 
-    def validate_drug_campaign(self, coverage=1, sensitivity=1, specificity=1, diagnostic=1):
-        self.assertEqual(self.coverage, 1)
-        self.assertEqual(self.sensitivity, 1)
-        self.assertEqual(self.specificity, 1)
-        self.assertEqual(self.diagnostic, "BLOOD_SMEAR_PARASITES")
+    def validate_drug_campaign(self, campaign_type, config, coverage=1, sensitivity=1, specificity=1, diagnostic="BLOOD_SMEAR_PARASITES"):
+        self.assertEqual(self.coverage, coverage, msg=f"Coverage not equal to {coverage} with campaign type {campaign_type} and configuration of {config}")
+        self.assertEqual(self.sensitivity, sensitivity, msg=f"Sensitivity not equal to {sensitivity} with campaign type {campaign_type} and configuration of {config}")
+        self.assertEqual(self.specificity, specificity, msg=f"Specificity not equal to {specificity} with campaign type {campaign_type} and configuration of {config}")
+        self.assertEqual(self.diagnostic, diagnostic, msg=f"Diagnostic type not equal {diagnostic}  with campaign type {campaign_type} and configuration of {config}")
+
+    def test_drug_campaign_MDA(self):
+        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "MDA"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.loads(file)
+
+        for index, event in enumerate(campaign['Events']):
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type, configs[index])
+
+        os.remove("campaign.json")
+
+
+    def test_drug_campaign_MSAT(self):
+        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "MSAT"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.loads(file)
+
+        for index, event in enumerate(campaign['Events']):
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type, configs[index])
+
+        os.remove("campaign.json")
+
+    def test_drug_campaign_fMDA(self):
+        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "fMDA"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.loads(file)
+
+        for index, event in enumerate(campaign['Events']):
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type, configs[index])
+
+        os.remove("campaign.json")
+
+    def test_drug_campaign_rfMDA(self):
+        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "rfMDA"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.loads(file)
+
+        for index, event in enumerate(campaign['Events']):
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type, configs[index])
+
+        os.remove("campaign.json")
+
+    def test_drug_campaign_rfMSAT(self):
+        camp.schema_path = "./old_schemas/schema28Jan21.json"
+        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DGA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        campaign_type = "rfMSAT"
+        for config in configs:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.loads(file)
+
+        for index, event in enumerate(campaign['Events']):
+            self.parse_drug_campaign_event(event)
+            self.validate_drug_campaign(campaign_type, configs[index])
+
+        os.remove("campaign.json")
 
     # end region
 
