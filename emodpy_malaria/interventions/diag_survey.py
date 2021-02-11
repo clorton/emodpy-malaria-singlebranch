@@ -138,7 +138,7 @@ def add_diagnostic_survey(
 
     """
 
-    camp.get_event = get_event_override
+    #camp.get_event = get_event_override
 
     #if positive_diagnosis_configs is None:
         #positive_diagnosis_configs = []

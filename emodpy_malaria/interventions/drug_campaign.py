@@ -26,7 +26,7 @@ drug_cfg = {
 }
 
 
-def drug_configs_from_code( drug_code: str = None ):
+def drug_configs_from_code( camp, drug_code: str = None ):
     """
       Add a drug config to the simulation configuration based on its code and add the corresponding AntimalarialDrug
       intervention to the return dictionary. The drug_code needs to be one identified in the ``drug_cfg`` dictionary.
@@ -64,12 +64,25 @@ def drug_configs_from_code( drug_code: str = None ):
     drug_configs = []
     for drug in drug_array:
         #cb.config["parameters"]["Malaria_Drug_Params"][drug] = drug_params[drug]
-        drug_intervention = AntiMalarialDrug(Drug_Type=drug, ctc=1.5)
+        drug_intervention = AntiMalarialDrug(camp, Drug_Type=drug, ctc=1.5)
         drug_configs.append(drug_intervention)
     return drug_configs
 
+
 def get_event_override( event ):
-    return event
+    if camp.get_schema():
+        trigger_list = camp.get_schema()["idmTypes"]["idmAbstractType:EventCoordinator"]["BroadcastCoordinatorEvent"]["Broadcast_Event"]["enum"]
+    if event in trigger_list:
+        return_event = event
+    elif event in event_map:
+        return_event = camp.event_map[event]
+    else:
+        # get next entry in GP_EVENT_xxx
+        new_event_name = 'GP_EVENT_{:03d}'.format(len(event_map))
+        camp.event_map[event] = new_event_name 
+        return_event = camp.event_map[event]
+    return return_event
+
 
 def add_drug_campaign(camp,
                       campaign_type: str = 'MDA',
@@ -216,7 +229,7 @@ def add_drug_campaign(camp,
         Dictionary with drug campaign parameters
     """
 
-    camp.get_event = get_event_override
+    #camp.get_event = get_event_override
 
     if not drug_code and not adherent_drug_configs:
         raise Exception("You have to pass in  drug_code(AL, DP, etc; allowable types defined in malaria_drugs.py) or"
@@ -227,7 +240,7 @@ def add_drug_campaign(camp,
     if adherent_drug_configs:
         drug_configs = adherent_drug_configs
     else:
-        drug_configs = drug_configs_from_code(drug_code=drug_code)
+        drug_configs = drug_configs_from_code(camp, drug_code=drug_code)
 
     # set up events to broadcast when receiving campaign drug
     receiving_drugs_event = BroadcastEvent(camp, Event_Trigger=receiving_drugs_event_name)
