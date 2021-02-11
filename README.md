@@ -82,3 +82,20 @@ def build_demog():
 ### What happens if I don't VPN in?
 
 You can't access Bamboo and download the Eradication binaries (including pluglins and schema)
+
+### How do I specify the number of cores? 
+
+num_cores is an undocumented param to Platform(). It is not a DTK config param.
+
+### How do I specify the log level for DTK? I get a schema error when I try to set it now.
+
+TBD.
+
+### the default_from_schema_no_validation.schema_to_config... is a little bit inscrutable. Can we hide this in a function?
+
+TBD
+
+
+# Known Issues.
+
+The OS of the build plan and the OS of the target platform need to match. Right now it's possible to misconfigure and not be told until COMPS fails.
