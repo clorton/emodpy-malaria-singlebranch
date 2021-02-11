@@ -189,9 +189,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.coverage, coverage, msg=f"Coverage not equal to {coverage} with campaign type {campaign_type}")
         self.assertTrue(self.vacc_type in vacc_type, msg=f"Vaccine type not equal to {vacc_type} instead was {self.vacc_type} with campaign type {campaign_type}")
 
-
     def test_drug_campaign_MDA(self):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "MDA"
         for config in configs:
@@ -207,7 +205,6 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_MSAT(self):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "MSAT"
         for config in configs:
@@ -223,7 +220,6 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_fMDA(self):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "fMDA"
         for config in configs:
@@ -239,7 +235,6 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_rfMDA(self):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "rfMDA"
         for config in configs:
@@ -255,7 +250,6 @@ class TestMalariaInterventions(unittest.TestCase):
         os.remove("campaign.json")
 
     def test_drug_campaign_rfMSAT(self):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
         configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
         campaign_type = "rfMSAT"
         for config in configs:
