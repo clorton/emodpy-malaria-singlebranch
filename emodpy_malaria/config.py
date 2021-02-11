@@ -132,11 +132,7 @@ def set_team_defaults( config, mani ):
 
     # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
     config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION"
-    config.parameters.Incubation_Period_Constant = 25
-
-    #config.parameters.Infectious_Period_Distribution = "EXPONENTIAL_DISTRIBUTION"
-    #config.parameters.Infectious_Period_Exponential = 180
-    #config.parameters.Base_Infectivity = 1
+    config.parameters.Incubation_Period_Constant = 25 
 
     config.parameters.Enable_Superinfection = 1
     config.parameters.Infection_Updates_Per_Timestep = 1
@@ -154,10 +150,6 @@ def set_team_defaults( config, mani ):
     config.parameters.Enable_Vector_Migration = 0
     config.parameters.Enable_Vector_Migration_Local = 0
     config.parameters.Enable_Vector_Migration_Regional = 0
-    #config.parameters.x_Vector_Migration_Local = 0
-    #config.parameters.x_Vector_Migration_Regional = 0
-    #config.parameters.Vector_Migration_Filename_Local = ""
-    #config.parameters.Vector_Migration_Filename_Regional = ""
 
     # placeholder param values
     config.parameters.Vector_Migration_Habitat_Modifier = 6.5
@@ -165,7 +157,6 @@ def set_team_defaults( config, mani ):
     config.parameters.Vector_Migration_Stay_Put_Modifier = 0.3
 
     config.parameters.Age_Dependent_Biting_Risk_Type = "SURFACE_AREA_DEPENDENT"
-    # config.parameters.Newborn_Biting_Risk_Multiplier = 0.2  # for LINEAR option (also picked up by InputEIR)
     config.parameters.Human_Feeding_Mortality = 0.1
 
     config.parameters.Wolbachia_Infection_Modification = 1.0
@@ -183,11 +174,8 @@ def set_team_defaults( config, mani ):
 
     # Other defaults from dtk-tools transition  #fixme very likely needs pruning
     config.parameters.Base_Individual_Sample_Rate = 1
-    #config.parameters.Base_Mortality = 1
     config.parameters.Enable_Initial_Prevalence = 1
     config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
-    # config.parameters.Enable_Demographics_Initial = 1 # not in schema
-    # config.parameters.Enable_Demographics_Other = 1 # not in schema
     config.parameters.Enable_Demographics_Risk = 1
     config.parameters.Enable_Demographics_Reporting = 0
     config.parameters.Enable_Demographics_Birth = 0
@@ -196,18 +184,14 @@ def set_team_defaults( config, mani ):
     # config.parameters.Enable_Nondisease_Mortality = 0 # not in schema
     config.parameters.Enable_Initial_Prevalence = 1
     config.parameters.Enable_Rainfall_Stochasticity = 1
-    #config.parameters.Max_Node_Population_Samples = 40
     config.parameters.Minimum_Adult_Age_Years = 15
     config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 90
     config.parameters.Node_Grid_Size = 0.042
-    # config.parameters.Number_Substrains = 1 # not in schema
     config.parameters.Population_Density_C50 = 30
     config.parameters.Population_Scale_Type = "FIXED_SCALING"
     config.parameters.Post_Infection_Acquisition_Multiplier = 1
     config.parameters.Post_Infection_Mortality_Multiplier = 1
     config.parameters.Post_Infection_Transmission_Multiplier = 1
-    # config.parameters.Susceptibility_Initialization_Distribution_Type = "DISTRIBUTION_OFF"
-    # config.parameters.Susceptibility_Scale_Type = "CONSTANT_SUSCEPTIBILITY" # not in schema
     config.parameters.Transmission_Blocking_Immunity_Decay_Rate = 0.01
     config.parameters.Transmission_Blocking_Immunity_Duration_Before_Decay = 90 
 
