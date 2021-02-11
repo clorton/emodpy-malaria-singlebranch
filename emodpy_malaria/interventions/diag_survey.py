@@ -4,8 +4,6 @@ from emod_api import schema_to_class as s2c
 from emod_api.interventions.common import *
 from emodpy_malaria.interventions.common import *
 
-def get_event_override( event ):
-    return event
 
 def add_diagnostic_survey(
     camp,
