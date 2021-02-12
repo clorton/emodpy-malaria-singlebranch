@@ -82,7 +82,7 @@ def set_vsp( config, manifest ):
     # This needs to be changed once the schema for Larval_Habitat_Types is fixed. 
     # Keys-as-values means we have to do this
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Max_Larval_Capacity = 225000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
     vsp = conf.get_species_params( config, "gambiae" )
     vsp.Larval_Habitat_Types.append( lhm.parameters )
@@ -94,7 +94,7 @@ def set_vsp( config, manifest ):
     vsp2 = malconf.set_genetics(vsp2, manifest)  # , alleles, allele_inits )
     vsp2.parameters.Name = "SillySkeeter"
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Max_Larval_Capacity = 225000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
     vsp2.parameters.Larval_Habitat_Types.append( lhm.parameters )
 
@@ -103,7 +103,7 @@ def set_vsp( config, manifest ):
     vsp3 = malconf.set_genetics(vsp3, manifest)  # , alleles, allele_inits )
     vsp3.parameters.Name = "SuperSkeeter"
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Max_Larval_Capacity = 225000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
     vsp3.parameters.Larval_Habitat_Types.append( lhm.parameters )
 

@@ -62,7 +62,7 @@ def set_vsp( config, mani ):
     # I think the new way should just set this in place. Check this!!!
     #config.parameters.Vector_Species_Params = vsp.parameters
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Max_Larval_Capacity = 225000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
     malconf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
     return config
