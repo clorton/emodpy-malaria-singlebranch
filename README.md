@@ -79,9 +79,8 @@ def build_demog():
     return demog
 ```
 
-### What happens if I don't VPN in?
-
-You can't access Bamboo and download the Eradication binaries (including pluglins and schema)
+### Why is it hanging on the Bamboo/downloading EXE step?
+Make sure you are logged into the VPN.  If you aren't logged into the VPN, you can't access Bamboo and download the Eradication binaries (including pluglins and schema)
 
 ### How do I specify the number of cores? 
 
