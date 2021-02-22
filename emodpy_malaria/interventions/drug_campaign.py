@@ -467,6 +467,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
     else:
         for start_day in start_days:
             drug_event = ScheduledCampaignEvent(
+                camp=camp,
                 Start_Day=start_day,
                 Event_Name="Campaign_Event",
                 Nodeset_Config=nodeset_config,

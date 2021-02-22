@@ -66,7 +66,7 @@ def set_param_fn(config):
     conf.set_species( config, [ "gambiae" ] )
 
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 11250000000
+    lhm.parameters.Max_Larval_Capacity = 2*112500000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
     conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
 
@@ -112,7 +112,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.1 )
+    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.005 )
     return demog
 
 
