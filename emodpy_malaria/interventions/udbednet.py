@@ -91,7 +91,6 @@ def UDBednet(
     seasonal_dependence: dict = None,
 
     insecticide: str = None,
-    cost: int = 5,
 
     node_ids: list = None,
     # birth_triggered: bool = False, # add Birth to tcl
@@ -181,9 +180,9 @@ def UDBednet(
             Examples::
 
                 {"Times":[], "Values":[]} or {"min_cov":0.45, "max_day":300}
-                cost: The per-unit cost (**Cost_To_Consumer** parameter).
-                nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-                parameter). If not provided, set value of NodeSetAll.
+
+        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
+            parameter). If not provided, set value of NodeSetAll.
 
         birth_triggered: If true, event is specified as a birth-triggered intervention.
         duration: If run as a birth-triggered event or a trigger_condition_list,
