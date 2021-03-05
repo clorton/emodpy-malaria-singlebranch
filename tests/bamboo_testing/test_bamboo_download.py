@@ -7,7 +7,7 @@ from emodpy.bamboo import get_model_files
 import emodpy.bamboo_api_utils as bamboo_api
 
 # Change for type of schema and Eradication
-plan = EradicationBambooBuilds.MALARIA_WIN 
+plan = EradicationBambooBuilds.MALARIA_LINUX
 
 class TestBambooDownload(unittest.TestCase):
     def define_test_environment(self):

@@ -22,13 +22,13 @@ class ResultType(Enum):
     NOT_PRESENT = 2
 
 
-class HealthSeekingTest(unittest.TestCase):
+class TreatmentSeekingTest(unittest.TestCase):
     runInComps = False
     debug = False
     schema_path = schema_path_file.schema_path
 
     def __init__(self, *args, **kwargs):
-        super(HealthSeekingTest, self).__init__(*args, **kwargs)
+        super(TreatmentSeekingTest, self).__init__(*args, **kwargs)
 
     # region unittest setup and teardown method
     @classmethod
