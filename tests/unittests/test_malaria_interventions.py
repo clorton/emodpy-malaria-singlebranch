@@ -556,7 +556,6 @@ class TestMalariaInterventions(unittest.TestCase):
                           , age_dependence:dict=None
                           , seasonal_dependence:dict=None
                           , insecticide:str=None
-                          , cost:int=5
                           , node_ids:list=None
                           , triggered_campaign_delay:dict=None
                           , triggers:list=None
@@ -585,7 +584,6 @@ class TestMalariaInterventions(unittest.TestCase):
                 , age_dependence=age_dependence
                 , seasonal_dependence=seasonal_dependence
                 , insecticide=insecticide
-                , cost=cost
                 , node_ids=node_ids
                 , triggered_campaign_delay=triggered_campaign_delay
                 , triggers=triggers
