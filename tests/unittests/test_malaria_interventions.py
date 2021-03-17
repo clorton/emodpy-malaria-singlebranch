@@ -34,13 +34,13 @@ class NodesetParams:
     CNSNL ="NodeSetNodeList"
     NL = "Node_List"
 
+# Uncomment below to also run through tests with 10 Jan schema (default is latest)
+# class schema_17Dec20:
+#     schema_path = schema_path_file.schema_file_17Dec20
 
-class schema_17Dec20:
-    schema_path = schema_path_file.schema_file_17Dec20
-
-
-class schema_10Jan21:
-    schema_path = schema_path_file.schema_file_10Jan21
+# Uncomment below to also run through tests with 10 Jan schema (default is latest)
+# class schema_10Jan21:
+#     schema_path = schema_path_file.schema_file_10Jan21
 
 
 class TestMalariaInterventions(unittest.TestCase):
@@ -623,6 +623,15 @@ class TestMalariaInterventions(unittest.TestCase):
                          'Bednet_Discarded')
         self.assertEqual(self.intervention_config['Expiration_Period_Distribution'],
                          'EXPONENTIAL_DISTRIBUTION')
+
+        # checking that this is finalized appropriately
+        camp.add(self.tmp_intervention)
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg = "UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+
         return
 
     def test_usagebednet_trigger_distribution(self):
@@ -636,7 +645,6 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def test_usagebednet_trigger_delay_constant(self):
-        self.is_debugging = True
         specific_triggers = ["WetOutside","ReceivesBednet"]
         specific_delay_param = 'Delay_Period_Constant'
         specific_delay_value = 9
@@ -730,17 +738,18 @@ class TestMalariaInterventions(unittest.TestCase):
 
     # endregion
 
-class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
+# Uncomment below if you would like to run test suite with different schema
+# class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
 
-    def setUp(self):
-        super(TestMalariaInterventions_17Dec20, self).setUp()
-        self.schema_file = schema_17Dec20
+#     def setUp(self):
+#         super(TestMalariaInterventions_17Dec20, self).setUp()
+#         self.schema_file = schema_17Dec20
 
-class TestMalariaInterventions_10Jan21(TestMalariaInterventions):
+# class TestMalariaInterventions_10Jan21(TestMalariaInterventions):
 
-    def setUp(self):
-        super(TestMalariaInterventions_10Jan21, self).setUp()
-        self.schema_file = schema_10Jan21
+#     def setUp(self):
+#         super(TestMalariaInterventions_10Jan21, self).setUp()
+#         self.schema_file = schema_10Jan21
 
 
 if __name__ == '__main__':

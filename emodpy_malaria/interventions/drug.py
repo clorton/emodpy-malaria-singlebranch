@@ -6,7 +6,7 @@ iv_name = "AntimalarialDrug"
 
 def AntiMalarialDrug( 
         camp, 
-        start_day, 
+        start_day=1, 
         coverage=1.0, 
         drug_name="Chloroquine",
         node_ids=None

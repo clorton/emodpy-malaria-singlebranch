@@ -1,10 +1,10 @@
 from emod_api.interventions.common import *
 import emod_api.interventions.utils as utils
-from emodpy_malaria.interventions.drug import AntiMalarialDrug
+from emodpy_malaria.interventions.common import AntiMalarialDrug
 
 def _get_events(
            camp,
-           start_day: int=0,
+           start_day: int=1,
            targets: list=None,
            drug: list=None,
            nodeIDs: list=None,
@@ -20,7 +20,7 @@ def _get_events(
         targets = [{'trigger': 'NewClinicalCase', 'coverage': 0.1, 'agemin': 15, 'agemax': 70, 'seek': 0.4, 'rate': 0.3},
                    {'trigger': 'NewSevereCase', 'coverage': 0.8, 'seek': 0.6, 'rate': 0.5}]
 
-    drugs = [ AntiMalarialDrug(camp,start_day=0,drug_name=d) for d in drug ]
+    drugs = [ AntiMalarialDrug(camp,Drug_Type=d) for d in drug ]
     drugs.append( BroadcastEvent( camp, Event_Trigger=broadcast_event_name ) )
     drug_config = MultiInterventionDistributor(camp, Intervention_List=drugs)
 
@@ -62,15 +62,15 @@ def _get_events(
     return ret_events
 
 
-def add_health_seeking(camp,
-                       start_day: int = 0,
-                       targets: list = None,
-                       drug: list = None,
-                       nodeIDs: list = None,
-                       ind_property_restrictions: list = None,
-                       drug_ineligibility_duration: int = 0,
-                       duration: int = -1,
-                       broadcast_event_name: str = 'ReceivedTreatment'):
+def add(camp,
+        start_day: int = 1,
+        targets: list = None,
+        drug: list = None,
+        nodeIDs: list = None,
+        ind_property_restrictions: list = None,
+        drug_ineligibility_duration: int = 0,
+        duration: int = -1,
+        broadcast_event_name: str = 'ReceivedTreatment'):
 
     """
     Add an event-triggered drug-seeking behavior intervention to the campaign using

@@ -410,7 +410,7 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
     # Store these and put them in config later
     traits.append( trait )
 
-def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, killing = 1.0 ):
+def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, killing = 1.0, repelling = 1.0, larval_killing=1.0 ):
     """
         Use this function to add insecticide resistances. An insecticide can have a list of resistances.
         Add each resistance separately with the same name::
@@ -449,6 +449,8 @@ def add_resistance( manifest, insecticide_name, species, combo, blocking = 1.0, 
     resistance = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:AlleleComboProbabilityConfig"] )
     resistance.parameters.Blocking_Modifier = blocking
     resistance.parameters.Killing_Modifier = killing
+    resistance.parameters.Repelling_Modifier = repelling
+    resistance.parameters.Larval_Killing_Modifier = larval_killing
     resistance.parameters.Species = species
     resistance.parameters.Allele_Combinations = combo
     insecticide.parameters.Resistances.append( resistance.parameters )

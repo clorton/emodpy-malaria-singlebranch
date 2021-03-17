@@ -15,7 +15,7 @@ from idmtools.entities.experiment import Experiment
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy_malaria.reporters.builtin import ReportVectorGenetics
+from emodpy.reporters.custom import *
 import emod_api.config.default_from_schema_no_validation as dfs
 
 from emodpy_malaria import config as malconf
@@ -91,12 +91,14 @@ def build_camp():
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
     import emodpy_malaria.interventions.bednet as bednet
+    import emodpy_malaria.interventions.add_treatment_seeking as ats
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." ) 
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
+    #camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
+    ats.add( camp, start_day=1, nodeIDs=[321] )
     return camp
 
 
@@ -123,10 +125,9 @@ def general_sim( erad_path, ep4_scripts ):
     """
     print_params()
 
-    platform = Platform("SLURM") 
+    platform = Platform("SLURMStage") 
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
-
     # create EMODTask 
     print("Creating EMODTask (from files)...")
     
@@ -140,6 +141,16 @@ def general_sim( erad_path, ep4_scripts ):
             demog_builder=build_demog,
             plugin_report=None # report
         )
+
+    # Add event report
+    reporter = ReportEventCounter()  # Create the reporter
+    def config_builder( params ):
+        return params
+
+    #import pdb
+    #pdb.set_trace()
+    #reporter.config( config_builder, manifest )
+    task.reporters.add_reporter(reporter)
 
     print("Adding local assets (py scripts mainly)...")
 

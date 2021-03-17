@@ -109,10 +109,10 @@ class TestMalariaReport(unittest.TestCase):
                 params.Allele_Combinations_For_Stratification = allele_combinations_for_stratification
             if alleles_for_stratification is not None:
                 params.Alleles_For_Stratification = alleles_for_stratification
-            if specific_genome_combinations_for_stratification is not None:
-                params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification
             if combine_similar_genomes is not None:
                 params.Combine_Similar_Genomes = combine_similar_genomes
+            if specific_genome_combinations_for_stratification is not None:
+                params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification
             return params
         import schema_path_file
         self.tmp_reporter = ReportVectorGenetics()
@@ -142,7 +142,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Combine_Similar_Genomes'], 1)
         self.assertEqual(self.p_dict['Stratify_By'], "GENOME")
 
-    @unittest.skip("See GH #42")
     def test_vg_custom_specific_genome_stratification(self):
         self.rvg_build_vector_genetics_reporter(
             duration_days=12_345,

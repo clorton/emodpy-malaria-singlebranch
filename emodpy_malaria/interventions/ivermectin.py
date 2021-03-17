@@ -5,7 +5,7 @@ iv_name = "Ivermectin"
 def Ivermectin (
         schema_path_container
         , killing_effect
-        , start_day=0
+        , start_day=1
         , target_coverage=1.0
         , target_num_individuals=None
         , killing_duration_box=0

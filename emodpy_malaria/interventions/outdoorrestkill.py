@@ -8,7 +8,7 @@ def OutdoorRestKill (
         schema_path_container
         , killing_effect
         , insecticide_name = None
-        , start_day=0
+        , start_day=1
         , target_coverage=1.0
         , killing_predecay_duration=0
         , killing_decay_rate=0

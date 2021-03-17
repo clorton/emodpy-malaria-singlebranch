@@ -146,6 +146,7 @@ def add_reports( task, manifest ):
         params.Max_Number_Reports = 1
         params.Age_Bins = [2, 10, 125]
         params.Parasitemia_Bins = [0, 50, 200, 500, 2000000]
+        params.Event_Trigger_List.append("NewInfectionEvent")
         # 'class', 'Duration_Days', 'Event_Trigger_List', 'Individual_Property_Filter', 'Infectiousness_Bins', 'Nodeset_Config', 'Pretty_Format'
         return params
 
@@ -160,6 +161,7 @@ def add_reports( task, manifest ):
         params.Duration_Days = (years-report_start)*365
         params.Start_Day = (report_start)*365
         params.Report_Description = "Jon's Transmission Report"
+        params.Event_Trigger_List.append("NewInfectionEvent")
         # 'class', '', 'Event_Trigger_List', 'Nodeset_Config', 'Pretty_Format'
 
         return params

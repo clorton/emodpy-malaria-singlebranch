@@ -164,7 +164,7 @@ def general_sim( erad_path ):
     print("Creating EMODTask (from files)...")
 
     platform = None
-    platform = Platform("SLURM", num_cores=16)
+    platform = Platform("SLURMStage", num_cores=16)
     pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask
