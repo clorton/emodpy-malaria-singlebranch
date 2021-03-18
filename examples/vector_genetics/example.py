@@ -84,6 +84,10 @@ def set_param_fn(config):
     config.parameters.Simulation_Duration = 365
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
+
+    config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
+    config.parameters.Vector_Sampling_Type = "VECTOR_COMPARTMENTS_NUMBER"
+
     config.parameters.Enable_Vector_Species_Report = 1
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
@@ -95,8 +99,9 @@ def set_param_fn(config):
     malconf.add_mutation( from_allele="harry", to_allele="tom", rate=0.3 )
     malconf.add_alleles( [ "this", "that", "the_other" ], [ 0.9, 0.05, 0.05 ] )
     malconf.add_mutation( from_allele="this", to_allele="that", rate=0.4444 )
-    malconf.add_trait( manifest, [ "X", "X" ], [ "tom", "dick" ], "INFECTED_BY_HUMAN", 0 )
-    malconf.add_resistance( manifest, "pyrethroid", "gambiae", [ [ "this", "that" ] ] )
+    malconf.add_trait( manifest, [[ "X", "X" ], [ "tom", "dick" ]], "INFECTED_BY_HUMAN", 0 )
+    malconf.add_trait( manifest, [[ "X", "X" ], [ "dick", "dick" ], [ "the_other", "the_other" ]], "FECUNDITY", 10 )
+    malconf.add_resistance( manifest, "pyrethroid", "gambiae", [ [ "the_other", "the_other" ] ], blocking=0.0, killing=0.0 )
     config = malconf.set_resistances( config )
 
     # Vector Species Params
@@ -111,12 +116,17 @@ def build_camp():
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
     import emodpy_malaria.interventions.bednet as bednet
+    import emodpy_malaria.interventions.mosquitorelease as mr
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
     camp.add( bednet.Bednet( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5, usage_eff=0.5, insecticide="pyrethroid" ) )
+
+    camp.add( mr.MosquitoRelease( camp, start_day=130, by_number=True, number=2000, infectious=0.2, species="gambiae",
+                                  genome=[["X","X"],["dick","dick"],["the_other","the_other"]] ) )
+
     return camp
 
 

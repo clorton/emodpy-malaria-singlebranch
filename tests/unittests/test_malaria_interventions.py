@@ -11,6 +11,7 @@ from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
 import emodpy_malaria.interventions.drug_campaign as drug_campaign
+from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
 from emod_api import campaign as camp
 
 
@@ -44,7 +45,6 @@ class NodesetParams:
 
 
 class TestMalariaInterventions(unittest.TestCase):
-
     # region helper methods
     def setUp(self) -> None:
         self.is_debugging = False
@@ -736,7 +736,75 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_usagebednet_age_dependence_three(self):
         pass
 
-    # endregion
+    def mosquitorelease_build(self
+                            , start_day=1
+                            , by_number=True
+                            , number=10_000
+                            , percentage=0.1
+                            , infectious=0.0
+                            , species='arabiensis'
+                            , genome = [['X', 'X']]
+                            , node_ids=None):
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema17Dec20.json")
+        if not self.tmp_intervention:
+            self.tmp_intervention = MosquitoRelease(
+                camp=self.schema_file
+                , start_day=start_day
+                , by_number=by_number
+                , number=number
+                , percentage=percentage
+                , infectious=infectious
+                , species=species
+                , genome=genome
+                , node_ids=node_ids
+            )
+        self.parse_intervention_parts()
+        return
+
+    def test_mosquitorelease_only_needs_startday(self):
+        specific_start_day = 125
+        self.tmp_intervention = MosquitoRelease(
+            camp=schema_path_file
+            , start_day=specific_start_day)
+        self.mosquitorelease_build() # parse intervention parts
+
+        self.assertIsNotNone(self.tmp_intervention)
+        self.assertEqual(self.start_day, specific_start_day)
+        self.assertEqual(self.intervention_config['class'], 'MosquitoRelease')
+        return
+
+    def test_mosquitorelease_default(self):
+        self.mosquitorelease_build()
+
+        self.assertEqual(self.start_day, 1)
+        self.assertEqual(self.nodeset[NodesetParams.C]
+                        , NodesetParams.CNSA) # default is nodesetall
+        self.assertEqual(self.intervention_config['Released_Type'],
+                        'FIXED_NUMBER')
+        self.assertEqual(self.intervention_config['Released_Number'],
+                        10_000)
+        self.assertEqual(self.intervention_config['Released_Infectious'],
+                        0)
+        self.assertEqual(self.intervention_config['Released_Species'],
+                        'arabiensis')
+        self.assertEqual(self.intervention_config['Released_Genome'],
+                        [['X', 'X']])
+        return
+
+    def test_mosquitorelease_custom(self):
+        specific_start_day = 13
+        specific_genome = [['X', 'Y']]
+        specific_percentage = 0.14
+        specific_infectious_fraction = 0.28
+        specific_species = 'SillySkeeter'
+        specific_nodes = [3, 5, 8, 13, 21]
+        self.mosquitorelease_build(
+            start_day=specific_start_day
+            , by_number=False
+            , percentage=specific_percentage
+            , infectious=specific_infectious_fraction
+        )
+
 
 # Uncomment below if you would like to run test suite with different schema
 # class TestMalariaInterventions_17Dec20(TestMalariaInterventions):

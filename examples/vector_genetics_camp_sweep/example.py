@@ -106,7 +106,7 @@ def set_param_fn(config):
     malconf.add_mutation( from_allele="harry", to_allele="tom", rate=0.3 )
     malconf.add_alleles( [ "this", "that", "the_other" ], [ 0.9, 0.05, 0.05 ] )
     malconf.add_mutation( from_allele="this", to_allele="that", rate=0.4444 )
-    malconf.add_trait( manifest, [ "X", "X" ], [ "tom", "dick" ], "INFECTED_BY_HUMAN", 0 )
+    malconf.add_trait( manifest, [[ "X", "X" ], [ "tom", "dick" ]], "INFECTED_BY_HUMAN", 0 )
     malconf.add_resistance( manifest, "pyrethroid", "gambiae", [ [ "this", "that" ] ] )
     config = malconf.set_resistances( config )
 

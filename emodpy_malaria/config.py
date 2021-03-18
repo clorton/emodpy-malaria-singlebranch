@@ -382,7 +382,7 @@ def add_mutation( from_allele, to_allele, rate ):
         mutations[ allele_set_uniq_key ] = dict()
     mutations[allele_set_uniq_key].update( mut_dict )
 
-def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
+def add_trait( manifest, allele_combo, trait_name, trait_value ):
 
     """ 
     Use this function to add traits as part of vector genetics configuration.
@@ -393,14 +393,15 @@ def add_trait( manifest, sex_genes, allele_pair, trait_name, trait_value ):
            "Trait_Modifiers": {"INFECTED_BY_HUMAN": 0}
         },
     """
-    if len(sex_genes) != 2 or sex_genes[0] not in [ "X", "Y" ] or sex_genes[1] not in [ "X", "Y" ]:
-        raise ValueError( "sex_genes needs to have two values and can only be X or Y" )
-    if len(allele_pair) != 2:
-        raise ValueError( "allele_pair should have 2 values" )
+    if len(allele_combo) == 0:
+        raise ValueError("allele_combo must define some alleles to target")
+    for combo in allele_combo:
+        if( len(combo) != 2 ):
+            raise ValueError("Each combo in allele_combo must have two values - one for each chromosome, '*' is acceptable")
+
     # TBD: Add check that the alleles referenced here have been 'declared' previously
     trait = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:GeneToTraitModifierConfig"] )
-    trait.parameters.Allele_Combinations.append( sex_genes )
-    trait.parameters.Allele_Combinations.append( allele_pair )
+    trait.parameters.Allele_Combinations = allele_combo
 
     # Trait_Modifiers is a keys-as-value thing so don't really have any schema help here.  
     trait_mod = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:TraitModifier"] )
