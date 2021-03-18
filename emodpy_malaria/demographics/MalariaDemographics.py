@@ -9,8 +9,8 @@ from emod_api.demographics import DemographicsTemplates as DT
 
 class MalariaDemographics(Demog.Demographics):
     """
-    This class is derived from :py:class:`emod_api:emod_api.demographics.Demographics' and sets
-    certain defaults for malaria in construction.
+    This class is derived from :py:class:`emod_api:emod_api.demographics.Demographics.Demographics` 
+    and sets certain defaults for malaria in construction.
 
     Args:
         nodes: The number of nodes to create.
