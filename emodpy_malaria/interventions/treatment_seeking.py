@@ -7,7 +7,7 @@ def _get_events(
            start_day: int=1,
            targets: list=None,
            drug: list=None,
-           nodeIDs: list=None,
+           node_ids: list=None,
            ind_property_restrictions: list=None,
            drug_ineligibility_duration: int=0,
            duration: int=-1,
@@ -47,7 +47,7 @@ def _get_events(
             camp,
             Event_Name="Treatment_Seeking_Behaviour",
             Start_Day=start_day,
-            Nodeset_Config=utils.do_nodes( camp.schema_path, nodeIDs ),
+            Nodeset_Config=utils.do_nodes( camp.schema_path, node_ids ),
             Triggers=[t['trigger']],
             Duration=duration,
             Target_Demographic=target_demographic,
@@ -66,7 +66,7 @@ def add(camp,
         start_day: int = 1,
         targets: list = None,
         drug: list = None,
-        nodeIDs: list = None,
+        node_ids: list = None,
         ind_property_restrictions: list = None,
         drug_ineligibility_duration: int = 0,
         duration: int = -1,
@@ -93,7 +93,7 @@ def add(camp,
  
 
         drug: List of drug(s) to administer. Default is ``["Artemether","Lumefantrine"]``.
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
+        node_ids: The list of nodes to apply this intervention to (**Node_List**
         parameter). If not provided, set value of NodeSetAll.
         ind_property_restrictions: List of IndividualProperty key:value pairs that 
         individuals must have to receive the intervention. For example,
@@ -114,7 +114,7 @@ def add(camp,
     
     """
 
-    camp_events = _get_events( camp, start_day, targets, drug, nodeIDs, ind_property_restrictions, drug_ineligibility_duration, duration, broadcast_event_name )
+    camp_events = _get_events( camp, start_day, targets, drug, node_ids, ind_property_restrictions, drug_ineligibility_duration, duration, broadcast_event_name )
     for event in camp_events:
         camp.add( event )
 

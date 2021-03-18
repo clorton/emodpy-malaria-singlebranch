@@ -135,7 +135,7 @@ def build_demog():
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
     import emod_api.demographics.DemographicsTemplates as DT
 
-    #demog = Demographics.from_template( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    #demog = Demographics.from_template_node( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
     input_file = malconf.get_file_from_http( "http://ipadvweb02.linux.idm.ctr:8000/" + manifest.population_input_path )
     demog = Demographics.from_pop_csv( input_file, site='burkina' )
 

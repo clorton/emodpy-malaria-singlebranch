@@ -91,6 +91,6 @@ def from_params(tot_pop=1e6, num_nodes=100, frac_rural=0.3, id_ref="from_params"
     Returns:
         A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance.
     """
-    generic_demog = Demog.from_synth_pop(tot_pop, num_nodes, frac_rural, id_ref )
+    generic_demog = Demog.from_params(tot_pop, num_nodes, frac_rural, id_ref )
     nodes = generic_demog.nodes
     return MalariaDemographics(nodes=nodes, idref=id_ref )

@@ -219,7 +219,7 @@ class TreatmentSeekingTest(unittest.TestCase):
         duration = 15
 
         ret_events = ts._get_events(camp, start_day=start_day, drug=drug, targets=targets,
-                                     nodeIDs=copy.deepcopy(node_ids),
+                                     node_ids=copy.deepcopy(node_ids),
                                      ind_property_restrictions=copy.deepcopy(ind_property_restrictions),
                                      drug_ineligibility_duration=drug_ineligibility_duration, duration=duration,
                                      broadcast_event_name=broadcast_event_name)

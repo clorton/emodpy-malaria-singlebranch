@@ -79,7 +79,7 @@ class MalariaInterventionFileTest(unittest.TestCase):
     def test_bednet_file_nofilename(self):
         self.method_under_test = bednet_file
         self.expected_intervention_class = "SimpleBednet"
-        self.file_path = None
+        self.file_path = "BedNet.json"
         self.run_test()
         return
 

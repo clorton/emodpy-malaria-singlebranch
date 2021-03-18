@@ -181,7 +181,7 @@ def UDBednet(
 
                 {"Times":[], "Values":[]} or {"min_cov":0.45, "max_day":300}
 
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
+        node_ids: The list of nodes to apply this intervention to (**Node_List**
             parameter). If not provided, set value of NodeSetAll.
 
         birth_triggered: If true, event is specified as a birth-triggered intervention.

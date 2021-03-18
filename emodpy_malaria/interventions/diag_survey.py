@@ -1,3 +1,6 @@
+"""
+This module contains functionality for diagnostic survey interventions.
+"""
 import random
 import emod_api.interventions.utils as utils
 from emod_api import schema_to_class as s2c
@@ -15,10 +18,8 @@ def add_diagnostic_survey(
     diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
     diagnostic_threshold: float = 40,
     measurement_sensitivity: float = 0.1,
-    sensitivity: float = 1,
-    specificity: float = 1,
     event_name: str = "Diagnostic Survey",
-    nodeIDs: list = None,
+    node_ids: list = None,
     positive_diagnosis_configs: list = None,
     negative_diagnosis_configs: list = None,
     received_test_event: str = 'Received_Test',
@@ -32,16 +33,17 @@ def add_diagnostic_survey(
     expire_recent_drugs: any = None):
 
     """
-        Add an intervention to create either a scheduled or a triggered event to
-        the campaign using the **MalariaDiagnostic** class, an individual-level
-        class, to test individuals. Upon positive or negative diagnosis, the
-        list of events to occur (as defined in positive_diagnosis_configs or
-        negative_diagnosis_configs) is then executed. These events can trigger
-        other listening interventions.
+        Add an intervention to create either a scheduled or a triggered event to the
+        campaign using the
+        :py:class:`~emodpy_malaria.interventions.common.MalariaDiagnostic` class, an
+        individual-level class, to test individuals. Upon positive or negative
+        diagnosis, the list of events to occur (as defined in
+        **positive_diagnosis_configs** or **negative_diagnosis_configs**) is then executed.
+        These events can trigger other listening interventions.
 
         Args:
-            camp: emod_api.campaign object for building, modifying, and writing 
-                campaign configuration files.
+            camp: The :py:obj:`emod_api:emod_api.campaign` object for building, 
+                modifying, and writing campaign configuration files.
 
             coverage: The probability an individual receives the diagnostic.
 
@@ -53,39 +55,51 @@ def add_diagnostic_survey(
                 individuals for treatment. In the format
                 ``{"agemin": x, "agemax": y, "gender": z}``. Default is Everyone.
 
-            start_day: Beginning of the intervention's existence. If triggered,
-                runs on trigger, not on start_day.
+            start_day: The day of the simulation on which the intervention is created.
+                If triggered, runs on trigger, not on **start_day**.
 
             diagnostic_type: Type of malaria diagnostic used. Default is
-            **BLOOD_SMEAR**. Available options are:
-            * TRUE_INFECTION_STATUS
-            * BLOOD_SMEAR
-            * PCR
-            * PF_HRP2
-            * TRUE_PARASITE_DENSITY
-            * HAS_FEVER
+                **BLOOD_SMEAR_PARASITES**. Available options are:
+
+                * BLOOD_SMEAR_PARASITES
+                * BLOOD_SMEAR_GAMETOCYTES
+                * PCR_PARASITES
+                * PCR_GAMETOCYTES
+                * PF_HRP2
+                * TRUE_INFECTION_STATUS
+                * TRUE_PARASITE_DENSITY
+                * FEVER
 
             diagnostic_threshold: The diagnostic detection threshold based on
-            **diagnostic_type**:
-            * BLOOD_SMEAR: Use the SusceptibilityMalaria::CheckParasiteCountWithTest()
-                to get a parasite density to check against the threshold.
-            * PCR: Use the ReportUtilitiesMalaria::NASBADensityWithUncertainty()
-                method to calculate a measured parasite density and check
-                against the threshold.
-            * PF_HRP2: Add a new method to get the PfHRP2 value and check against
-                the threshold.
-            * TRUE_PARASITE_DENSITY: Check the true/actual parasite density
-                against the threshold (DEFAULT).
-            * HAS_FEVER: Check the person's fever against the threshold.
+                **diagnostic_type**:
 
-            sensitivity: Setting for **Base_Sensitivity** in the MalariaDiagnostic
+                TRUE_INFECTION_STATUS
+                    
+                BLOOD_SMEAR_PARASITES
+                    In parasites/microliter, use measurement = float( 1.0 / measurementSensitivity * 
+                    Poisson(measurementSensitivity * true_parasite_density)). 
+                BLOOD_SMEAR_GAMETOCYTES
+                    In gametocytes/microliter, use measurement = float( 1.0 / measurementSensitivity * 
+                    Poisson(measurementSensitivity * true_gametocyte_density)). 
+                PCR_PARASITES and PCR_GAMETOCYTES
+                    Use the true values and an algorithm based on the paper
+                    `Improving statistical inference on pathogen densities estimated by 
+                    quantitative molecular methods : malaria gametocytaemia as a case study
+                    <https://doi.org/10.1186/s12859-014-0402-2>`_.
+                PF_HRP2
+                    Add a new method to get the PfHRP2 value and check against
+                    the threshold.
+                TRUE_PARASITE_DENSITY
+                    Check the true parasite density against the threshold.
+                FEVER
+                    Check the person's fever against the threshold.
 
-            specificity: Setting for **Base_Specificity** in the MalariaDiagnostic
+            measurement_sensitivity: Setting for **Measurement_Sensitivity** in 
+                :py:class:`~emodpy_malaria.interventions.common.MalariaDiagnostic`.
 
-            measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
-                event_name: Description of the event.
+            event_name: Description of the event.
 
-            nodeIDs: The list of nodes to apply this intervention to (**Node_List**
+            node_ids: The list of nodes to apply this intervention to (**Node_List**
                 parameter). If not provided, set value of NodeSetAll.
 
             positive_diagnosis_configs: List of events to happen to an individual
@@ -133,20 +147,15 @@ def add_diagnostic_survey(
 
         Returns:
            None
-
     """
 
-    #if positive_diagnosis_configs is None:
-        #positive_diagnosis_configs = []
-    #if negative_diagnosis_configs is None:
-        #negative_diagnosis_configs = []
     if IP_restrictions is None:
         IP_restrictions = []
     if NP_restrictions is None:
         NP_restrictions = []
     if disqualifying_properties is None:
         disqualifying_properties = []
-    nodeset_config = utils.do_nodes( camp.schema_path, nodeIDs )
+    nodeset_config = utils.do_nodes( camp.schema_path, node_ids )
 
     received_test_event = BroadcastEvent(camp,Event_Trigger=received_test_event)
 
@@ -157,18 +166,12 @@ def add_diagnostic_survey(
 
     if diagnostic_type == "TRUE_INFECTION_STATUS":
         intervention_cfg = StandardDiagnostic(
-            Base_Sensitivity=1,
-            Base_Specificity=1,
             Days_To_Diagnosis=0,
-            Treatment_Fraction=1,
-            Event_Or_Config="Config")
+            Treatment_Fraction=1)
 
     else:
         intervention_cfg = MalariaDiagnostic(
             camp,
-            Event_Or_Config="Config",
-            Base_Sensitivity=sensitivity,
-            Base_Specificity=specificity,
             Measurement_Sensitivity=measurement_sensitivity,
             Detection_Threshold=diagnostic_threshold,
             Diagnostic_Type=diagnostic_type)
@@ -223,7 +226,7 @@ def add_diagnostic_survey(
                         camp,
                         Start_Day=start_day,
                         Event_Name="Diag_Survey_Now",
-                        Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=nodeIDs ),
+                        Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=node_ids ),
                         Triggers=trigger_condition_list,
                         Duration=listening_duration,
                         Intervention_List=[BroadcastEvent( camp, broadcast_event )],
@@ -306,6 +309,3 @@ def add_diagnostic_survey(
         camp.add(tested_negative_event)
 
     return
-
-
-
