@@ -111,7 +111,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.1 )
+    demog = Demographics.from_template( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.1 )
     return demog
 
 
