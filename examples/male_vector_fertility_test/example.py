@@ -191,7 +191,7 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("Calculon") 
+    platform = Platform("SLURMStage")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")

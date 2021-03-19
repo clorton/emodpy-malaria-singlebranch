@@ -123,7 +123,7 @@ def general_sim( erad_path, ep4_scripts ):
     """
     print_params()
 
-    platform = Platform("SLURM") 
+    platform = Platform("SLURMStage")
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
