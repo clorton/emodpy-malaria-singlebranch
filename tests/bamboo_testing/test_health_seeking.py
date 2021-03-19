@@ -36,7 +36,7 @@ class TestHealthSeeking(unittest.TestCase):
 
     def build_demog(self):
         import emodpy_malaria.demographics.MalariaDemographics as Demographics
-        demog = Demographics.fromBasicNode(lat=0, lon=0, pop=1000, name=1, forced_id=1)
+        demog = Demographics.from_template_node(lat=0, lon=0, pop=1000, name=1, forced_id=1)
         return demog
 
     def build_camp_1(self, targets):

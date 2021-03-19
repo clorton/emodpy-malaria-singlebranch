@@ -65,7 +65,6 @@ def set_vsp( config, manifest ):
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 11250000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    lhm.parameters.finalize()
     vsp = malconf.get_species_params( config, "gambiae" )
     vsp.Larval_Habitat_Types.append( lhm.parameters )
     vsp.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
@@ -78,10 +77,8 @@ def set_vsp( config, manifest ):
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 11250000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    lhm.parameters.finalize()
     vsp2.parameters.Larval_Habitat_Types.append( lhm.parameters )
-    vsp2.parameters.finalize()
-
+    
     vsp3 = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes","idmType:VectorSpeciesParameters"] )
     vsp3.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_FEED"
     vsp3 = malconf.set_genetics(vsp3, manifest)  # , alleles, allele_inits )
@@ -89,9 +86,7 @@ def set_vsp( config, manifest ):
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 11250000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    lhm.parameters.finalize()
     vsp3.parameters.Larval_Habitat_Types.append( lhm.parameters )
-    vsp3.parameters.finalize()
 
     #config.parameters.Vector_Species_Params.append(vsp.parameters)
     config.parameters.Vector_Species_Params.append(vsp2.parameters)
@@ -165,7 +160,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    demog = Demographics.from_template_node( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
     return demog
 
 
@@ -180,7 +175,7 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("Calculon") 
+    platform = Platform("SLURMStage") 
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
