@@ -18,21 +18,34 @@ def MosquitoRelease(
     ):
     """
     Release mosquitoes of a given species and genome into each node
-    :param start_day The day to release the vectors
-    :param by_number True if releasing a fixed number of vectors else a percentage of the current population of the
-                     gender specified in the genome
-    :param number: The number of vectors to release
-    :param percentage: The percentage of the current poulation of mosquitoes to release.  The 'population' will
-                       depend on the gender of the mosquitos being released and it will be the population from
-                      the previous time step.
-    :param infectious The fraction of vectors released that are to be infectious.  One can only use this
-                      feature when 'Malaria_Model'!='MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS'
-                      and there are no 'Genome_Markers'.
-    :param species: The case sensitive name of the species of vectors to be released
-    :param genome: This defines the alleles of the genome of the vectors to be released.  It must define all of
-                   the alleles including the gender 'gene'.  '*' is not allowed.
-    :param node_ids The list of node IDs to receive a release of vectors.  The same number of vectors will be released
-                    to each node
+
+    Args:
+        start_day: The day to release the vectors.
+
+        by_number: True if releasing a fixed number of vectors else a percentage 
+            of the current population of the gender specified in the genome.
+
+        number: The number of vectors to release.
+
+        percentage: The percentage of the current poulation of mosquitoes to release.
+            The 'population' will depend on the gender of the mosquitos being 
+            released and it will be the population from the previous time step.
+
+        infectious: The fraction of vectors released that are to be infectious.
+            One can only use this feature when 'Malaria_Model'!='MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS' 
+            and there are no 'Genome_Markers'.
+
+        species: The case sensitive name of the species of vectors to be released.
+
+        genome: This defines the alleles of the genome of the vectors to be released.
+            It must define all of the alleles including the gender 'gene'.  '*' is not allowed.
+
+        node_ids: The list of node IDs to receive a release of vectors.  The same 
+            number of vectors will be released to each node.
+
+    Returns:
+        new event
+
     """
     schema_path = camp.schema_path
     # First, get the objects
