@@ -166,7 +166,7 @@ def general_sim( erad_path, ep4_scripts ):
 
     # Create a platform
     # Show how to dynamically set priority and node_group
-    platform = Platform("SLURM") 
+    platform = Platform("SLURMStage")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
