@@ -24,7 +24,7 @@ import config_support
 class TestHealthSeeking(unittest.TestCase):
 
     def setUp(self):
-        self.platform = Platform("SLURM")
+        self.platform = Platform("SLURMStage")
         self.plan = EradicationBambooBuilds.MALARIA_LINUX
         self.schema_path = parent / 'inputs' / 'bin' / 'schema.json'
         self.eradication = parent / 'inputs' / 'bin' / 'Eradication'
