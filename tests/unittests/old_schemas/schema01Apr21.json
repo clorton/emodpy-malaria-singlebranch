@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "Malaria-Ongoing(0779cc80)",
-        "DTK_Build_Date": "Feb 13 2021",
-        "DTK_Version": "2.20.4952.0"
+        "DTK_Branch": "Malaria-Ongoing(e6903c2e7)",
+        "DTK_Build_Date": "Apr  1 2021",
+        "DTK_Version": "2.20.4953.0"
     },
     "config": {
         "Climate.ByData": {
@@ -3776,9 +3776,11 @@
         "Report": {
             "Inset_Chart_Has_Interventions": {
                 "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
                 "description": "A channel is added to InsetChart for each InterventionName provided.  The channel name will be Has_<InterventionName> and will be the fraction of the population that has that intervention.  The 'Intervention_Name' in the campaign should be the values in this parameter.",
-                "type": "Vector String",
-                "value_source": "Enable_Default_Reporting"
+                "type": "Vector String"
             }
         },
         "ReportEventRecorder": {
@@ -3925,9 +3927,11 @@
         "ReportMalaria": {
             "Inset_Chart_Has_Interventions": {
                 "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
                 "description": "A channel is added to InsetChart for each InterventionName provided.  The channel name will be Has_<InterventionName> and will be the fraction of the population that has that intervention.  The 'Intervention_Name' in the campaign should be the values in this parameter.",
-                "type": "Vector String",
-                "value_source": "Enable_Default_Reporting"
+                "type": "Vector String"
             },
             "Inset_Chart_Reporting_Include_30Day_Avg_Infection_Duration": {
                 "default": 1,
@@ -13763,17 +13767,13 @@
                     "min": 0,
                     "type": "float"
                 },
-                "Inset_Chart_Has_Interventions": {
+                "Has_Interventions": {
                     "default": [],
                     "description": "A channel is added to InsetChart for each InterventionName provided.  The channel name will be Has_<InterventionName> and will be the fraction of the population that has that intervention.  The 'Intervention_Name' in the campaign should be the values in this parameter.",
-                    "type": "Vector String",
-                    "value_source": "Enable_Default_Reporting"
+                    "type": "Vector String"
                 },
-                "Inset_Chart_Reporting_Include_30Day_Avg_Infection_Duration": {
+                "Include_30Day_Avg_Infection_Duration": {
                     "default": 1,
-                    "depends-on": {
-                        "Enable_Default_Reporting": 1
-                    },
                     "description": "If true the '30-Day Avg Infection Duration' channel is included in the InsetChart.json report.",
                     "type": "bool"
                 },

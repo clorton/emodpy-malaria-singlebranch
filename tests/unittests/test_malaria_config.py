@@ -23,15 +23,6 @@ from emodpy_malaria.config import mutations as conf_mutations
 from emodpy_malaria.config import insecticides as conf_insecticides
 
 
-
-class schema_17Dec20:
-    schema_path = schema_path_file.schema_file_17Dec20
-
-
-class schema_10Jan21:
-    schema_path = schema_path_file.schema_file_10Jan21
-
-
 class TestMalariaConfig(unittest.TestCase):
     default_config = None
     @classmethod

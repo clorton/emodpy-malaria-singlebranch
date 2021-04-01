@@ -55,7 +55,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.intervention_config = None
         self.killing_config = None # Used in ivermectin
         self.schema_file = schema_path_file
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
+        camp.schema_path = schema_path_file.schema_path
         return
 
     def write_debug_files(self):
