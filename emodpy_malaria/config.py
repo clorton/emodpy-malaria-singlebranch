@@ -196,9 +196,13 @@ def set_team_defaults(config, mani):
     config.parameters.Transmission_Blocking_Immunity_Duration_Before_Decay = 90
 
     # setting up parameters for climate constant
-    config.parameters.Base_Rainfall = 150
-    config.parameters.Simulation_Duration = 365
+    config.parameters.Base_Rainfall = 10
+    config.parameters.Base_Air_Temperature = 27
+    config.parameters.Base_Land_Temperature = 27
+    config.parameters.Base_Relative_Humidity = 0.75
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
+
+    config.parameters.Simulation_Duration = 365
 
     # params obsolete in Jan 2018 DTK update of MalariaDiagnostic
     # config.parameters.Fever_Detection_Threshold = ... # not in config schema
