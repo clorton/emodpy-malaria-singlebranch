@@ -10,10 +10,13 @@ from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
-import emodpy_malaria.interventions.drug_campaign as drug_campaign
+from emodpy_malaria.interventions import drug_campaign
+from emodpy_malaria.interventions import diag_survey
+from emodpy_malaria.interventions import common
 from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
-from emod_api import campaign as camp
 
+
+import emod_api.campaign as camp
 
 class WaningEffects:
     B = "WaningEffectBox"
@@ -735,6 +738,39 @@ class TestMalariaInterventions(unittest.TestCase):
     @unittest.skip("NYI")
     def test_usagebednet_age_dependence_three(self):
         pass
+
+    # endregion
+    
+    def test_diagnostic_survey(self):
+        self.is_debugging = False
+        diag_survey.add_diagnostic_survey(camp)
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+        event = campaign['Events'][0]
+        coord_config = event['Event_Coordinator_Config']
+        coverage = coord_config['Demographic_Coverage']
+        intervention_config = coord_config['Intervention_Config']['Intervention_List'][0]
+        base_sensitivity = intervention_config['Base_Sensitivity']
+        base_specificity = intervention_config['Base_Specificity']
+        name = intervention_config['Intervention_Name']
+        self.assertEqual(base_sensitivity, 1) # should be the default
+        self.assertEqual(base_specificity, 1) # should be the default
+        self.assertEqual(name, "MalariaDiagnostic")
+        self.assertEqual(coverage, 1)
+
+    def test_common(self):
+        self.is_debugging = False
+        malaria_diagnostic = common.MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
+        measures = [malaria_diagnostic.Base_Specificity, malaria_diagnostic.Base_Sensitivity,
+                    malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
+        
+        self.assertFalse(any(item != 1 for item in measures), msg="Not all values are 1 when set to 1")
+        self.assertEqual("BLOOD_SMEAR_PARASITES", malaria_diagnostic.Diagnostic_Type)
+
+        AntimalarialDrug = common.AntiMalarialDrug(camp, "Malaria")
+        self.assertEqual(AntimalarialDrug.Drug_Type, "Malaria")
+        self.assertEqual(AntimalarialDrug.Cost_To_Consumer, 1.0)
 
     def mosquitorelease_build(self
                             , start_day=1
