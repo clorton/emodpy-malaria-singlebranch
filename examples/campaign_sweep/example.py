@@ -39,13 +39,11 @@ import manifest
 """
 
 
-def build_campaign(start_day=1, current_insecticide="nokill_females",
-                   coverage=1.0, killing_effectiveness=0.5):
+def build_campaign(start_day=1, coverage=1.0, killing_effectiveness=0):
     """
     Adds a SpaceSpraying intervention, using parameters passed in
     Args:
         start_day: the day the intervention goes in effect
-        current_insecticide: insecticide being used with the intervention
         coverage: portion of each node covered by the intervention
         killing_effectiveness: portion of vectors killed by the intervention
 
@@ -60,8 +58,7 @@ def build_campaign(start_day=1, current_insecticide="nokill_females",
 
     # adding SpaceSpraying from emodpy_malaria.interventions.spacespraying
     campaign.add(spray.SpaceSpraying(campaign, start_day=start_day, coverage=coverage,
-                                     killing_eff=killing_effectiveness, constant_duration=73,
-                                     insecticide=current_insecticide),
+                                     killing_eff=killing_effectiveness, constant_duration=73),
                  first=True)
     return campaign
 
@@ -73,14 +70,20 @@ def update_campaign_start_day(simulation, value):
     return {"Start_Day": value}
 
 
-def update_killing_config_effectiveness(simulation, value):
-    build_campaign_partial = partial(build_campaign, current_insecticide="nokill_females",
-                                     killing_effectiveness=value)
+def update_campaign_killing_effectiveness(simulation, value):
+    build_campaign_partial = partial(build_campaign, killing_effectiveness=value)
     simulation.task.create_campaign_from_callback(build_campaign_partial)
     return {"killing_effectiveness": value}
 
 
-def set_config_paramters(config):
+def update_campaign_coverage(simulation, value):
+    build_campaign_partial = partial(build_campaign, coverage=value)
+    simulation.task.create_campaign_from_callback(build_campaign_partial)
+    return {"spray_coverage": value}
+
+
+
+def set_config_parameters(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
@@ -90,11 +93,8 @@ def set_config_paramters(config):
     config = malaria_config.set_team_defaults(config, manifest)
     # you have to explicitly set larval habitats for the species currently
 
-    # Vector Genetics
-    malaria_config.add_resistance(manifest, "nokill_females", "gambiae", combo=[["X", "X"]],
-                                  killing=0.0)
-    config = malaria_config.set_resistances(config)
-    config.parameters.Simulation_Duration = 30
+
+    config.parameters.Simulation_Duration = 80
 
     return config
 
@@ -122,7 +122,7 @@ def general_sim():
     """
 
     # Set platform
-    platform = Platform("Bayesian")  # use "SLURM" or "CALCULON" to run on comps.idmod.org
+    platform = Platform("SLURMStage")  # use "SLURM" or "CALCULON" to run on comps.idmod.org
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
@@ -131,21 +131,22 @@ def general_sim():
         eradication_path=manifest.eradication_path,
         campaign_builder=build_campaign,
         schema_path=manifest.schema_file,
-        param_custom_cb=set_config_paramters,
-        demog_builder=build_demographics,
-        plugin_report=None  # report
+        ep4_custom_cb=None,
+        param_custom_cb=set_config_parameters,
+        demog_builder=build_demographics
     )
 
 
     # Create simulation sweep with builder
     # sweeping over start day AND killing effectiveness - this will be a cross product
-
     builder = SimulationBuilder()
-    builder.add_sweep_definition(update_killing_config_effectiveness, [0.0, 0.2, 0.4, 0.8, 1.0])
-    builder.add_sweep_definition(update_campaign_start_day, [8, 12, 20])
+
+    # builder.add_sweep_definition(update_campaign_start_day, [1, 30, 50])
+    # builder.add_sweep_definition(update_campaign_coverage, [0.96, 0.85, 0.73])
+    builder.add_sweep_definition(update_campaign_killing_effectiveness, [0.8, 0.85, 0.9, 0.95, 1.0])
 
     # create experiment from builder
-    experiment = Experiment.from_builder(builder, task, name="Campaign Sweep, SpaceSpraying with Resistance")
+    experiment = Experiment.from_builder(builder, task, name="Campaign Sweep, SpaceSpraying")
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
@@ -166,7 +167,7 @@ def general_sim():
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line
-    plan = EradicationBambooBuilds.MALARIA_WIN
+    plan = EradicationBambooBuilds.MALARIA_LINUX
     print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files(plan, manifest)
     print("...done.")
