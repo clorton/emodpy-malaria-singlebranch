@@ -152,7 +152,7 @@ def general_sim( erad_path, ep4_scripts ):
 
     from emodpy_malaria.reporters.builtin import FilteredMalariaReport
     def fmr_config_builder( params ):
-        throwaway = 29
+        throwaway = 0
         start_day=throwaway * 365
         end_day=(throwaway + 1) * 365
         """

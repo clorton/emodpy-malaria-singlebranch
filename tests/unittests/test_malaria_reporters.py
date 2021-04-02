@@ -5,7 +5,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 from emodpy_malaria.reporters.builtin import \
-    ReportVectorGenetics, ReportVectorStats, MalariaPatientJSONReport, MalariaSummaryReport
+    ReportVectorGenetics, ReportVectorStats, MalariaPatientJSONReport, MalariaSummaryReport, FilteredMalariaReport
 
 
 class TestMalariaReport(unittest.TestCase):
@@ -372,6 +372,71 @@ class TestMalariaReport(unittest.TestCase):
         pass
 
     # endregion
+
+    # region filtered report 
+    def build_filtered_report(
+            self
+            ,end_day = None
+            ,has_interventions = None
+            ,include_30_day_average = None
+            ,node_ids_of_interest = None
+            ,report_file_name = None
+            ,start_day = None
+    ):
+        def filtered_config_builder(params):
+            if end_day is not None:
+                params.End_Day = end_day
+            if has_interventions is not None:
+                params.Has_Interventions = has_interventions
+            if include_30_day_average is not None:
+                params.Include_30Day_Avg_Infection_Duration = include_30_day_average
+            if node_ids_of_interest is not None:
+                params.Node_IDs_Of_Interest = node_ids_of_interest
+            if report_file_name is not None:
+                params.Report_File_Name = report_file_name
+            if start_day is not None:
+                params.Start_Day = start_day
+            return params
+        
+        import schema_path_file
+        self.tmp_reporter = FilteredMalariaReport()
+        self.tmp_reporter.config(filtered_config_builder, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        return
+
+    def test_filtered_report_default(self):
+        self.build_filtered_report()
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['End_Day'], 3.40282e+38)
+        self.assertEqual(self.p_dict['Has_Interventions'], [])
+        self.assertEqual(self.p_dict['Include_30Day_Avg_Infection_Duration'], 1)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], []) # Report_File_Name
+        self.assertEqual(self.p_dict['Report_File_Name'], 'ReportMalariaFiltered.json')
+        self.assertEqual(self.p_dict['Start_Day'], 0)
+
+    def test_filtered_report_custom(self):
+        end_day = 10
+        include_30_day = 0
+        ids_of_interest = [1, 2]
+        file_name = "FilteredStuff.json"
+        start_day = 5
+
+        self.build_filtered_report(
+            end_day = end_day
+            ,include_30_day_average = include_30_day
+            ,node_ids_of_interest = ids_of_interest
+            ,report_file_name = file_name
+            ,start_day = start_day
+        )
+
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['End_Day'], end_day)
+        self.assertEqual(self.p_dict['Include_30Day_Avg_Infection_Duration'], include_30_day)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], ids_of_interest) # Report_File_Name
+        self.assertEqual(self.p_dict['Report_File_Name'], file_name)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+
+    # end region
 
     # region vector migration report
 
