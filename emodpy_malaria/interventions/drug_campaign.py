@@ -1,3 +1,8 @@
+"""
+This module contains functionality for malaria intervention distribution
+via a cascade of care that may contain diagnostics and drug treatments.
+"""
+
 from copy import deepcopy, copy
 import random
 
@@ -27,17 +32,22 @@ drug_cfg = {
 
 
 def drug_configs_from_code( camp, drug_code: str = None ):
-    """
-      Add a drug config to the simulation configuration based on its code and add the corresponding AntimalarialDrug
-      intervention to the return dictionary. The drug_code needs to be one identified in the ``drug_cfg`` dictionary.
-      For example passing the ``MDA_ALP`` drug code, will add the drugs config for Artemether, Lumefantrine, Primaquine
-      to the configuration file and will return a dictionary containing a Full Treatment course for those 3 drugs.
-      Args:
-          drug_code: Code of the drug to add
-          drug_ineligibility_duration: used as a flag, if anything is present, we add ["DrugStatus:RecentDrug"]
-          as Disqualifying_Properties
-      Returns:
-          A dictionary containing the parameters for an intervention using the given drug
+    """  
+    Add a single or multiple drug regimen to the configuration file based
+    on its code and add the corresponding 
+    :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug`
+    intervention to the return dictionary. For example, passing the ``ALP`` drug
+    code will add the drug configuration for artemether, lumefantrine, and
+    primaquine to the configuration file and will return a dictionary containing a
+    full treatment course for those three drugs. For more information, see
+    ``Malaria_Drug_Params`` in :doc:`emod-malaria:parameter-configuration-drugs`.
+      
+    Args:
+        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will be added. 
+        drug_code: The code of the drug regimen. This must be listed in the ``drug_cfg`` dictionary.
+
+    Returns:
+          A dictionary containing the intervention for the given drug regimen.
     """
     if not drug_code or drug_code not in drug_cfg:
         raise Exception("Please pass in a (valid) drug_code.\n"
@@ -97,12 +107,14 @@ def add_drug_campaign(camp,
                       target_residents_only: int = 1,
                       check_eligibility_at_trigger: bool = False,
                       receiving_drugs_event_name='Received_Campaign_Drugs'):
-    """
-    Add a drug intervention, as specified in **campaign_type**, to the campaign.
-    This intervention uses the **MalariaDiagnostic** class to create either a
-    scheduled or a triggered event to the campaign and the **AntimalarialDrug**
-    class to configure drug parameters. You can also specify a delay period
-    for a triggered event that broadcasts afterwards.
+    """ 
+    Add a drug intervention, as specified in **campaign_type**, to the
+    campaign. This intervention uses the
+    :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic` class to
+    create either a scheduled or a triggered event to the campaign and the
+    :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug` class to
+    configure drug parameters. You can also specify a delay period for a triggered
+    event that broadcasts afterwards.
 
     .. note:: Dosing/Dosing_Type was removed, please use adeherent_drug_configs
         if you want something besides a full treatment. Also,
@@ -111,11 +123,9 @@ def add_drug_campaign(camp,
         receiving the drugs.
 
     Args:
-        cb: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-            object for building, modifying, and writing campaign
-            configuration files.
-        campaign_type: Type of drug campaign. Default is **MDA**.
-            Available options are:
+        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will be added. 
+        campaign_type: The type of drug campaign. Available options are:
+
             * MDA
             * MSAT
             * SMC
@@ -123,39 +133,32 @@ def add_drug_campaign(camp,
             * MTAT
             * rfMSAT
             * rfMDA
-        drug_code: The drug code of the drug regimen (AL, DP, etc;
-            allowable types are defined in malaria_drugs.py).
+
+        drug_code: The code of the drug regimen. This must be listed in the ``drug_cfg`` dictionary.
         start_days: List of start days (integers) when the drug regimen will
             be distributed. Due to diagnostic/treatment configuration,
-            the earliest start day is 1. When trigger_condition_list is used
-            then the first entry of start_days is the day to start listening
+            the earliest start day is 1. When **trigger_condition_list** is used,
+            the first entry of **start_days** is the day to start listening
             for the trigger(s).
-        coverage: Demographic coverage of the distribution (fraction of
-            people at home during campaign).
-        repetitions: Number of repetitions.
-        tsteps_btwn_repetitions: Timesteps between the repetitions.
-        diagnostic_type: Diagnostic config for diagnostic-dependent
-            campaigns:
+        coverage: The demographic coverage of the distribution (the fraction of
+            people at home during the campaign).
+        repetitions: The umber of repetitions.
+        tsteps_btwn_repetitions: The timesteps between the repetitions.
+        diagnostic_type: The diagnostic configuration for diagnostic-dependent
+            campaigns. Accepted values are:
+
             * MSAT
             * fMDA
             * rfMSAT
-        diagnostic_threshold: Diagnostic config for diagnostic-dependent
-            campaigns:
-            * MSAT
-            * fMDA
-            * rfMSAT
-        measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
+
+        diagnostic_threshold: The setting for **Diagnostic_Threshold** in 
+          :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
+        measurement_sensitivity: The setting for **Measurement_Sensitivity** in 
+          :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
         fmda_radius: Radius (in km) of focal response upon finding infection. 
             Default is 0. Used with household only.
-        node_selection_type: Node selection type for broadcasting focal
-            response trigger. Available options are:
-            * DISTANCE_ONLY: It will send the event to nodes that are within a
-            given distance.
-            * MIGRATION_NODES_ONLY: It will only send the event to nodes that
-            the individual can migrate to.
-            * DISTANCE_AND_MIGRATION: It will only send the even to migratable
-            nodes that are within a given distance. Migrateable nodes are Local
-            and Regional.
+        node_selection_type: The setting for **Node_Selection_Type** in
+          :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
         trigger_coverage: Used with RCD (Reactive Case Detection). Fraction of
             trigger events that will trigger an RCD. Coverage param sets the
             fraction of individuals reached during RCD response.
@@ -171,14 +174,6 @@ def add_drug_campaign(camp,
         target_group: A dictionary of ``{'agemin': x, 'agemax': y}`` to
             target MDA, SMC, MSAT, fMDA to individuals between x and y years
             of age. Default is Everyone.
-        drug_ineligibility_duration: When set to > 0, use IndividualProperties
-            to prevent people from receiving drugs too frequently.
-            Demographics file will need to define the IP DrugStatus with
-            possible values None and RecentDrug. Individuals with status
-            RecentDrug will not receive drugs during drug campaigns, though
-            they are still eligible for receiving diagnostics (in MSAT, etc).
-            Individuals who receive drugs during campaigns will have their
-            DrugStatus changed to RecentDrug for drug_ineligibility_duration days.
         node_property_restrictions: List of NodeProperty key:value pairs that nodes
             must have to receive the diagnostic intervention. For example,
             ``[{"NodeProperty1":"PropertyValue1"},
@@ -503,12 +498,14 @@ def add_MSAT(camp, start_days: list = None, coverage: float = 1.0, drug_configs:
         tsteps_btwn_repetitions: Time steps between repetitions.
         treatment_delay: Delay before the triggered drug distribution is done.
         diagnostic_type: Diagnostic type. Available options are:
+
             * TRUE_INFECTION_STATUS
             * BLOOD_SMEAR
             * PCR
             * PF_HRP2
             * TRUE_PARASITE_DENSITY
             * HAS_FEVER
+
         diagnostic_threshold: Diagnostic threshold values, which are based
             on the selected diagnostic type.
         measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
@@ -637,12 +634,14 @@ def add_fMDA(
         tsteps_btwn_repetitions: Time steps between repetitions.
         treatment_delay: Delay before the triggered drug distribution is done.
         diagnostic_type: Diagnostic type. Available options are:
+
             * TRUE_INFECTION_STATUS
             * BLOOD_SMEAR
             * PCR
             * PF_HRP2
             * TRUE_PARASITE_DENSITY
             * HAS_FEVER
+
         diagnostic_threshold: Diagnostic threshold values, which are based
             on the selected diagnostic type.
         measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
@@ -650,11 +649,16 @@ def add_fMDA(
             uses node_selection_type.
         node_selection_type: Node selection type for broadcasting fMDA trigger.
             Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and
-            MIGRATION_NODES_ONLY criteria.
+
+            DISTANCE_ONLY
+              Nodes located within the distance specified by fmda_type
+              are selected.
+            MIGRATION_NODES_ONLY
+              Nodes that are local or regional are selected.
+            DISTANCE_AND_MIGRATION
+              Nodes are selected using DISTANCE_ONLY and
+              MIGRATION_NODES_ONLY criteria.
+
         node_ids: The list of nodes to apply this intervention to (**Node_List**
             parameter). If not provided, set value of NodeSetAll.
         expire_recent_drugs: PropertyValueChanger intervention that updates DrugStatus
@@ -793,9 +797,9 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
                expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
                ind_property_restrictions: list = None, disqualifying_properties: list = None):
     """
-    Add a rfMDA (reactive focal mass drug administration) drug intervention to
+    Add a rfMSAT (reactive focal mass screening and treatment) drug intervention to
     campaign. Detecting malaria triggers diagnostic surveys to run on
-    neighboring nodes and so on, up to the number of trigggered interventions
+    neighboring nodes and so on, up to the number of triggered interventions
     defined in **snowballs** parameter.
 
     Args:
@@ -811,12 +815,14 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
         treatment_delay: delay before the triggered drug distribution is done
         trigger_coverage: Demographic coverage for the triggered intervention
         diagnostic_type: Diagnostic type. Available options are:
+
             * TRUE_INFECTION_STATUS
             * BLOOD_SMEAR
             * PCR
             * PF_HRP2
             * TRUE_PARASITE_DENSITY
             * HAS_FEVER
+
         diagnostic_threshold: Diagnostic threshold values, which are based
             on the selected diagnostic type.
         measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
@@ -824,12 +830,17 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
             uses node_selection_type.
         node_selection_type: Node selection type for broadcasting fMDA trigger.
             Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and
-            MIGRATION_NODES_ONLY criteria.
-        snowballs: Number of triggered interventions after the first.
+
+            DISTANCE_ONLY
+              Nodes located within the distance specified by fmda_type
+              are selected.
+            MIGRATION_NODES_ONLY
+              Nodes that are local or regional are selected.
+            DISTANCE_AND_MIGRATION
+              Nodes are selected using DISTANCE_ONLY and
+              MIGRATION_NODES_ONLY criteria.
+
+        snowballs: Number of triggered interventions after the first. 
         node_ids: The list of nodes to apply this intervention to (**Node_List**
             parameter). If not provided, set value of NodeSetAll.
         expire_recent_drugs: PropertyValueChanger intervention that updates DrugStatus
@@ -921,6 +932,7 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
               ind_property_restrictions: list = None, disqualifying_properties: list = None):
     """
     This function adds two interventions to your campaign file:
+
     1) "Received_Treatment"- triggered BroadcastEventToOtherNodes of
     "Give_Drugs_rfMDA" event to fmda_radius, with a "treatment_delay"
     option, and "coverage" coverage.
@@ -952,11 +964,16 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
             successful treatment.
         fmda_radius: Radius (km) of sending event to other nodes.
         node_selection_type: Node selection type. Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and
-            MIGRATION_NODES_ONLY criteria.
+
+            DISTANCE_ONLY
+              Nodes located within the distance specified by fmda_type
+              are selected.
+            MIGRATION_NODES_ONLY
+              Nodes that are local or regional are selected.
+            DISTANCE_AND_MIGRATION
+              Nodes are selected using DISTANCE_ONLY and
+              MIGRATION_NODES_ONLY criteria.
+
         node_ids: The list of nodes to apply this intervention to (**Node_List**
             parameter). If not provided, set value of NodeSetAll.
         expire_recent_drugs: PropertyValueChanger intervention that updates DrugStatus
@@ -1042,11 +1059,16 @@ def fmda_cfg(camp, fmda_type: any = 0, node_selection_type: str = 'DISTANCE_ONLY
             uses node_selection_type.
         node_selection_type: Node selection type for broadcasting to other nodes. 
             Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type 
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and 
-            MIGRATION_NODES_ONLY criteria.
+
+            DISTANCE_ONLY
+              Nodes located within the distance specified by fmda_type 
+              are selected.
+            MIGRATION_NODES_ONLY
+              Nodes that are local or regional are selected.
+            DISTANCE_AND_MIGRATION 
+              Nodes are selected using DISTANCE_ONLY and 
+              MIGRATION_NODES_ONLY criteria.
+
         event_trigger: String that triggers the broadcast.
 
     Returns:
