@@ -97,7 +97,6 @@ def add_drug_campaign(camp,
                       triggered_campaign_delay: int = 0,
                       node_ids: list = None,
                       target_group: any = 'Everyone',
-                      drug_ineligibility_duration: int = 0,
                       node_property_restrictions: list = None,
                       ind_property_restrictions: list = None,
                       disqualifying_properties: list = None,
@@ -116,14 +115,9 @@ def add_drug_campaign(camp,
     configure drug parameters. You can also specify a delay period for a triggered
     event that broadcasts afterwards.
 
-    .. note:: Dosing/Dosing_Type was removed, please use adeherent_drug_configs
-        if you want something besides a full treatment. Also,
-        drug_ineligibility_duration does not prevent diagnostics from being
-        distributed, but it does prevent positively-tested patients from
-        receiving the drugs.
-
     Args:
-        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will be added. 
+        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will 
+            be added. 
         campaign_type: The type of drug campaign. Available options are:
 
             * MDA
@@ -144,24 +138,35 @@ def add_drug_campaign(camp,
             people at home during the campaign).
         repetitions: The umber of repetitions.
         tsteps_btwn_repetitions: The timesteps between the repetitions.
-        diagnostic_type: The diagnostic configuration for diagnostic-dependent
-            campaigns. Accepted values are:
+        diagnostic_type: The setting for **Diagnostic_Type** in 
+          :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
+          Accepted values are:
 
-            * MSAT
-            * fMDA
-            * rfMSAT
+            * BLOOD_SMEAR_PARASITES
+            * BLOOD_SMEAR_GAMETOCYTES
+            * PCR_PARASITES
+            * PCR_GAMETOCYTES
+            * PF_HRP2
+            * TRUE_PARASITE_DENSITY
+            * FEVER
+            * TRUE_INFECTION_STATUS (calls StandardDiagnostic).
 
         diagnostic_threshold: The setting for **Diagnostic_Threshold** in 
           :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
         measurement_sensitivity: The setting for **Measurement_Sensitivity** in 
           :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
+          Used when the **diagnostic_type** is either BLOOD_SMEAR_PARASITES or 
+          BLOOD_SMEAR_GAMETOCYTES.
+        detection_threshold: The diagnostic detection threshold for parasites, in units 
+          of microliters of blood. 
         fmda_radius: Radius (in km) of focal response upon finding infection. 
-            Default is 0. Used with household only.
+            Default is 0. Used in simulations with many small nodes to simulate 
+            community health workers distributing drugs to surrounding houses.
         node_selection_type: The setting for **Node_Selection_Type** in
           :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
-        trigger_coverage: Used with RCD (Reactive Case Detection). Fraction of
-            trigger events that will trigger an RCD. Coverage param sets the
-            fraction of individuals reached during RCD response.
+        trigger_coverage: Used with RCD (Reactive Case Detection). The fraction of
+            trigger events that will trigger an RCD. To set the
+            fraction of individuals reached during RCD response, use **coverage**.
         snowballs: Number of snowball levels in reactive response.
         treatment_delay: For MSAT and fMDA, the length of time between
             administering diagnostic and giving drugs; for RCD, the length

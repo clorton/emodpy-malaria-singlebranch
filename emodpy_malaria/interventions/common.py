@@ -24,19 +24,10 @@ def MalariaDiagnostic(
     Args:
         camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention 
             will be added. 
-        Measurement_Sensitivity: The number of microliters of blood tested to find single 
-            parasite/gameotcyte in a traditional smear (corresponds to inverse parasites/microliters 
-            sensitivity). This is similar to **Parasite_Smear_Sensitivity** and 
-            **Gametocyte_Smear_Sensitivity** in the config used for reports, but this is for 
-            this instance of the diagnostic. In the following equation, if **measurement** 
-            is larger than **Detection_Threshold** a positive diagnosis is made::
-
-                measurement = float(1.0/Measurement_Sensitivity*GetRng()->
-                              Poisson(Measurement_Sensitivity*true_parasite_density)) 
-
+        Measurement_Sensitivity: The setting for **Measurement_Sensitivity** in 
+            :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
             Used only when **Diagnostic_Type** is set to BLOOD_SMEAR_PARASITES or 
             BLOOD_SMEAR_GAMETOCYTES.
-
         Detection_Threshold: The diagnostic detection threshold for parasites, in units 
             of microliters of blood. 
         Diagnostic_Type: The type of malaria diagnostic used. Possible values are:
@@ -48,7 +39,7 @@ def MalariaDiagnostic(
                 * PF_HRP2
                 * TRUE_PARASITE_DENSITY
                 * FEVER
-
+                * TRUE_INFECTION_STATUS (calls StandardDiagnostic).
     Returns:
       The diagnostic intervention event.
     """
