@@ -168,7 +168,6 @@ def set_team_defaults(config, mani):
     config.parameters.Enable_Temperature_Dependent_Egg_Hatching = 0
     config.parameters.Enable_Egg_Mortality = 0
     config.parameters.Enable_Drought_Egg_Hatch_Delay = 0
-    config.parameters.Temperature_Dependent_Feeding_Cycle = "NO_TEMPERATURE_DEPENDENCE"
     config.parameters.Insecticides = []
     config.parameters.Genome_Markers = []
 
