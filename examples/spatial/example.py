@@ -163,8 +163,9 @@ def general_sim( erad_path ):
     # create EMODTask 
     print("Creating EMODTask (from files)...")
 
-    platform = None
-    platform = Platform("SLURMStage", num_cores=16)
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores")
     pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask

@@ -163,9 +163,9 @@ def general_sim( erad_path, ep4_scripts ):
     """
     print_params()
 
-    # Create a platform
-    # Show how to dynamically set priority and node_group
-    platform = Platform("SLURMStage")
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")

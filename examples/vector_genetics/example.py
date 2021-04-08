@@ -154,11 +154,9 @@ def general_sim( erad_path, ep4_scripts ):
     """
     print_params()
 
-    # Create a platform
-    # Show how to dynamically set priority and node_group
-    platform = Platform("SLURM") 
-    #platform = Platform("SLURM", docker_image="docker-staging.packages.idmod.org/idmtools/comps_ssmt_worker:1.5.1.7")
-
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores")
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 

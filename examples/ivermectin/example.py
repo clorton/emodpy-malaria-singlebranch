@@ -129,7 +129,9 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("SLURMStage")
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores")
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 

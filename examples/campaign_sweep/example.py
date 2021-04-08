@@ -93,7 +93,6 @@ def set_config_parameters(config):
     config = malaria_config.set_team_defaults(config, manifest)
     # you have to explicitly set larval habitats for the species currently
 
-
     config.parameters.Simulation_Duration = 80
 
     return config
@@ -122,7 +121,8 @@ def general_sim():
     """
 
     # Set platform
-    platform = Platform("SLURMStage")  # use "SLURM" or "CALCULON" to run on comps.idmod.org
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
