@@ -127,8 +127,8 @@ def set_team_defaults(config, mani):
     config.parameters.Report_Detection_Threshold_PfHRP2 = 5.0
     config.parameters.Report_Detection_Threshold_True_Parasite_Density = 0.0
 
-    config.parameters.Gametocyte_Smear_Sensitivity = 0.1
-    config.parameters.Parasite_Smear_Sensitivity = 0.1  # 10/uL
+    config.parameters.Report_Gametocyte_Smear_Sensitivity = 0.1
+    config.parameters.Report_Parasite_Smear_Sensitivity = 0.1  # 10/uL
 
     # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
     config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION"

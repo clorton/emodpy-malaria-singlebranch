@@ -145,9 +145,9 @@ def add_reports( task, manifest ):
         params.Reporting_Interval = 365
         params.Max_Number_Reports = 1
         params.Age_Bins = [2, 10, 125]
-        params.Parasitemia_Bins = [0, 50, 200, 500, 2000000]
+        params.Parasitemia_Bins = [0, 50, 200, 500, 2000000] 
         params.Event_Trigger_List.append("NewInfectionEvent")
-        # 'class', 'Duration_Days', 'Event_Trigger_List', 'Individual_Property_Filter', 'Infectiousness_Bins', 'Nodeset_Config', 'Pretty_Format'
+
         return params
 
     reporter.config( msr_config_builder, manifest )

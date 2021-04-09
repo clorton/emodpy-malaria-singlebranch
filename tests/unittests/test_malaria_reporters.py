@@ -233,7 +233,6 @@ class TestMalariaReport(unittest.TestCase):
             self
             ,age_bins=None
             ,duration_days=None
-            ,event_trigger_list=None
             ,individual_property_filter=None
             ,infectiousness_bins=None
             ,max_number_reports=None
@@ -249,8 +248,6 @@ class TestMalariaReport(unittest.TestCase):
                 params.Age_Bins = age_bins
             if duration_days is not None:
                 params.Duration_Days = duration_days
-            if event_trigger_list is not None:
-                params.Event_Trigger_List = event_trigger_list
             if individual_property_filter is not None:
                 params.Individual_Property_Filter = individual_property_filter
             if infectiousness_bins is not None:
@@ -283,7 +280,6 @@ class TestMalariaReport(unittest.TestCase):
                          "NodeSetAll")
         self.assertGreater(self.p_dict['Duration_Days'], 100_000)
         self.assertEqual(self.p_dict['Age_Bins'], [])
-        self.assertEqual(self.p_dict['Event_Trigger_List'], [])
         self.assertEqual(self.p_dict['Individual_Property_Filter'], "")
         self.assertEqual(self.p_dict['Infectiousness_Bins'], [])
         self.assertEqual(self.p_dict['Max_Number_Reports'],1)
@@ -317,25 +313,11 @@ class TestMalariaReport(unittest.TestCase):
         self.msr_build_malaria_summary_report(
             age_bins=[1,2,5,15,25,45,65]
             ,duration_days=1234
-            ,event_trigger_list=[
-                "HappyBirthday",
-                "EnteredRelationship",
-                "ExitedRelationship",
-                "FirstCoitalAct"
-            ]
         )
         self.assertEqual(self.p_dict['Age_Bins'],
                          [1,2,5,15,25,45,65])
         self.assertEqual(self.p_dict['Duration_Days'],
                          1234)
-        self.assertEqual(self.p_dict['Event_Trigger_List'],
-                         [
-                             "HappyBirthday",
-                             "EnteredRelationship",
-                             "ExitedRelationship",
-                             "FirstCoitalAct"
-                         ]
-                         )
 
     def test_malaria_summary_report_custom2(self):
         self.msr_build_malaria_summary_report(
