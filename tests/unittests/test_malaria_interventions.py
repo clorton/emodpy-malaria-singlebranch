@@ -751,19 +751,14 @@ class TestMalariaInterventions(unittest.TestCase):
         coord_config = event['Event_Coordinator_Config']
         coverage = coord_config['Demographic_Coverage']
         intervention_config = coord_config['Intervention_Config']['Intervention_List'][0]
-        base_sensitivity = intervention_config['Base_Sensitivity']
-        base_specificity = intervention_config['Base_Specificity']
         name = intervention_config['Intervention_Name']
-        self.assertEqual(base_sensitivity, 1) # should be the default
-        self.assertEqual(base_specificity, 1) # should be the default
         self.assertEqual(name, "MalariaDiagnostic")
         self.assertEqual(coverage, 1)
 
     def test_common(self):
         self.is_debugging = False
         malaria_diagnostic = common.MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
-        measures = [malaria_diagnostic.Base_Specificity, malaria_diagnostic.Base_Sensitivity,
-                    malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
+        measures = [malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
         
         self.assertFalse(any(item != 1 for item in measures), msg="Not all values are 1 when set to 1")
         self.assertEqual("BLOOD_SMEAR_PARASITES", malaria_diagnostic.Diagnostic_Type)
@@ -781,7 +776,7 @@ class TestMalariaInterventions(unittest.TestCase):
                             , species='arabiensis'
                             , genome = [['X', 'X']]
                             , node_ids=None):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema17Dec20.json")
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/latest_schema.json")
         if not self.tmp_intervention:
             self.tmp_intervention = MosquitoRelease(
                 camp=self.schema_file
