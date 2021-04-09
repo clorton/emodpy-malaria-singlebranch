@@ -81,6 +81,12 @@ rule vector_genetics_camp_sweep:
     output: "vector_genetics_camp_sweep/COMPS_ID"
     run:
         shell("pushd vector_genetics_camp_sweep && ./example.py")
+rule campaign_sweep:
+    input: 
+    output: "campaign_sweep/COMPS_ID"
+    run:
+        shell( "echo ignore" )
+        #shell("pushd campaign_sweep && ./example.py")
 
 rule clean:
     input: 

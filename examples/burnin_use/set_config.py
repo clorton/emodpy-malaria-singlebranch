@@ -11,7 +11,6 @@ def set_config(config):
     config.parameters.Run_Number = 99 
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1
-    config.parameters.Enable_Natural_Mortality = 1
     config.parameters.Serialized_Population_Reading_Type = "READ"
     config.parameters.Serialized_Population_Path = manifest.assets_input_dir
     config.parameters.Serialized_Population_Filenames = [ "state-00365.dtk" ]

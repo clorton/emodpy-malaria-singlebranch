@@ -10,7 +10,6 @@ def set_config( config ):
     config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 270
     config.parameters.Enable_Demographics_Risk = 1
     config.parameters.Enable_Maternal_Infection_Transmission = 0
-    config.parameters.Enable_Natural_Mortality = 1
     
     config.parameters.x_Base_Population =0.5
     config.parameters.Enable_Disease_Mortality =0

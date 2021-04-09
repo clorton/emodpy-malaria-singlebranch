@@ -70,7 +70,6 @@ def set_malaria_config(config):
     config.parameters.Run_Number = 99
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1
-    config.parameters.Enable_Natural_Mortality = 1
 
     return config
 

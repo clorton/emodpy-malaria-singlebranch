@@ -9,7 +9,6 @@ def set_config(config):
     config.parameters.Run_Number = 99 
     config.parameters.Simulation_Duration = 365
     config.parameters.Enable_Demographics_Risk = 1
-    config.parameters.Enable_Natural_Mortality = 1
     config.parameters.Serialization_Time_Steps = [ 365 ]
     config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
 
