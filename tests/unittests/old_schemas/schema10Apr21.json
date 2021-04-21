@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "Malaria-Ongoing(e6903c2e7)",
-        "DTK_Build_Date": "Apr  1 2021",
-        "DTK_Version": "2.20.4953.0"
+        "DTK_Branch": "Malaria-Ongoing(24ec5245c)",
+        "DTK_Build_Date": "Apr 10 2021",
+        "DTK_Version": "2.20.4979.0"
     },
     "config": {
         "Climate.ByData": {
@@ -1312,16 +1312,6 @@
                 "min": 0,
                 "type": "float"
             },
-            "Temperature_Dependent_Feeding_Cycle": {
-                "default": "NO_TEMPERATURE_DEPENDENCE",
-                "description": "Effect of temperature on the duration between blood feeds.",
-                "enum": [
-                    "NO_TEMPERATURE_DEPENDENCE",
-                    "ARRHENIUS_DEPENDENCE",
-                    "BOUNDED_DEPENDENCE"
-                ],
-                "type": "enum"
-            },
             "Temporary_Habitat_Decay_Factor": {
                 "default": 0.05,
                 "description": "Factor to convert raw evaporation rate (ignoring boundary layer effects) to the daily rate of larval habitat loss for temporary habitats (Larval_Habitat_Types set to TEMPORARY_RAINFALL). Units are (larval carrying capacity per day) / (kg per square meter per second).",
@@ -1400,13 +1390,6 @@
                 "min": 0,
                 "type": "float"
             },
-            "Gametocyte_Smear_Sensitivity": {
-                "default": 0.1,
-                "description": "For reports only.  The number of microliters of blood tested to find single gametocytes in a traditional smear (corresponds to inverse gametocytes/microliters sensitivity).",
-                "max": 100,
-                "min": 0.0001,
-                "type": "float"
-            },
             "Mean_Sporozoites_Per_Bite": {
                 "default": 11,
                 "description": "Mean number of sporozoites per infectious mosquito bite.",
@@ -1414,7 +1397,14 @@
                 "min": 0,
                 "type": "float"
             },
-            "Parasite_Smear_Sensitivity": {
+            "Report_Gametocyte_Smear_Sensitivity": {
+                "default": 0.1,
+                "description": "For reports only.  The number of microliters of blood tested to find single gametocytes in a traditional smear (corresponds to inverse gametocytes/microliters sensitivity).",
+                "max": 100,
+                "min": 0.0001,
+                "type": "float"
+            },
+            "Report_Parasite_Smear_Sensitivity": {
                 "default": 0.1,
                 "description": "For reports only.  The number of microliters of blood tested to find single parasites in a traditional smear (corresponds to inverse parasites/microliters sensitivity).",
                 "max": 100,
@@ -2400,13 +2390,12 @@
                 "type": "enum"
             },
             "Death_Rate_Dependence": {
-                "default": "NOT_INITIALIZED",
+                "default": "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
                 "depends-on": {
                     "Enable_Natural_Mortality": 1
                 },
                 "description": "Determines how likely individuals are to die from natural, non-disease causes.",
                 "enum": [
-                    "NOT_INITIALIZED",
                     "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
                     "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
                 ],
@@ -2879,13 +2868,12 @@
                 "type": "enum"
             },
             "Death_Rate_Dependence": {
-                "default": "NOT_INITIALIZED",
+                "default": "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
                 "depends-on": {
                     "Enable_Natural_Mortality": 1
                 },
                 "description": "Determines how likely individuals are to die from natural, non-disease causes.",
                 "enum": [
-                    "NOT_INITIALIZED",
                     "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
                     "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
                 ],
@@ -3358,13 +3346,12 @@
                 "type": "enum"
             },
             "Death_Rate_Dependence": {
-                "default": "NOT_INITIALIZED",
+                "default": "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
                 "depends-on": {
                     "Enable_Natural_Mortality": 1
                 },
                 "description": "Determines how likely individuals are to die from natural, non-disease causes.",
                 "enum": [
-                    "NOT_INITIALIZED",
                     "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
                     "NONDISEASE_MORTALITY_BY_YEAR_AND_AGE_FOR_EACH_GENDER"
                 ],
@@ -3866,6 +3853,9 @@
             },
             "Report_Event_Recorder_Individual_Properties": {
                 "default": [],
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
                 "description": "A list of the IndividualProperty key:value pairs, as defined in the demographics file, that individuals must have to be targeted by this intervention.",
                 "type": "Dynamic String Set",
                 "value_source": "<demographics>::*.Individual_Properties.*.Property"
@@ -3913,12 +3903,18 @@
             },
             "Report_Node_Event_Recorder_Node_Properties": {
                 "default": [],
+                "depends-on": {
+                    "Report_Node_Event_Recorder": 1
+                },
                 "description": "Specifies an array of (optional) node property keys, as defined in **NodeProperties** in the demographics file, to be added as additional columns to the ReportNodeEventRecorder.csv output report.",
                 "type": "Dynamic String Set",
                 "value_source": "<demographics>::NodeProperties.*.Property"
             },
             "Report_Node_Event_Recorder_Stats_By_IPs": {
                 "default": [],
+                "depends-on": {
+                    "Report_Node_Event_Recorder": 1
+                },
                 "description": "Specifies an array of (optional) individual property keys, as defined in **IndividualProperties** in the demographics file, to be added to the ReportNodeEventRecorder.csv output report. An empty array equals no additional columns added.",
                 "type": "Dynamic String Set",
                 "value_source": "<demographics>::*.Individual_Properties.*.Property"
@@ -3962,6 +3958,9 @@
             },
             "Report_Surveillance_Event_Recorder_Stats_By_IPs": {
                 "default": [],
+                "depends-on": {
+                    "Report_Surveillance_Event_Recorder": 1
+                },
                 "description": "Specifies an array of (optional) individual property keys, as defined in **IndividualProperties** in the demographics file, to be added to the ReportSurveillanceEventRecorder.csv output report.",
                 "type": "Dynamic String Set",
                 "value_source": "<demographics>::*.Individual_Properties.*.Property"
@@ -4323,6 +4322,9 @@
         "SpatialReport": {
             "Spatial_Output_Channels": {
                 "default": [],
+                "depends-on": {
+                    "Enable_Spatial_Output": 1
+                },
                 "description": "An array of channel names for spatial output by node and time step. The data from each channel will be written to a separate binary file. For full documentation of spatial output channels, please see the online documentation.",
                 "possible_values": [
                     "Air_Temperature",
@@ -4345,6 +4347,9 @@
         "SpatialReportMalaria": {
             "Spatial_Output_Channels": {
                 "default": [],
+                "depends-on": {
+                    "Enable_Spatial_Output": 1
+                },
                 "description": "An array of channel names for spatial output by node and time step. The data from each channel will be written to a separate binary file. For full documentation of spatial output channels, please see the online documentation.",
                 "possible_values": [
                     "Adult_Vectors",
@@ -4381,6 +4386,9 @@
         "SpatialReportVector": {
             "Spatial_Output_Channels": {
                 "default": [],
+                "depends-on": {
+                    "Enable_Spatial_Output": 1
+                },
                 "description": "An array of channel names for spatial output by node and time step. The data from each channel will be written to a separate binary file. For full documentation of spatial output channels, please see the online documentation.",
                 "possible_values": [
                     "Adult_Vectors",
@@ -4872,16 +4880,6 @@
                 "max": 1000000.0,
                 "min": 0,
                 "type": "float"
-            },
-            "Temperature_Dependent_Feeding_Cycle": {
-                "default": "NO_TEMPERATURE_DEPENDENCE",
-                "description": "Effect of temperature on the duration between blood feeds.",
-                "enum": [
-                    "NO_TEMPERATURE_DEPENDENCE",
-                    "ARRHENIUS_DEPENDENCE",
-                    "BOUNDED_DEPENDENCE"
-                ],
-                "type": "enum"
             },
             "Temporary_Habitat_Decay_Factor": {
                 "default": 0.05,
@@ -7868,20 +7866,6 @@
                     "iv_type": "IndividualTargeted"
                 },
                 "MalariaDiagnostic": {
-                    "Base_Sensitivity": {
-                        "default": 1,
-                        "description": "The sensitivity of the diagnostic. This sets the proportion of the time that individuals with the condition being tested receive a positive diagnostic test. When set to zero, then individuals who have the condition always receive a false-negative diagnostic test.",
-                        "max": 1,
-                        "min": 0,
-                        "type": "float"
-                    },
-                    "Base_Specificity": {
-                        "default": 1,
-                        "description": "The specificity of the diagnostic. This sets the proportion of the time that individuals without the condition being tested receive a negative diagnostic test. When set to 1, the diagnostic always accurately reflects the lack of having the condition. When set to zero, then individuals who do not have the condition always receive a false-positive diagnostic test.",
-                        "max": 1,
-                        "min": 0,
-                        "type": "float"
-                    },
                     "Cost_To_Consumer": {
                         "default": 1,
                         "description": "The unit 'cost' assigned to the diagnostic. Setting Cost_To_Consumer to zero for all other interventions, and to a non-zero amount for one intervention, provides a convenient way to track the number of times the intervention has been applied in a simulation.",
@@ -13119,75 +13103,6 @@
                     "min": 0,
                     "type": "float"
                 },
-                "Event_Trigger_List": {
-                    "Built-in": [
-                        "Births",
-                        "EveryUpdate",
-                        "EveryTimeStep",
-                        "NewInfectionEvent",
-                        "TBActivation",
-                        "NewClinicalCase",
-                        "NewSevereCase",
-                        "DiseaseDeaths",
-                        "OpportunisticInfectionDeath",
-                        "NonDiseaseDeaths",
-                        "TBActivationSmearPos",
-                        "TBActivationSmearNeg",
-                        "TBActivationExtrapulm",
-                        "TBActivationPostRelapse",
-                        "TBPendingRelapse",
-                        "TBActivationPresymptomatic",
-                        "TestPositiveOnSmear",
-                        "ProviderOrdersTBTest",
-                        "TBTestPositive",
-                        "TBTestNegative",
-                        "TBTestDefault",
-                        "TBRestartHSB",
-                        "TBMDRTestPositive",
-                        "TBMDRTestNegative",
-                        "TBMDRTestDefault",
-                        "TBFailedDrugRegimen",
-                        "TBRelapseAfterDrugRegimen",
-                        "TBStartDrugRegimen",
-                        "TBStopDrugRegimen",
-                        "PropertyChange",
-                        "STIDebut",
-                        "StartedART",
-                        "StoppedART",
-                        "InterventionDisqualified",
-                        "HIVNewlyDiagnosed",
-                        "GaveBirth",
-                        "Pregnant",
-                        "Emigrating",
-                        "Immigrating",
-                        "HIVTestedNegative",
-                        "HIVTestedPositive",
-                        "NewlySymptomatic",
-                        "SymptomaticCleared",
-                        "TwelveWeeksPregnant",
-                        "FourteenWeeksPregnant",
-                        "SixWeeksOld",
-                        "EighteenMonthsOld",
-                        "STIPreEmigrating",
-                        "STIPostImmigrating",
-                        "STINewInfection",
-                        "NewExternalHIVInfection",
-                        "NodePropertyChange",
-                        "HappyBirthday",
-                        "EnteredRelationship",
-                        "ExitedRelationship",
-                        "FirstCoitalAct",
-                        "ExposureComplete",
-                        "VectorToHumanTransmission",
-                        "HumanToVectorTransmission",
-                        "ReceivedInfectiousBites",
-                        "InfectionCleared"
-                    ],
-                    "default": [],
-                    "description": "Used by reports and custom reports. The list of triggers for the events included in the report.",
-                    "type": "Vector Constrained String",
-                    "value_source": "'<configuration>:Custom_Individual_Events.*' or Built-in"
-                },
                 "Max_Number_Reports": {
                     "default": 1,
                     "description": "Used by reports and custom reports. The maximum number of report output files that will be produced for a given campaign.",
@@ -13280,86 +13195,17 @@
                     "min": 0,
                     "type": "float"
                 },
-                "Event_Trigger_List": {
-                    "Built-in": [
-                        "Births",
-                        "EveryUpdate",
-                        "EveryTimeStep",
-                        "NewInfectionEvent",
-                        "TBActivation",
-                        "NewClinicalCase",
-                        "NewSevereCase",
-                        "DiseaseDeaths",
-                        "OpportunisticInfectionDeath",
-                        "NonDiseaseDeaths",
-                        "TBActivationSmearPos",
-                        "TBActivationSmearNeg",
-                        "TBActivationExtrapulm",
-                        "TBActivationPostRelapse",
-                        "TBPendingRelapse",
-                        "TBActivationPresymptomatic",
-                        "TestPositiveOnSmear",
-                        "ProviderOrdersTBTest",
-                        "TBTestPositive",
-                        "TBTestNegative",
-                        "TBTestDefault",
-                        "TBRestartHSB",
-                        "TBMDRTestPositive",
-                        "TBMDRTestNegative",
-                        "TBMDRTestDefault",
-                        "TBFailedDrugRegimen",
-                        "TBRelapseAfterDrugRegimen",
-                        "TBStartDrugRegimen",
-                        "TBStopDrugRegimen",
-                        "PropertyChange",
-                        "STIDebut",
-                        "StartedART",
-                        "StoppedART",
-                        "InterventionDisqualified",
-                        "HIVNewlyDiagnosed",
-                        "GaveBirth",
-                        "Pregnant",
-                        "Emigrating",
-                        "Immigrating",
-                        "HIVTestedNegative",
-                        "HIVTestedPositive",
-                        "NewlySymptomatic",
-                        "SymptomaticCleared",
-                        "TwelveWeeksPregnant",
-                        "FourteenWeeksPregnant",
-                        "SixWeeksOld",
-                        "EighteenMonthsOld",
-                        "STIPreEmigrating",
-                        "STIPostImmigrating",
-                        "STINewInfection",
-                        "NewExternalHIVInfection",
-                        "NodePropertyChange",
-                        "HappyBirthday",
-                        "EnteredRelationship",
-                        "ExitedRelationship",
-                        "FirstCoitalAct",
-                        "ExposureComplete",
-                        "VectorToHumanTransmission",
-                        "HumanToVectorTransmission",
-                        "ReceivedInfectiousBites",
-                        "InfectionCleared"
-                    ],
-                    "default": [],
-                    "description": "Used by reports and custom reports. The list of triggers for the events included in the report.",
-                    "type": "Vector Constrained String",
-                    "value_source": "'<configuration>:Custom_Individual_Events.*' or Built-in"
-                },
                 "Individual_Property_Filter": {
-                    "default": "UNINITIALIZED STRING",
+                    "default": "",
                     "description": "Individual property (and value) to filter on",
                     "type": "string"
                 },
                 "Infectiousness_Bins": {
-                    "ascending": 0,
+                    "ascending": 1,
                     "default": [],
-                    "description": "Infectiousness Bins to aggregate within and report",
-                    "max": 3.40282e+38,
-                    "min": -3.40282e+38,
+                    "description": "Infectiousness Bins (in percentage of infectiousness) to aggregate within and report",
+                    "max": 100,
+                    "min": 0,
                     "type": "Vector Float"
                 },
                 "Max_Number_Reports": {
@@ -13376,7 +13222,7 @@
                 "Parasitemia_Bins": {
                     "ascending": 1,
                     "default": [],
-                    "description": "Parasitemia Bins to aggregate within and report.  A value <= 0 in the first bin indicates that the uninfected people should be added to this bin.",
+                    "description": "Parasitemia Bins (in infected red blood cells per microliter of blood) to aggregate within and report.  A value <= 0 in the first bin indicates that the uninfected people should be added to this bin.",
                     "max": 3.40282e+38,
                     "min": -3.40282e+38,
                     "type": "Vector Float"
@@ -13531,109 +13377,6 @@
                     "type": "float"
                 },
                 "class": "MalariaSurveyJSONAnalyzer"
-            },
-            "MalariaTransmissionReport": {
-                "Duration_Days": {
-                    "default": 3.40282e+38,
-                    "description": "Used by reports and custom reports. The number of days over which to report events.",
-                    "max": 3.40282e+38,
-                    "min": 0,
-                    "type": "float"
-                },
-                "Event_Trigger_List": {
-                    "Built-in": [
-                        "Births",
-                        "EveryUpdate",
-                        "EveryTimeStep",
-                        "NewInfectionEvent",
-                        "TBActivation",
-                        "NewClinicalCase",
-                        "NewSevereCase",
-                        "DiseaseDeaths",
-                        "OpportunisticInfectionDeath",
-                        "NonDiseaseDeaths",
-                        "TBActivationSmearPos",
-                        "TBActivationSmearNeg",
-                        "TBActivationExtrapulm",
-                        "TBActivationPostRelapse",
-                        "TBPendingRelapse",
-                        "TBActivationPresymptomatic",
-                        "TestPositiveOnSmear",
-                        "ProviderOrdersTBTest",
-                        "TBTestPositive",
-                        "TBTestNegative",
-                        "TBTestDefault",
-                        "TBRestartHSB",
-                        "TBMDRTestPositive",
-                        "TBMDRTestNegative",
-                        "TBMDRTestDefault",
-                        "TBFailedDrugRegimen",
-                        "TBRelapseAfterDrugRegimen",
-                        "TBStartDrugRegimen",
-                        "TBStopDrugRegimen",
-                        "PropertyChange",
-                        "STIDebut",
-                        "StartedART",
-                        "StoppedART",
-                        "InterventionDisqualified",
-                        "HIVNewlyDiagnosed",
-                        "GaveBirth",
-                        "Pregnant",
-                        "Emigrating",
-                        "Immigrating",
-                        "HIVTestedNegative",
-                        "HIVTestedPositive",
-                        "NewlySymptomatic",
-                        "SymptomaticCleared",
-                        "TwelveWeeksPregnant",
-                        "FourteenWeeksPregnant",
-                        "SixWeeksOld",
-                        "EighteenMonthsOld",
-                        "STIPreEmigrating",
-                        "STIPostImmigrating",
-                        "STINewInfection",
-                        "NewExternalHIVInfection",
-                        "NodePropertyChange",
-                        "HappyBirthday",
-                        "EnteredRelationship",
-                        "ExitedRelationship",
-                        "FirstCoitalAct",
-                        "ExposureComplete",
-                        "VectorToHumanTransmission",
-                        "HumanToVectorTransmission",
-                        "ReceivedInfectiousBites",
-                        "InfectionCleared"
-                    ],
-                    "default": [],
-                    "description": "Used by reports and custom reports. The list of triggers for the events included in the report.",
-                    "type": "Vector Constrained String",
-                    "value_source": "'<configuration>:Custom_Individual_Events.*' or Built-in"
-                },
-                "Nodeset_Config": {
-                    "description": "An object that specifies in which nodes the interventions will be distributed.",
-                    "type": "idmAbstractType:NodeSet"
-                },
-                "Pretty_Format": {
-                    "default": 0,
-                    "description": "True implies pretty JSON format, false saves space.",
-                    "type": "bool"
-                },
-                "Report_Description": {
-                    "default": "UNINITIALIZED STRING",
-                    "description": "Used by reports and custom reports. Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
-                    "type": "string"
-                },
-                "Sim_Types": [
-                    "MALARIA_SIM"
-                ],
-                "Start_Day": {
-                    "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
-                    "max": 3.40282e+38,
-                    "min": 0,
-                    "type": "float"
-                },
-                "class": "MalariaTransmissionReport"
             },
             "ReportDrugStatus": {
                 "End_Day": {
@@ -13861,7 +13604,7 @@
                 },
                 "Barcodes": {
                     "default": [],
-                    "description": "A list of barcode strings where a column will be created with the number of vectors with sporozoites with that barcode.  One can use '*' for a wild card.  A 'BarcodeOther' column will be created for barcodes not defined.",
+                    "description": "A list of barcode strings where a column will be created with the number of human infections with that barcode.  One can use '*' for a wild card.  A 'BarcodeOther' column will be created for barcodes not defined.",
                     "type": "Vector String"
                 },
                 "IP_Key_To_Collect": {
@@ -15468,6 +15211,16 @@
                 "default": "UNINITIALIZED STRING",
                 "description": "Name of this species of vectors",
                 "type": "string"
+            },
+            "Temperature_Dependent_Feeding_Cycle": {
+                "default": "NO_TEMPERATURE_DEPENDENCE",
+                "description": "Effect of temperature on the duration between blood feeds.",
+                "enum": [
+                    "NO_TEMPERATURE_DEPENDENCE",
+                    "ARRHENIUS_DEPENDENCE",
+                    "BOUNDED_DEPENDENCE"
+                ],
+                "type": "enum"
             },
             "Transmission_Rate": {
                 "default": 0.5,

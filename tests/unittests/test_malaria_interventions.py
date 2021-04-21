@@ -14,6 +14,7 @@ from emodpy_malaria.interventions import drug_campaign
 from emodpy_malaria.interventions import diag_survey
 from emodpy_malaria.interventions import common
 from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
+from emodpy_malaria.interventions.inputeir import InputEIR
 
 
 import emod_api.campaign as camp
@@ -836,6 +837,29 @@ class TestMalariaInterventions(unittest.TestCase):
             , infectious=specific_infectious_fraction
         )
 
+    def test_inputeir_default(self):
+        eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        self.tmp_intervention = InputEIR(camp, eir[:])
+        self.parse_intervention_parts()
+
+        self.assertEqual(self.intervention_config.Monthly_EIR, eir)
+        self.assertEqual(self.intervention_config.Age_Dependence, "OFF")
+        self.assertEqual(self.start_day, 1)
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
+        pass
+
+    def test_inputeir(self):
+        eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        self.tmp_intervention = InputEIR(camp, eir[:], start_day=2, node_ids=[2, 3], age_dep='LINEAR')
+        self.parse_intervention_parts()
+
+        self.assertEqual(self.intervention_config.Monthly_EIR, eir)
+        self.assertEqual(self.intervention_config.Age_Dependence, "LINEAR")
+        self.assertEqual(self.start_day, 2)
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSNL)
+        self.assertEqual(self.nodeset[NodesetParams.NL], [2, 3])
+
+        pass
 
 # Uncomment below if you would like to run test suite with different schema
 # class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
