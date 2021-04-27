@@ -5,7 +5,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 from emodpy_malaria.reporters.builtin import \
-    ReportVectorGenetics, ReportVectorStats, MalariaPatientJSONReport, MalariaSummaryReport, FilteredMalariaReport
+    ReportVectorGenetics, ReportVectorStats, MalariaPatientJSONReport, MalariaSummaryReport, FilteredMalariaReport, ReportEventCounter
 
 
 class TestMalariaReport(unittest.TestCase):
@@ -420,6 +420,57 @@ class TestMalariaReport(unittest.TestCase):
 
     # end region
 
+    # start region ReportEventCounter
+
+    def build_report_event_counter(self = None,
+                                    duration = None,
+                                    trigger_list = None,
+                                    start_day = None,
+                                    nodeset_list = None):
+        def report_counter_config_builder(params):
+            if duration is not None:
+                params.Duration_Days = duration
+            if trigger_list is not None:
+                params.Event_Trigger_List = trigger_list
+            if start_day is not None:
+                params.Start_Day = start_day
+            if nodeset_list is not None:
+                params.Nodeset_Config.NodeSetNodeList = nodeset_list
+            return params
+        
+        import schema_path_file
+        self.tmp_reporter = ReportEventCounter()
+        self.tmp_reporter.config(report_counter_config_builder, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        return
+
+    def test_report_counter_default(self):
+        self.build_report_event_counter()
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Nodeset_Config']['class'],
+                         "NodeSetAll")
+        self.assertEqual(self.p_dict['Duration_Days'], 3.40282e+38)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], [])
+        self.assertEqual(self.p_dict['Start_Day'], 0)
+
+    def test_report_counter_custom(self):
+        duration = 17
+        trigger_list = ["STINewInfection", "ExitedRelationship"]
+        start_day = 5
+
+        self.build_report_event_counter(
+            start_day = start_day
+            ,duration = duration
+            ,trigger_list = trigger_list
+        )
+
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['Duration_Days'], duration)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], trigger_list)
+
+    # end region
+    
     # region vector migration report
 
     @unittest.skip("Report NYI")
