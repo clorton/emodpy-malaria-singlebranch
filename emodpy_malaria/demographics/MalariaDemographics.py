@@ -34,7 +34,6 @@ class MalariaDemographics(Demog.Demographics):
         super().SetDefaultNodeAttributes(birth=True)
         DT.InitPrevUniform( self, init_prev )
         DT.FullRisk( self )
-        super().SetDefaultFromTemplate(DT.NoMigrationHeterogeneity())
 
 def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2):
     """

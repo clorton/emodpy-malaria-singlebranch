@@ -131,16 +131,6 @@ def set_team_defaults(config, mani):
     config.parameters.Report_Parasite_Smear_Sensitivity = 0.1  # 10/uL
 
     # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
-    config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION"
-    config.parameters.Incubation_Period_Constant = 25
-
-    config.parameters.Enable_Superinfection = 1
-    config.parameters.Infection_Updates_Per_Timestep = 1
-
-    config.parameters.Post_Infection_Acquisition_Multiplier = 1
-    config.parameters.Post_Infection_Mortality_Multiplier = 1
-    config.parameters.Post_Infection_Transmission_Multiplier = 1
-
     config.parameters.Enable_Vector_Species_Report = 0
     config.parameters.Vector_Sampling_Type = "VECTOR_COMPARTMENTS_NUMBER"
     config.parameters.Mosquito_Weight = 1
@@ -172,27 +162,23 @@ def set_team_defaults(config, mani):
     config.parameters.Genome_Markers = []
 
     # Other defaults from dtk-tools transition  #fixme very likely needs pruning
-    config.parameters.Base_Individual_Sample_Rate = 1
-    config.parameters.Enable_Initial_Prevalence = 1
     config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
     config.parameters.Enable_Demographics_Risk = 1
     config.parameters.Enable_Demographics_Reporting = 0
     config.parameters.Enable_Demographics_Birth = 0
     config.parameters.Enable_Disease_Mortality = 0
     config.parameters.Enable_Natural_Mortality = 0
-    # config.parameters.Enable_Nondisease_Mortality = 0 # not in schema
-    config.parameters.Enable_Initial_Prevalence = 1
     config.parameters.Enable_Rainfall_Stochasticity = 1
     config.parameters.Minimum_Adult_Age_Years = 15
-    config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 90
+    #config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 90
     config.parameters.Node_Grid_Size = 0.042
     config.parameters.Population_Density_C50 = 30
     config.parameters.Population_Scale_Type = "FIXED_SCALING"
-    config.parameters.Post_Infection_Acquisition_Multiplier = 1
-    config.parameters.Post_Infection_Mortality_Multiplier = 1
-    config.parameters.Post_Infection_Transmission_Multiplier = 1
-    config.parameters.Transmission_Blocking_Immunity_Decay_Rate = 0.01
-    config.parameters.Transmission_Blocking_Immunity_Duration_Before_Decay = 90
+    #config.parameters.Post_Infection_Acquisition_Multiplier = 1
+    #config.parameters.Post_Infection_Mortality_Multiplier = 1
+    #config.parameters.Post_Infection_Transmission_Multiplier = 1
+    #config.parameters.Transmission_Blocking_Immunity_Decay_Rate = 0.01
+    #config.parameters.Transmission_Blocking_Immunity_Duration_Before_Decay = 90
 
     # setting up parameters for climate constant
     config.parameters.Base_Rainfall = 10
