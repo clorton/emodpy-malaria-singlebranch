@@ -77,6 +77,7 @@ def set_param_fn(config):
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    config.parameters.Enable_Migration_Heterogeneity = 0
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     config.parameters.Custom_Individual_Events = [ "Bednet_Got_New_One", "Bednet_Using", "Bednet_Discarded" ]
@@ -139,7 +140,7 @@ def build_demog():
     input_file = malconf.get_file_from_http( "http://ipadvweb02.linux.idm.ctr:8000/" + manifest.population_input_path )
     demog = Demographics.from_pop_csv( input_file, site='burkina' )
 
-    import emod_api.migration.Migration as mig 
+    import emod_api.migration as mig 
     mig_partial = partial( mig.from_demog_and_param_gravity, gravity_params = [7.50395776e-06, 9.65648371e-01, 9.65648371e-01, -1.10305489e+00], id_ref='burkina', migration_type=mig.Migration.REGIONAL ) 
 
     return demog, mig_partial
