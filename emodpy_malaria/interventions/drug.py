@@ -76,11 +76,8 @@ def new_intervention_as_file( camp, start_day, filename=None ):
     Returns:
         The filename.
     """
-    campaign = {}
-    campaign["Events"] = []
-    campaign["Events"].append( AntiMalarialDrug( camp, start_day ) )
+    camp.add( AntiMalarialDrug( camp, start_day ), first=True )
     if filename is None:
         filename = "AntimalarialDrug.json"
-    with open( filename, "w" ) as camp_file:
-        json.dump( campaign, camp_file, sort_keys=True, indent=4 )
+    camp.save( filename )
     return filename

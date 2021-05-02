@@ -23,7 +23,7 @@ rule filtered_report:
         shell("pushd filtered_report && ./example.py")
 rule burnin_create:
     input: 
-    output: "burnin_create/COMPS_ID"
+    output: "burnin_create/experiment.id"
     run:
         shell("pushd burnin_create && ./example.py")
 rule burnin_use:
@@ -38,7 +38,7 @@ rule drug_campaign:
         shell("pushd drug_campaign && ./example.py")
 rule ivermectin:
     input: 
-    output: "ivermectin/COMPS_ID"
+    output: "ivermectin/experiment.id"
     run:
         shell("pushd ivermectin && ./example.py")
 rule jonr_1:
@@ -85,8 +85,23 @@ rule campaign_sweep:
     input: 
     output: "campaign_sweep/COMPS_ID"
     run:
-        shell( "echo ignore" )
-        #shell("pushd campaign_sweep && ./example.py")
+        shell("pushd campaign_sweep && ./example.py")
+rule demog_sweep:
+    input: 
+    output: "demog_sweep/COMPS_ID"
+    run:
+        shell("pushd demog_sweep && ./example.py")
+rule input_eir:
+    input: 
+    output: "inputEIR/experiment.id"
+    run:
+        shell("pushd inputEIR && ./example.py")
+rule vgir:
+    input: 
+    output: "vector_genetics_insecticide_resistance/COMPS_ID"
+    run:
+        shell("pushd vector_genetics_insecticide_resistance && ./example.py")
+
 
 rule clean:
     input: 

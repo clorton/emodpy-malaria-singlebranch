@@ -127,7 +127,7 @@ def general_sim( erad_path, ep4_scripts ):
 
     # Set platform
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    platform = Platform("Calculon", node_group="idm_48cores")
+    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
     # create EMODTask 

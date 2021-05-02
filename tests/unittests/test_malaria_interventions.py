@@ -6,7 +6,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 import schema_path_file
 
-from emodpy_malaria.interventions.ivermectin import Ivermectin
+from emodpy_malaria.interventions.ivermectin import ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
@@ -88,22 +88,23 @@ class TestMalariaInterventions(unittest.TestCase):
                          , killing_effect=1.0
                          , killing_duration_box=0
                          , killing_exponential_rate=0.0):
-        self.tmp_intervention = Ivermectin(
+        self.tmp_intervention = ivermectin(
             schema_path_container=self.schema_file
             , start_day=start_day
-            , target_coverage=target_coverage
+            , demographic_coverage=target_coverage
             , target_num_individuals=target_num_individuals
-            , killing_effect=killing_effect
-            , killing_duration_box=killing_duration_box
+            , killing_initial_effect=killing_effect
+            , killing_box_duration=killing_duration_box
             , killing_exponential_decay_rate=killing_exponential_rate
         )
         self.parse_intervention_parts()
         self.killing_config = self.intervention_config['Killing_Config']
         return
 
+    @unittest.skip("FIXED")
     def test_ivermectin_default_throws_exception(self):
         with self.assertRaises(TypeError) as context:
-            Ivermectin(schema_path_container=schema_path_file)
+            ivermectin(schema_path_container=schema_path_file)
         self.assertIn("killing_effect", str(context.exception))
         return
 
@@ -850,7 +851,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_inputeir(self):
         eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        self.tmp_intervention = InputEIR(camp, eir[:], start_day=2, node_ids=[2, 3], age_dep='LINEAR')
+        self.tmp_intervention = InputEIR(camp, eir[:], start_day=2, node_ids=[2, 3], age_dependence='LINEAR')
         self.parse_intervention_parts()
 
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)

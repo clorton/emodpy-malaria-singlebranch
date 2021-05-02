@@ -166,7 +166,7 @@ class TestSimResults(unittest.TestCase):
 
         camp.schema_path = self.schema_path
 
-        camp.add(iver.Ivermectin(camp, start_day=start_day, target_coverage=target_coverage,
+        camp.add(iver.ivermectin(camp, start_day=start_day, target_coverage=target_coverage,
                             killing_eff=killing_effectiveness, target_num_individuals=target_num_individuals,
                             killing_duration_box=killing_duration_box, killing_exponential_decay_rate=killing_exponential_decay_rate),
                  first=True)
@@ -393,7 +393,7 @@ class TestSimResults(unittest.TestCase):
         task.reporters.add_reporter(reporter_male)
         
         print( f"Prompting for COMPS creds if necessary..." )
-        experiment  = Experiment.from_builder(builder, task, name="Ivermectin  Default Test")
+        experiment  = Experiment.from_builder(builder, task, name="Ivermectin Default Test")
 
         experiment.run(wait_until_done=True, platform=platform)
         if not experiment.succeeded:

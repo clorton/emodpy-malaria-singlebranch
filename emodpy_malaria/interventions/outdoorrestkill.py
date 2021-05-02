@@ -4,7 +4,7 @@ from emod_api.interventions import utils
 iv_name = "OutdoorRestKill"
 schema_path = None
 
-def OutdoorRestKill (
+def OutdoorRestKill(
         schema_path_container
         , killing_effect
         , insecticide_name = None
@@ -15,6 +15,7 @@ def OutdoorRestKill (
         , node_ids=None
 ):
     """
+    Create a new scheduled OutdoorRestKill campaign event.
 
     Args:
         schema_path_container:

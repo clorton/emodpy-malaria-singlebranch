@@ -27,44 +27,32 @@ import manifest
 
 def build_campaign():
     """
-       Adding a scheduled ivermectin intervention
+        Creating a campaign file with an InputEIR intervention in it
     Returns:
         campaign object
     """
 
     import emod_api.campaign as campaign
-    import emodpy_malaria.interventions.ivermectin as ivermectin
+    import emodpy_malaria.interventions.inputeir as inputeir
 
-    # passing in schema file to verify that everything is correct.
+    # we need to give the campaign the schema path, so it can check our campaign format
     campaign.schema_path = manifest.schema_file
-    # creating an Ivermectin intervention inside the ivermectin, and adding it to campaign
-    campaign.add(ivermectin.ivermectin(schema_path_container=campaign,
-                                       start_day=20,
-                                       target_num_individuals=43,
-                                       demographic_coverage=0.95, # this will be ignored because we have target_num_idividuals set
-                                       killing_initial_effect=0.65,
-                                       killing_box_duration=2,
-                                       killing_exponential_decay_rate=0.25))
-    # same intervention but now targeting only a portion of the demographic
-    campaign.add(ivermectin.ivermectin(schema_path_container=campaign,
-                                       start_day=20,
-                                       demographic_coverage=0.57,
-                                       killing_initial_effect=0.65,
-                                       killing_box_duration=2,
-                                       killing_exponential_decay_rate=0.25))
+
+    # this creates a scheduled campaign with InputEIR intervention and adds it, after creating, to campaign.json file
+    monthly_eir = [21, 234, 535, 687, 874, 761, 513, 459, 371, 51, 45, 3]
+    campaign.add(inputeir.InputEIR(campaign=campaign, start_day=33, monthly_eir=monthly_eir, age_dependence="SURFACE_AREA_DEPENDENT",
+                                   node_ids=None))
+
+    # creates a campaign.json wtih an InputEIR campaign
+    # inputeir.new_intervention_as_file(campaign=campaign, start_day=11, monthly_eir=monthly_eir)
+
     return campaign
 
 
 def set_config_parameters(config):
     """
-        This function is a callback that is passed to emod-api.config to set parameters The Right Way.
-    Args:
-        config:
-
-    Returns:
-        configuration settings
+    This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-
     # You have to set simulation type explicitly before you set other parameters for the simulation
     config.parameters.Simulation_Type = "MALARIA_SIM"
     # sets "default" malaria parameters as determined by the malaria team
@@ -78,15 +66,13 @@ def set_config_parameters(config):
 
 def build_demographics():
     """
-        Build a demographics input file for the DTK using emod_api.
+    Build a demographics input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     Also right now this function takes care of the config updates that are required as a result of specific demog
     settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in
     emod-api as much as possible.
-    Returns:
-        demographics.. object???
-    """
 
+    """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
 
     demographics = Demographics.from_template_node(lat=0, lon=0, pop=10000, name=1, forced_id=1)
@@ -105,7 +91,7 @@ def general_sim():
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
     platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
-    experiment_name = "Ivermectin_Example"
+    experiment_name = "InputEIR_example"
 
     # create EMODTask
     print("Creating EMODTask (from files)...")

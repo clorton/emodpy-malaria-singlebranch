@@ -162,12 +162,12 @@ class MalariaInterventionFileTest(unittest.TestCase):
             if self.file_path:
                 self.method_under_test(camp
                                        , start_day=self.specific_start_day
-                                       , eir=eir[:]
+                                       , monthly_eir=eir[:]
                                        , filename=self.file_path)
             else:
                 self.method_under_test(camp
                                        , start_day=self.specific_start_day
-                                       , eir=eir[:])
+                                       , monthly_eir=eir[:])
             if not self.file_path:
                 self.file_path = f"{self.expected_intervention_class}.json"
             self.load_event()

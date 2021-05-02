@@ -17,7 +17,7 @@ def MosquitoRelease(
         node_ids=None
     ):
     """
-    Release mosquitoes of a given species and genome into each node
+    Release mosquitoes of a given species and genome into each node.
 
     Args:
         start_day: The day to release the vectors.

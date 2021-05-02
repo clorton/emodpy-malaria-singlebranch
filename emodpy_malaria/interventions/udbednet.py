@@ -307,11 +307,8 @@ def UDBednet(
 
 
 def new_intervention_as_file(camp, start_day, filename=None):
-    campaign = {}
-    campaign["Events"] = []
-    campaign["Events"].append(UDBednet(camp, start_day))
+    camp.add(UDBednet(camp, start_day), first=True)
     if filename is None:
         filename = "UsageDependentBednet.json"
-    with open(filename, "w") as camp_file:
-        json.dump(campaign, camp_file, sort_keys=True, indent=4)
+    camp.save( filename )
     return filename
