@@ -94,7 +94,7 @@ def build_camp():
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( irs.IRSHousingModification( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5 ) )
+    camp.add( irs.IRSHousingModification( camp, start_day=100, coverage=0.5, killing_eff=0.5, repelling_eff=0.5 ) )
     camp.add( drug.AntiMalarialDrug( camp, start_day=300, coverage=0.5 ) )
     """
     add_IRS(cb, start=start,

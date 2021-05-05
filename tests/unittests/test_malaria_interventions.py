@@ -773,7 +773,7 @@ class TestMalariaInterventions(unittest.TestCase):
                             , start_day=1
                             , by_number=True
                             , number=10_000
-                            , percentage=0.1
+                            , fraction=0.1
                             , infectious=0.0
                             , species='arabiensis'
                             , genome = [['X', 'X']]
@@ -785,7 +785,7 @@ class TestMalariaInterventions(unittest.TestCase):
                 , start_day=start_day
                 , by_number=by_number
                 , number=number
-                , percentage=percentage
+                , fraction=fraction
                 , infectious=infectious
                 , species=species
                 , genome=genome
@@ -827,14 +827,14 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_mosquitorelease_custom(self):
         specific_start_day = 13
         specific_genome = [['X', 'Y']]
-        specific_percentage = 0.14
+        specific_fraction = 0.14
         specific_infectious_fraction = 0.28
         specific_species = 'SillySkeeter'
         specific_nodes = [3, 5, 8, 13, 21]
         self.mosquitorelease_build(
             start_day=specific_start_day
             , by_number=False
-            , percentage=specific_percentage
+            , fraction=specific_fraction
             , infectious=specific_infectious_fraction
         )
 

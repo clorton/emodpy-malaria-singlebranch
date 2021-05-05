@@ -10,7 +10,7 @@ def MosquitoRelease(
         start_day,
         by_number=True,
         number=10000,
-        percentage=0.1,
+        fraction=0.1,
         infectious=0.0,
         species="arabiensis",
         genome=[["X","X"]],
@@ -22,12 +22,12 @@ def MosquitoRelease(
     Args:
         start_day: The day to release the vectors.
 
-        by_number: True if releasing a fixed number of vectors else a percentage 
+        by_number: True if releasing a fixed number of vectors else a fraction 
             of the current population of the gender specified in the genome.
 
         number: The number of vectors to release.
 
-        percentage: The percentage of the current poulation of mosquitoes to release.
+        fraction: The fraction of the current poulation of mosquitoes to release.
             The 'population' will depend on the gender of the mosquitos being 
             released and it will be the population from the previous time step.
 
@@ -66,8 +66,8 @@ def MosquitoRelease(
         intervention.Released_Type = "FIXED_NUMBER"
         intervention.Released_Number = number
     else:
-        intervention.Released_Type = "PERCENTAGE"
-        intervention.Released_Percentage = percentage
+        intervention.Released_Type = "FRACTION"
+        intervention.Released_Fraction = fraction
 
     intervention.Released_Infectious = infectious
     intervention.Released_Species = species

@@ -11,7 +11,7 @@ def IRSHousingModification(
         camp,
         start_day,
         coverage=1.0,
-        blocking_eff=1,
+        repelling_eff=1,
         killing_eff=1,
         insecticide=None,
         node_ids=None
@@ -19,7 +19,7 @@ def IRSHousingModification(
     """
     Create a new complete scheduled IRSHousingModification campaign event that can be added to a campaign.
     :param coverage: Demographic Coverage
-    :param blocking: 
+    :param repelling: 
     :param killing: 
     Note Start_Day is initialized as 1, recommend that this be aligned with the start of the simulation
     """
@@ -34,14 +34,14 @@ def IRSHousingModification(
 
     intervention = s2c.get_class_with_defaults( "IRSHousingModification", schema_path )
 
-    blocking = utils.get_waning_from_params( schema_path, blocking_eff, 90, 1./150 ) 
+    repelling = utils.get_waning_from_params( schema_path, repelling_eff, 90, 1./150 ) 
     killing = utils.get_waning_from_params( schema_path, killing_eff, 90, 1./90 )
 
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
     coordinator.Intervention_Config = intervention
     intervention.Killing_Config = killing 
-    intervention.Blocking_Config = blocking 
+    intervention.Repelling_Config = repelling 
     event.Start_Day = float(start_day)
 
     # Third, do the actual settings
