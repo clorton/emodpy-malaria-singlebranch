@@ -99,6 +99,7 @@ def add_drug_campaign(camp,
                       triggered_campaign_delay: int = 0,
                       node_ids: list = None,
                       target_group: any = 'Everyone',
+                      drug_ineligibility_duration: int = 0,
                       node_property_restrictions: list = None,
                       ind_property_restrictions: list = None,
                       disqualifying_properties: list = None,
@@ -135,7 +136,7 @@ def add_drug_campaign(camp,
             fMDA
                 Add a focal mass drug administration intervention based on 
                 results from a diagnostic survey, which is either scheduled or
-                triggered (when trigger_condition_list is present).
+                triggered (when **trigger_condition_list** is present).
             MTAT 
                 Add a mass testing and treatment intervention.
             rfMSAT 
@@ -152,8 +153,8 @@ def add_drug_campaign(camp,
                 a delayed "Give_Drugs_rfMDA" event to neighboring nodes, which
                 will trigger another drug distribution. 
 
-        drug_code: The code of the drug regimen. This must be listed in the ``drug_cfg`` 
-            dictionary.
+        drug_code: The code of the drug regimen to distribute. This must be 
+            listed in the ``drug_cfg`` dictionary.
         start_days: List of start days (integers) when the drug regimen will
             be distributed. Due to diagnostic/treatment configuration,
             the earliest start day is 1. When **trigger_condition_list** is used,
@@ -165,46 +166,33 @@ def add_drug_campaign(camp,
         tsteps_btwn_repetitions: The timesteps between the repetitions.
         diagnostic_type: The setting for **Diagnostic_Type** in 
             :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
-            Accepted values are:
-
-              * BLOOD_SMEAR_PARASITES
-              * BLOOD_SMEAR_GAMETOCYTES
-              * PCR_PARASITES
-              * PCR_GAMETOCYTES
-              * PF_HRP2
-              * TRUE_PARASITE_DENSITY
-              * FEVER
-              * TRUE_INFECTION_STATUS (calls StandardDiagnostic)
-
+            In addition to the accepted values listed there, you may also set
+            TRUE_INFECTION_STATUS, which calls 
+            :doc:`emod-malaria:parameter-campaign-individual-standarddiagnostic`
+            instead.
         diagnostic_threshold: The setting for **Diagnostic_Threshold** in 
             :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
-        measurement_sensitivity: The number of microliters of blood tested to find single 
-            parasite/gameotcyte in a traditional smear (corresponds to inverse parasites/microliters 
-            sensitivity). This is similar to **Parasite_Smear_Sensitivity** and 
-            **Gametocyte_Smear_Sensitivity** in the config used for reports, but this is for 
-            this instance of the diagnostic. In the following equation, if **measurement** 
-            is larger than **Detection_Threshold** a positive diagnosis is made::
-
-                measurement = float(1.0/Measurement_Sensitivity*GetRng()->
-                              Poisson(Measurement_Sensitivity*true_parasite_density)) 
-
-            Used only when **Diagnostic_Type** is set to BLOOD_SMEAR_PARASITES or 
-            BLOOD_SMEAR_GAMETOCYTES.
-
+        measurement_sensitivity: The setting for **Measurement_Sensitivity**
+            in :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
         detection_threshold: The setting for **Detection_Threshold** in 
             :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
         fmda_radius: Radius (in km) of focal response upon finding infection. 
-            Default is 0. Used in simulations with many small nodes to simulate 
+            Used in simulations with many small nodes to simulate 
             community health workers distributing drugs to surrounding houses.
+            Used when **campaign_type** is set to fMDA.
         node_selection_type: The setting for **Node_Selection_Type** in
           :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
-        trigger_coverage: Used with RCD (Reactive Case Detection). The fraction of
-            trigger events that will trigger an RCD. To set the
-            fraction of individuals reached during RCD response, use **coverage**.
-        snowballs: Number of triggered interventions after the first.
-        treatment_delay: For MSAT and fMDA, the length of time between
-            administering diagnostic and giving drugs; for RCD, the length
-            of time between treating index case and triggering RCD response.
+        trigger_coverage: The fraction of trigger events that will trigger reactive
+            case detection (RCD). Used when **campaign_type** is set to rfMSAT or rfMDA. 
+            To set the fraction of individuals reached during RCD response, use **coverage**.
+        snowballs: The number of times each triggered intervention will be distributed
+            to surrounding nodes. For example, one snowball gives drugs to nodes
+            neighboring the first node and two snowballs gives drugs to the nodes 
+            neighboring those nodes. Used when **campaign_type** is set to rfMSAT.
+        treatment_delay: For **campaign_type** set to MSAT or fMDA, the length of time 
+            between administering a diagnostic and giving drugs; for values of rfMSAT 
+            or rfMDA, the length of time between treating the index case and triggering 
+            an RCD response.
         triggered_campaign_delay: When using **trigger_condition_list**, this
             indicates the delay period between receiving the trigger event
             and running the triggered campaign intervention.
@@ -212,6 +200,11 @@ def add_drug_campaign(camp,
         target_group: A dictionary of ``{'agemin': x, 'agemax': y}`` to
             target MDA, SMC, MSAT, fMDA to individuals between x and y years
             of age. Default is Everyone.
+        drug_ineligibility_duration: The number of days to set the **DrugStatus** 
+            individual property to **RecentDrug**, after which the property value
+            is reverted. This property value prevents people from receiving drugs too
+            frequently, but they can still receive diagnostics during this period.
+            For more information, see :doc:`emod-malaria:model-targeted-interventions`.
         node_property_restrictions: The setting for **Node_Property_Restrictions**
             in :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`
             that nodes must have to receive the diagnostic intervention.
@@ -229,9 +222,9 @@ def add_drug_campaign(camp,
             dictionaries from configure_adherent_drug.
         target_residents_only: The setting for **Target_Residents_Only** in
             :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`.
-        check_eligibility_at_trigger: If triggered event is delayed, set to Trueyou have an
-            option to check individual/node's eligibility at the initial trigger
-            or when the event is actually distributed after delay.
+        check_eligibility_at_trigger: Set to True to check the individual or node's 
+            eligibility at the initial trigger; set to False to check eligibility
+            when the event is actually distributed after a delay.
         receiving_drugs_event_name: The event to broadcast when a person receives drugs.
 
     Returns:
