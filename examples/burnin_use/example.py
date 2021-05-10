@@ -31,7 +31,6 @@ def set_param_fn(config):
     # config = set_config.set_config( config )
 
     import emodpy_malaria.config as conf
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     config = conf.set_team_defaults(config, manifest)
 
     config.parameters.Serialized_Population_Reading_Type = "READ"

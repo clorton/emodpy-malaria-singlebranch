@@ -138,10 +138,19 @@ class MalariaTestImports(unittest.TestCase):
         import emodpy_malaria.config as conf
 
         self.expected_items = [
-            "alleles", "mutations", "traits", "insecticides",
             "get_file_from_http", "set_team_defaults",
+            "set_team_drug_params", "get_drug_params"
+        ]
+
+        self.verify_expected_items_present(namespace=conf)
+
+    def test_config_imports2(self):
+        import emodpy_malaria.vector_config as conf
+
+        self.expected_items = [
+            "alleles", "mutations", "traits", "insecticides",
+            "set_team_defaults",
             "set_team_vs_params", "get_species_params",
-            "set_team_drug_params", "get_drug_params",
             "set_species", "set_resistances", "add_alleles",
             "add_mutation", "add_trait", "add_resistance"
         ]

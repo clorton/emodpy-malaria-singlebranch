@@ -71,16 +71,6 @@ rule spatial:
     output: "spatial/COMPS_ID"
     run:
         shell("pushd spatial && ./example.py")
-rule vector_genetics:
-    input: 
-    output: "vector_genetics/COMPS_ID"
-    run:
-        shell("pushd vector_genetics && ./example.py")
-rule vector_genetics_camp_sweep:
-    input: 
-    output: "vector_genetics_camp_sweep/COMPS_ID"
-    run:
-        shell("pushd vector_genetics_camp_sweep && ./example.py")
 rule campaign_sweep:
     input: 
     output: "campaign_sweep/COMPS_ID"
@@ -96,6 +86,11 @@ rule input_eir:
     output: "inputEIR/experiment.id"
     run:
         shell("pushd inputEIR && ./example.py")
+rule vector_basic:
+    input: 
+    output: "vector_basic/experiment.id"
+    run:
+        shell("pushd vector_basic && ./example.py")
 rule vgir:
     input: 
     output: "vector_genetics_insecticide_resistance/COMPS_ID"

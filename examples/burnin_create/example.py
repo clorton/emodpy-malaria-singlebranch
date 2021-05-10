@@ -34,7 +34,6 @@ def set_param_fn(config):
     """
 
     import emodpy_malaria.config as malaria_config
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     config = malaria_config.set_team_defaults(config, manifest)
 
     config.parameters.Simulation_Duration = 21

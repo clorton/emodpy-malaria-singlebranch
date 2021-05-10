@@ -60,7 +60,6 @@ def update_killing_config_effectiveness(simulation, value):
 # endregion
 
 def set_malaria_config(config):
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     config.parameters.Infectious_Period_Constant = 0
     config.parameters.Enable_Demographics_Birth = 1
     config.parameters.Enable_Demographics_Reporting = 0
@@ -116,7 +115,6 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     config = conf.set_team_defaults(config, manifest)
     conf.set_species(config, ["gambiae"])
     config = set_malaria_config(config)

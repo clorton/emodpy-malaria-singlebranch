@@ -58,11 +58,9 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config.parameters.Simulation_Type = "MALARIA_SIM"
-
     import emodpy_malaria.config as conf
-    config = conf.set_team_defaults(config, manifest)
-    config = set_config.set_config(config)
+    conf.set_team_defaults(config, manifest)
+    set_config.set_config(config)
     conf.set_species( config, [ "gambiae" ] )
 
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
@@ -73,7 +71,6 @@ def set_param_fn(config):
     conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
-    config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Enable_Disease_Mortality = 0
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
@@ -85,8 +82,8 @@ def set_param_fn(config):
 
 def build_camp():
     """
-    Build a campaign input file for the DTK using emod_api.
-    Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
+        Build a campaign input file for the DTK using emod_api.
+        Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     """
     import emod_api.campaign as camp
     import emod_api.interventions.outbreak as ob
