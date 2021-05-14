@@ -33,7 +33,21 @@ class MalariaDemographics(Demog.Demographics):
         #super().SetDefaultProperties()
         super().SetDefaultNodeAttributes(birth=True)
         DT.InitPrevUniform( self, init_prev )
-        DT.FullRisk( self )
+        self.set_risk_lowmedium() # lognormal, default=1.6
+
+    def set_risk_lowmedium( self ):
+        """
+            Set initial risk for low-medium transmission settings per: 
+            https://wiki.idmod.org/display/MAL/Heterogeneous+biting+risk+in+simulations+vs+data.
+        """
+        super().SetHeteroRiskLognormalDist( mean=0.0, sigma=1.6 )
+
+    def set_risk_high( self ):
+        """
+            Set initial risk for high transmission settings per: 
+            https://wiki.idmod.org/display/MAL/Heterogeneous+biting+risk+in+simulations+vs+data.
+        """
+        super().SetHeteroRiskExponDist( mean=1.0 ) # 1.0 is placeholder
 
 def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2):
     """
