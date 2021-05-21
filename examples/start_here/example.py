@@ -115,7 +115,7 @@ def build_demog():
     return demog
 
 
-def general_sim( erad_path, ep4_scripts ):
+def run():
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
@@ -173,14 +173,6 @@ def general_sim( erad_path, ep4_scripts ):
     filtered_report.config( fmr_config_builder, manifest )
     task.reporters.add_reporter(filtered_report) 
 
-
-    print("Adding local assets (py scripts mainly)...")
-
-    if ep4_scripts is not None:
-        for asset in ep4_scripts:
-            pathed_asset = Asset(pathlib.PurePath.joinpath(manifest.ep4_path, asset), relative_path="python")
-            task.common_assets.add_asset(pathed_asset)
-
     # Create simulation sweep with builder
     builder = SimulationBuilder()
     builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
@@ -209,14 +201,15 @@ def general_sim( erad_path, ep4_scripts ):
     print(experiment.uid.hex) 
     
 
-def run_test( erad_path ):
-    general_sim( erad_path, manifest.my_ep4_assets )
-
-
 if __name__ == "__main__":
-    # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
-    plan = EradicationBambooBuilds.MALARIA_LINUX 
-    print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files( plan, manifest )
-    print("...done.") 
-    run_test( manifest.eradication_path )
+    platform = Platform("CALCULON", node_group="idm_48cores", priority="highest" )
+    import sys
+    if len(sys.argv)>1 and sys.argv[1] == "--bamboo": # yes, one can use ArgParse but seems unnecessary.
+        plan = EradicationBambooBuilds.MALARIA_LINUX 
+        print("Retrieving Eradication and schema.json from Bamboo...")
+        get_model_files(plan, manifest)
+        print("...done.")
+    else:
+        import emod_malaria.bootstrap as dtk
+        dtk.setup( pathlib.Path( manifest.eradication_path ).parent )
+    run()

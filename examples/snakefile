@@ -103,3 +103,4 @@ rule clean:
     output: 
     run:
         shell("rm */COMPS_ID" )
+        shell("rm */experiment.id" )
