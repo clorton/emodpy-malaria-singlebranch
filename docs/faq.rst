@@ -3,7 +3,7 @@ Frequently asked questions
 ==========================
 
 As you get started with |EMODPY_s| and |EMODPY_malaria|, you may have questions.
-The questions in :doc:`emodpy:faq` in the |EMODPY_s| documentation are common
+The questions in emodpy FAQ in the |EMODPY_s| documentation are common
 to all packages that build on |EMODPY_s| and |emod_api|. The questions below
 are specific to |EMODPY_malaria|. If any of the concepts or terms are unfamiliar,
 consult the |EMOD_s| :doc:`emod-malaria:glossary`. 
