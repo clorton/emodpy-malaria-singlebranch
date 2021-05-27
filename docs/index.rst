@@ -16,5 +16,6 @@ parameters can be found in :doc:`emod-malaria:parameter-overview`.
    :titlesonly:
 
    installation
+   faq
    emodpy_malaria_index
 
