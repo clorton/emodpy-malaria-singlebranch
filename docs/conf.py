@@ -21,13 +21,26 @@ import subprocess
 import sys
 import sphinx_rtd_theme
 import configparser
-from datetime import datetime
+from urllib.request import urlretrieve
 
 if sys.platform in ["linux", "darwin"]:
     subprocess.check_output(["make", "generate-api"], cwd=os.path.dirname(os.path.abspath(__file__)))
 else:
     subprocess.check_output(["make.bat", "generate-api"], cwd=os.path.dirname(os.path.abspath(__file__)))
 
+# -- Copy the dependent package documentation for reuse -------------------
+
+urlretrieve(
+   "https://docs.idmod.org/projects/idmtools/en/latest/_sources/faq.rst.txt",
+   "external/idmtools-faq.rst")
+
+urlretrieve(
+   "https://docs.idmod.org/projects/emod-api/en/latest/_sources/faq.rst.txt",
+   "external/emod-api-faq.rst")
+
+urlretrieve(
+   "https://docs.idmod.org/projects/emodpy/en/latest/_sources/faq.rst.txt",
+   "external/emodpy-faq.rst")
 
 # -- General configuration ------------------------------------------------
 
@@ -46,7 +59,8 @@ extensions = [
     'sphinx.ext.todo',
     'plantweb.directive',
     'sphinxcontrib.programoutput',
-    'sphinx.ext.intersphinx'
+    'sphinx.ext.intersphinx',
+    'sphinxext.remoteliteralinclude'
 ]
 
 plantuml = 'plantweb'

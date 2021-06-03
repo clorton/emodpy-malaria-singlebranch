@@ -1,15 +1,4 @@
-==========================
-Frequently asked questions
-==========================
-
-As you get started with |EMODPY_s| and |EMODPY_malaria|, you may have questions.
-The questions in emodpy FAQ in the |EMODPY_s| documentation are common
-to all packages that build on |EMODPY_s| and |emod_api|. The questions below
-are specific to |EMODPY_malaria|. If any of the concepts or terms are unfamiliar,
-consult the |EMOD_s| :doc:`emod-malaria:glossary`. 
-
-.. contents:: Contents
-   :local:
+.. include:: external/emodpy-faq.rst
 
 
 How do I set configuration parameters?
@@ -20,7 +9,7 @@ that function to the |EMODPY_s| task creator as the ``param_custom_cb``
 parameter. In that function, you can set the parameters directly. For
 example:
 
-.. literalinclude:: ..\examples\start_here\example.py
+.. literalinclude:: ../examples/start_here/example.py
    :lines: 55-82
 
 See examples/start_here/example.py. for additional information.
@@ -37,19 +26,19 @@ defaults based on the schema. The malaria team has set team defaults in
 in `config.py <../emodpy_malaria/config.py>`_. 
 
 
-How do I specify the log level for |EMOD_s|? I get a schema error when I try to set it now.
-===========================================================================================
+.. How do I specify the log level for |EMOD_s|? I get a schema error when I try to set it now.
+.. ===========================================================================================
 
-TBD
+.. TBD
 
 How do I specify the vector species for my scenario?
 ====================================================
 
 See the excerpt below or the complete example of setting the vector species
 and parameter values associated with each species in
-examples\\start_here\\example.py. 
+examples/start_here/example.py. 
 
-.. literalinclude:: ..\examples\start_here\example.py
+.. literalinclude:: ../examples/start_here/example.py
    :lines: 55-82
 
 A helper function to make this task even easier may be coming shortly. 
