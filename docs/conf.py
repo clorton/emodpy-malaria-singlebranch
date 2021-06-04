@@ -21,6 +21,7 @@ import subprocess
 import sys
 import sphinx_rtd_theme
 import configparser
+from datetime import datetime
 from urllib.request import urlretrieve
 
 if sys.platform in ["linux", "darwin"]:
