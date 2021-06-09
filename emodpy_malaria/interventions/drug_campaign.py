@@ -366,22 +366,21 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
     if expire_recent_drugs:
         interventions.append(expire_recent_drugs)
 
-    gender = "All"
-    age_min = 0
-    age_max = 9.3228e+35
-    if target_group != "Everyone" and isinstance(target_group, dict):
-        try:
-            age_min = target_group["agemin"]
-            age_max = target_group["agemax"]
-            if 'gender' in target_group:
-                gender = target_group["gender"]
-                target_group = "ExplicitAgeRangesAndGender"
-            else:
-                target_group = "ExplicitAgeRanges"
-        except KeyError:
-            raise KeyError("Unknown target_group parameter. Please pass in 'Everyone' or a dictionary of "
-                           "{'agemin' : x, 'agemax' : y, 'gender': 'Female'} to target  to individuals between x and "
-                           "y years of age, and (optional) gender.\n")
+    target_sex = "All"
+    target_age_min = 0
+    target_age_max = 9.3228e+35
+    if "agemin" in target_group:
+        target_age_min = target_group["agemin"]
+    if "agemax" in target_group:
+        target_age_max = target_group["agemax"]
+    if "gender" in target_group:
+        target_sex = target_group["gender"]
+       
+    """
+        raise KeyError("Unknown target_group parameter. Please pass in 'Everyone' or a dictionary of "
+                       "{'agemin' : x, 'agemax' : y, 'gender': 'Female'} to target  to individuals between x and "
+                       "y years of age, and (optional) gender.\n")
+    """
 
     if trigger_condition_list:
         # if once triggered, you want the diagnostic survey to repeat or if there is a delay (or both)
@@ -417,10 +416,9 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
             Start_Day=start_days[0] - 1,
             Event_Name="MDA_Now",
             Nodeset_Config=nodeset_config,
-            Target_Demographic=target_group,
-            Target_Age_Min=age_min,
-            Target_Age_Max=age_max,
-            Target_Gender=gender,
+            Target_Age_Min=target_age_min,
+            Target_Age_Max=target_age_max,
+            Target_Gender=target_sex,
             Node_Property_Restrictions=node_property_restrictions,
             Property_Restrictions=ind_property_restrictions,
             Demographic_Coverage=coverage,
@@ -438,9 +436,8 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
                 Start_Day=start_day,
                 Event_Name="Campaign_Event",
                 Nodeset_Config=nodeset_config,
-                Target_Demographic=target_group,
-                Target_Age_Min=age_min,
-                Target_Age_Max=age_max,
+                Target_Age_Min=target_age_min,
+                Target_Age_Max=target_age_max,
                 Node_Property_Restrictions=node_property_restrictions,
                 Property_Restrictions=ind_property_restrictions,
                 Demographic_Coverage=coverage,

@@ -33,7 +33,7 @@ rule burnin_use:
         shell("pushd burnin_use && ./example.py")
 rule drug_campaign:
     input: 
-    output: "drug_campaign/COMPS_ID"
+    output: "drug_campaign/experiment.id"
     run:
         shell("pushd drug_campaign && ./example.py")
 rule ivermectin:
