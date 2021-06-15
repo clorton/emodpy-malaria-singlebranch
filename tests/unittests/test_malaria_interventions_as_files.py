@@ -9,6 +9,8 @@ from emodpy_malaria.interventions.irs import new_intervention_as_file as irs_fil
 from emodpy_malaria.interventions.spacespraying import new_intervention_as_file as spacespray_file
 from emodpy_malaria.interventions.sugartrap import new_intervention_as_file as sugartrap_file
 from emodpy_malaria.interventions.udbednet import new_intervention_as_file as rei_bednet
+from emodpy_malaria.interventions.inputeir import new_intervention_as_file as inputeir
+
 import emod_api.campaign as camp
 camp.schema_path = schema_path_file.schema_file
 
@@ -79,7 +81,7 @@ class MalariaInterventionFileTest(unittest.TestCase):
     def test_bednet_file_nofilename(self):
         self.method_under_test = bednet_file
         self.expected_intervention_class = "SimpleBednet"
-        self.file_path = None
+        self.file_path = "BedNet.json"
         self.run_test()
         return
 
@@ -147,6 +149,40 @@ class MalariaInterventionFileTest(unittest.TestCase):
         self.expected_intervention_class = "UsageDependentBednet"
         self.file_path = None
         self.run_test()
+
+    def inputeir_file_test(self):
+        self.is_debugging = False
+        self.method_under_test = inputeir
+        self.expected_intervention_class = "InputEIR"
+        eir = [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
+        def run_test(eir):
+            self.assertFalse(self.file_is_there())
+
+            if self.file_path:
+                self.method_under_test(camp
+                                       , start_day=self.specific_start_day
+                                       , monthly_eir=eir[:]
+                                       , filename=self.file_path)
+            else:
+                self.method_under_test(camp
+                                       , start_day=self.specific_start_day
+                                       , monthly_eir=eir[:])
+            if not self.file_path:
+                self.file_path = f"{self.expected_intervention_class}.json"
+            self.load_event()
+            self.assertEqual(self.start_day, self.specific_start_day)
+            self.assertEqual(self.event['Event_Coordinator_Config']['Intervention_Config']['Monthly_EIR'], eir)
+            self.assertEqual(self.intervention_class, self.expected_intervention_class)
+        run_test(eir)
+
+    def test_inputeir_file_nofilename(self):
+        self.file_path = None
+        self.inputeir_file_test()
+
+    def test_inputeir_file(self):
+        self.file_path = 'inputeir_filename'
+        self.inputeir_file_test()
 
 
 if __name__ == '__main__':

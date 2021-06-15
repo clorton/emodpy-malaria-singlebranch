@@ -11,15 +11,15 @@ def IRSHousingModification(
         camp,
         start_day,
         coverage=1.0,
-        blocking_eff=1,
+        repelling_eff=1,
         killing_eff=1,
         insecticide=None,
         node_ids=None
     ):
     """
-    MCV1 Campaign
+    Create a new complete scheduled IRSHousingModification campaign event that can be added to a campaign.
     :param coverage: Demographic Coverage
-    :param blocking: 
+    :param repelling: 
     :param killing: 
     Note Start_Day is initialized as 1, recommend that this be aligned with the start of the simulation
     """
@@ -34,14 +34,14 @@ def IRSHousingModification(
 
     intervention = s2c.get_class_with_defaults( "IRSHousingModification", schema_path )
 
-    blocking = utils.get_waning_from_params( schema_path, blocking_eff, 90, 1./150 ) 
+    repelling = utils.get_waning_from_params( schema_path, repelling_eff, 90, 1./150 ) 
     killing = utils.get_waning_from_params( schema_path, killing_eff, 90, 1./90 )
 
     # Second, hook them up
     event.Event_Coordinator_Config = coordinator
     coordinator.Intervention_Config = intervention
     intervention.Killing_Config = killing 
-    intervention.Blocking_Config = blocking 
+    intervention.Repelling_Config = repelling 
     event.Start_Day = float(start_day)
 
     # Third, do the actual settings
@@ -58,11 +58,8 @@ def IRSHousingModification(
     return event
 
 def new_intervention_as_file( camp, start_day, filename=None ):
-    campaign = {}
-    campaign["Events"] = []
-    campaign["Events"].append( IRSHousingModification( camp, start_day ) )
+    camp.add( IRSHousingModification( camp, start_day ), first=True )
     if filename is None:
         filename = "IRSHousingModification.json"
-    with open( filename, "w" ) as camp_file:
-        json.dump( campaign, camp_file, sort_keys=True, indent=4 )
+    camp.save( filename )
     return filename

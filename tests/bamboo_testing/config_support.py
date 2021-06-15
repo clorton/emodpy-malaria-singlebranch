@@ -1,20 +1,19 @@
 import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malconf
+from emodpy_malaria import vector_config as malconf
 
 
 def set_config(config):
-    config.parameters.Acquisition_Blocking_Immunity_Decay_Rate = 0
+    #config.parameters.Acquisition_Blocking_Immunity_Decay_Rate = 0
     config.parameters.Acquisition_Blocking_Immunity_Duration_Before_Decay = 0
     config.parameters.Infectious_Period_Constant = 0
     config.parameters.Enable_Birth = 1
     #config.parameters.Enable_Coinfection = 1
     config.parameters.Enable_Demographics_Birth = 1
     config.parameters.Enable_Demographics_Reporting = 0
-    config.parameters.Enable_Immune_Decay = 0
-    config.parameters.Migration_Model = "NO_MIGRATION"
-    config.parameters.Mortality_Blocking_Immunity_Decay_Rate = 0
-    config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 270
+    #config.parameters.Migration_Model = "NO_MIGRATION"
+    #config.parameters.Mortality_Blocking_Immunity_Decay_Rate = 0
+    #config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 270
     config.parameters.Run_Number = 99
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1

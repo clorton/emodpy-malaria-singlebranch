@@ -5,7 +5,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 from emodpy_malaria.reporters.builtin import \
-    ReportVectorGenetics, ReportVectorStats, MalariaPatientJSONReport, MalariaSummaryReport
+    ReportVectorGenetics, ReportVectorStats, MalariaPatientJSONReport, MalariaSummaryReport, FilteredMalariaReport, ReportEventCounter
 
 
 class TestMalariaReport(unittest.TestCase):
@@ -109,10 +109,10 @@ class TestMalariaReport(unittest.TestCase):
                 params.Allele_Combinations_For_Stratification = allele_combinations_for_stratification
             if alleles_for_stratification is not None:
                 params.Alleles_For_Stratification = alleles_for_stratification
-            if specific_genome_combinations_for_stratification is not None:
-                params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification
             if combine_similar_genomes is not None:
                 params.Combine_Similar_Genomes = combine_similar_genomes
+            if specific_genome_combinations_for_stratification is not None:
+                params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification
             return params
         import schema_path_file
         self.tmp_reporter = ReportVectorGenetics()
@@ -142,7 +142,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Combine_Similar_Genomes'], 1)
         self.assertEqual(self.p_dict['Stratify_By'], "GENOME")
 
-    @unittest.skip("See GH #42")
     def test_vg_custom_specific_genome_stratification(self):
         self.rvg_build_vector_genetics_reporter(
             duration_days=12_345,
@@ -234,7 +233,6 @@ class TestMalariaReport(unittest.TestCase):
             self
             ,age_bins=None
             ,duration_days=None
-            ,event_trigger_list=None
             ,individual_property_filter=None
             ,infectiousness_bins=None
             ,max_number_reports=None
@@ -250,8 +248,6 @@ class TestMalariaReport(unittest.TestCase):
                 params.Age_Bins = age_bins
             if duration_days is not None:
                 params.Duration_Days = duration_days
-            if event_trigger_list is not None:
-                params.Event_Trigger_List = event_trigger_list
             if individual_property_filter is not None:
                 params.Individual_Property_Filter = individual_property_filter
             if infectiousness_bins is not None:
@@ -284,7 +280,6 @@ class TestMalariaReport(unittest.TestCase):
                          "NodeSetAll")
         self.assertGreater(self.p_dict['Duration_Days'], 100_000)
         self.assertEqual(self.p_dict['Age_Bins'], [])
-        self.assertEqual(self.p_dict['Event_Trigger_List'], [])
         self.assertEqual(self.p_dict['Individual_Property_Filter'], "")
         self.assertEqual(self.p_dict['Infectiousness_Bins'], [])
         self.assertEqual(self.p_dict['Max_Number_Reports'],1)
@@ -318,25 +313,11 @@ class TestMalariaReport(unittest.TestCase):
         self.msr_build_malaria_summary_report(
             age_bins=[1,2,5,15,25,45,65]
             ,duration_days=1234
-            ,event_trigger_list=[
-                "HappyBirthday",
-                "EnteredRelationship",
-                "ExitedRelationship",
-                "FirstCoitalAct"
-            ]
         )
         self.assertEqual(self.p_dict['Age_Bins'],
                          [1,2,5,15,25,45,65])
         self.assertEqual(self.p_dict['Duration_Days'],
                          1234)
-        self.assertEqual(self.p_dict['Event_Trigger_List'],
-                         [
-                             "HappyBirthday",
-                             "EnteredRelationship",
-                             "ExitedRelationship",
-                             "FirstCoitalAct"
-                         ]
-                         )
 
     def test_malaria_summary_report_custom2(self):
         self.msr_build_malaria_summary_report(
@@ -374,6 +355,122 @@ class TestMalariaReport(unittest.TestCase):
 
     # endregion
 
+    # region filtered report 
+    def build_filtered_report(
+            self
+            ,end_day = None
+            ,has_interventions = None
+            ,include_30_day_average = None
+            ,node_ids_of_interest = None
+            ,report_file_name = None
+            ,start_day = None
+    ):
+        def filtered_config_builder(params):
+            if end_day is not None:
+                params.End_Day = end_day
+            if has_interventions is not None:
+                params.Has_Interventions = has_interventions
+            if include_30_day_average is not None:
+                params.Include_30Day_Avg_Infection_Duration = include_30_day_average
+            if node_ids_of_interest is not None:
+                params.Node_IDs_Of_Interest = node_ids_of_interest
+            if report_file_name is not None:
+                params.Report_File_Name = report_file_name
+            if start_day is not None:
+                params.Start_Day = start_day
+            return params
+        
+        import schema_path_file
+        self.tmp_reporter = FilteredMalariaReport()
+        self.tmp_reporter.config(filtered_config_builder, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        return
+
+    def test_filtered_report_default(self):
+        self.build_filtered_report()
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['End_Day'], 3.40282e+38)
+        self.assertEqual(self.p_dict['Has_Interventions'], [])
+        self.assertEqual(self.p_dict['Include_30Day_Avg_Infection_Duration'], 1)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], []) # Report_File_Name
+        self.assertEqual(self.p_dict['Report_File_Name'], 'ReportMalariaFiltered.json')
+        self.assertEqual(self.p_dict['Start_Day'], 0)
+
+    def test_filtered_report_custom(self):
+        end_day = 10
+        include_30_day = 0
+        ids_of_interest = [1, 2]
+        file_name = "FilteredStuff.json"
+        start_day = 5
+
+        self.build_filtered_report(
+            end_day = end_day
+            ,include_30_day_average = include_30_day
+            ,node_ids_of_interest = ids_of_interest
+            ,report_file_name = file_name
+            ,start_day = start_day
+        )
+
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['End_Day'], end_day)
+        self.assertEqual(self.p_dict['Include_30Day_Avg_Infection_Duration'], include_30_day)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], ids_of_interest) # Report_File_Name
+        self.assertEqual(self.p_dict['Report_File_Name'], file_name)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+
+    # end region
+
+    # start region ReportEventCounter
+
+    def build_report_event_counter(self = None,
+                                    duration = None,
+                                    trigger_list = None,
+                                    start_day = None,
+                                    nodeset_list = None):
+        def report_counter_config_builder(params):
+            if duration is not None:
+                params.Duration_Days = duration
+            if trigger_list is not None:
+                params.Event_Trigger_List = trigger_list
+            if start_day is not None:
+                params.Start_Day = start_day
+            if nodeset_list is not None:
+                params.Nodeset_Config.NodeSetNodeList = nodeset_list
+            return params
+        
+        import schema_path_file
+        self.tmp_reporter = ReportEventCounter()
+        self.tmp_reporter.config(report_counter_config_builder, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        return
+
+    def test_report_counter_default(self):
+        self.build_report_event_counter()
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Nodeset_Config']['class'],
+                         "NodeSetAll")
+        self.assertEqual(self.p_dict['Duration_Days'], 3.40282e+38)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], [])
+        self.assertEqual(self.p_dict['Start_Day'], 0)
+
+    def test_report_counter_custom(self):
+        duration = 17
+        trigger_list = ["STINewInfection", "ExitedRelationship"]
+        start_day = 5
+
+        self.build_report_event_counter(
+            start_day = start_day
+            ,duration = duration
+            ,trigger_list = trigger_list
+        )
+
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['Duration_Days'], duration)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], trigger_list)
+
+    # end region
+    
     # region vector migration report
 
     @unittest.skip("Report NYI")

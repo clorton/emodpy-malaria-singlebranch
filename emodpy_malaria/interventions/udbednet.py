@@ -181,7 +181,7 @@ def UDBednet(
 
                 {"Times":[], "Values":[]} or {"min_cov":0.45, "max_day":300}
 
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
+        node_ids: The list of nodes to apply this intervention to (**Node_List**
             parameter). If not provided, set value of NodeSetAll.
 
         birth_triggered: If true, event is specified as a birth-triggered intervention.
@@ -307,11 +307,8 @@ def UDBednet(
 
 
 def new_intervention_as_file(camp, start_day, filename=None):
-    campaign = {}
-    campaign["Events"] = []
-    campaign["Events"].append(UDBednet(camp, start_day))
+    camp.add(UDBednet(camp, start_day), first=True)
     if filename is None:
         filename = "UsageDependentBednet.json"
-    with open(filename, "w") as camp_file:
-        json.dump(campaign, camp_file, sort_keys=True, indent=4)
+    camp.save( filename )
     return filename

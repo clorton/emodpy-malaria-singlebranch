@@ -32,3 +32,9 @@ ipython_config.py
 __pycache__/
 *.py[cod]
 *$py.class
+
+# Sphinx documentation
+docs/_build/
+docs/emodpy_malaria*
+docs/external/*.rst
+emodpy_malaria.egg-info/

@@ -22,12 +22,26 @@ import sys
 import sphinx_rtd_theme
 import configparser
 from datetime import datetime
+from urllib.request import urlretrieve
 
 if sys.platform in ["linux", "darwin"]:
     subprocess.check_output(["make", "generate-api"], cwd=os.path.dirname(os.path.abspath(__file__)))
 else:
     subprocess.check_output(["make.bat", "generate-api"], cwd=os.path.dirname(os.path.abspath(__file__)))
 
+# -- Copy the dependent package documentation for reuse -------------------
+
+urlretrieve(
+   "https://docs.idmod.org/projects/idmtools/en/latest/_sources/faq.rst.txt",
+   "external/idmtools-faq.rst")
+
+urlretrieve(
+   "https://docs.idmod.org/projects/emod-api/en/latest/_sources/faq.rst.txt",
+   "external/emod-api-faq.rst")
+
+urlretrieve(
+   "https://docs.idmod.org/projects/emodpy/en/latest/_sources/faq.rst.txt",
+   "external/emodpy-faq.rst")
 
 # -- General configuration ------------------------------------------------
 
@@ -45,7 +59,9 @@ extensions = [
     'sphinxcontrib.napoleon',
     'sphinx.ext.todo',
     'plantweb.directive',
-    'sphinxcontrib.programoutput'
+    'sphinxcontrib.programoutput',
+    'sphinx.ext.intersphinx',
+    'sphinxext.remoteliteralinclude'
 ]
 
 plantuml = 'plantweb'
@@ -197,9 +213,11 @@ html_static_path = ['_static']
 
 html_context = {
     'css_files': [
-        '_static/theme_overrides.css'
+        '_static/theme_overrides.css',
+        '_static/copy_button.css'
         ]
 }
+html_js_files = ['show_block_by_os.js']
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
 # directly to the root of the docs.
@@ -383,4 +401,11 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-# intersphinx_mapping = {'https://docs.python.org/': None}
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
+                       'emod_api': ('https://docs.idmod.org/projects/emod-api/en/latest/', None),
+                       'emodpy': ('https://docs.idmod.org/projects/emodpy/en/latest/', None),
+                       'idmtools': ('https://docs.idmod.org/projects/idmtools/en/latest/', None),
+                       'emod-malaria': ('https://docs.idmod.org/projects/emod-malaria/en/latest/', None),
+                       'pycomps': ('https://docs.idmod.org/projects/pycomps/en/latest/', None)
+                       }

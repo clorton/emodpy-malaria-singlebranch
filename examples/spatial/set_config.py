@@ -13,6 +13,5 @@ def set_config( config ):
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1
     config.parameters.Enable_Maternal_Infection_Transmission = 0
-    config.parameters.Enable_Natural_Mortality = 1
 
     return config

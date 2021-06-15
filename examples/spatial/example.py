@@ -58,7 +58,6 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config.parameters.Simulation_Type = "MALARIA_SIM"
 
     import emodpy_malaria.config as conf
     config = conf.set_team_defaults( config, manifest )
@@ -77,6 +76,7 @@ def set_param_fn(config):
     #config.parameters.Serialization_Times = [ 365 ]
     config.parameters.Enable_Vector_Species_Report = 1
     #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    config.parameters.Enable_Migration_Heterogeneity = 0
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
     config.parameters.Custom_Individual_Events = [ "Bednet_Got_New_One", "Bednet_Using", "Bednet_Discarded" ]
@@ -135,11 +135,11 @@ def build_demog():
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
     import emod_api.demographics.DemographicsTemplates as DT
 
-    #demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    #demog = Demographics.from_template_node( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
     input_file = malconf.get_file_from_http( "http://ipadvweb02.linux.idm.ctr:8000/" + manifest.population_input_path )
     demog = Demographics.from_pop_csv( input_file, site='burkina' )
 
-    import emod_api.migration.Migration as mig 
+    import emod_api.migration as mig 
     mig_partial = partial( mig.from_demog_and_param_gravity, gravity_params = [7.50395776e-06, 9.65648371e-01, 9.65648371e-01, -1.10305489e+00], id_ref='burkina', migration_type=mig.Migration.REGIONAL ) 
 
     return demog, mig_partial
@@ -163,8 +163,9 @@ def general_sim( erad_path ):
     # create EMODTask 
     print("Creating EMODTask (from files)...")
 
-    platform = None
-    platform = Platform("SLURM", num_cores=16)
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores", num_cores=8, priority="Highest")
     pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask

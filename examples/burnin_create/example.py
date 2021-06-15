@@ -1,83 +1,46 @@
 #!/usr/bin/env python3
 
-import pathlib # for a join
-from functools import partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
 
 # idmtools ...
-from idmtools.assets import Asset, AssetCollection  #
-from idmtools.builders import SimulationBuilder
+
 from idmtools.core.platform_factory import Platform
 from idmtools.entities.experiment import Experiment
-# from idmtools_platform_comps.utils.python_requirements_ac.requirements_to_asset_collection import RequirementsToAssetCollection
-# from idmtools_models.templated_script_task import get_script_wrapper_unix_task
 
 # emodpy
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy_malaria.reporters.builtin import ReportVectorGenetics
-import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malconf
-import params
-import set_config
 import manifest
 
-# ****************************************************************
-# Features to support:
-#
-#  Read experiment info from a json file
-#  Add Eradication.exe as an asset (Experiment level)
-#  Add Custom file as an asset (Simulation level)
-#  Add the local asset directory to the task
-#  Use builder to sweep simulations
-#  How to run dtk_pre_process.py as pre-process
-#  Save experiment info to file
-# ****************************************************************
+"""
+In this example we create serialization files from a multicore simulation.
+The important bits are in set_param_fn function and in Platform class call
 
-def update_sim_bic(simulation, value):
-    simulation.task.config.parameters.Base_Infectivity_Constant  = value*0.1
-    return {"Base_Infectivity": value}
-
-def update_sim_random_seed(simulation, value):
-    simulation.task.config.parameters.Run_Number = value
-    return {"Run_Number": value}
+"""
 
 
-def print_params():
+
+def set_param_fn(config):
     """
-    Just a useful convenience function for the user.
+         This is a call-back function that sets parameters.
+         Here we are getting "default" parameters for a MALARIA_SIM and
+         explicitly adding Serialization_Parameters
+    Args:
+        config:
+
+    Returns:
+        completed configuration
     """
-    # Display exp_name and nSims
-    # TBD: Just loop through them
-    print("exp_name: ", params.exp_name)
-    print("nSims: ", params.nSims)
 
+    import emodpy_malaria.config as malaria_config
+    config = malaria_config.set_team_defaults(config, manifest)
 
-def set_param_fn(config): 
-    """
-    This function is a callback that is passed to emod-api.config to set parameters The Right Way.
-    """
-    # config = set_config.set_config( config )
-
-    import emodpy_malaria.config as conf
-    config = set_config.set_config(config)
-    config = conf.set_team_defaults(config, manifest)
-    conf.set_species( config, [ "gambiae" ] )
-
-    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 225000000
-    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
-
-    conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
-    config.parameters.Base_Rainfall = 150
-    config.parameters.Simulation_Duration = 365
-    config.parameters.Climate_Model = "CLIMATE_CONSTANT"
-    config.parameters.Enable_Disease_Mortality = 0
-    #config.parameters.Serialization_Times = [ 365 ]
-    config.parameters.Enable_Vector_Species_Report = 1
-    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
+    config.parameters.Simulation_Duration = 21
+    config.parameters.Serialization_Time_Steps = [20]
+    config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
+    config.parameters.Serialization_Mask_Node_Write = 0
+    config.parameters.Serialization_Precision = "REDUCED"
 
     return config
 
@@ -87,76 +50,58 @@ def build_camp():
     Build a campaign input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     """
-    import emod_api.campaign as camp
-    import emod_api.interventions.outbreak as ob
+    import emod_api.campaign as campaign
     import emodpy_malaria.interventions.bednet as bednet
 
-    # This isn't desirable. Need to think about right way to provide schema (once)
-    camp.schema_path = manifest.schema_file
-    
-    # print( f"Telling emod-api to use {manifest.schema_file} as schema." ) 
-    camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
-    return camp
+    campaign.schema_path = manifest.schema_file
+
+    campaign.add(bednet.Bednet(campaign, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0,
+                               node_ids=[]))
+    return campaign
 
 
 def build_demog():
     """
-    Build a demographics input file for the DTK using emod_api.
-    Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
-    Also right now this function takes care of the config updates that are required as a result of specific demog
-    settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in
-    emod-api as much as possible.
-    TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
-
+        Builds demographics
+    Returns:
+        final demographics object
     """
-    import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
+    import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.1 )
+    demog = Demographics.from_params(tot_pop=100, num_nodes=4)
     return demog
 
 
-def general_sim( erad_path, ep4_scripts ):
+def general_sim():
     """
-    This function is designed to be a parameterized version of the sequence of things we do 
-    every time we run an emod experiment. 
+        This function is designed to be a parameterized version of the sequence of things we do
+    every time we run an emod experiment.
+    Returns:
+        Nothing
     """
-    print_params()
 
-    platform = Platform("SLURM") 
-
-    #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
-
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    # setting this to two cores
+    platform = Platform("Calculon", num_cores=2, node_group="idm_48cores", priority="Highest")
+    experiment_name = "create burnin (serialization file)"
     # create EMODTask 
     print("Creating EMODTask (from files)...")
-    
+
     task = EMODTask.from_default2(
-            config_path="my_config.json",
-            eradication_path=manifest.eradication_path,
-            campaign_builder=build_camp,
-            schema_path=manifest.schema_file,
-            param_custom_cb=set_param_fn,
-            ep4_custom_cb=None,
-            demog_builder=build_demog,
-            plugin_report=None # report
-        )
+        config_path="config.json",
+        eradication_path=manifest.eradication_path,
+        campaign_builder=build_camp,
+        schema_path=manifest.schema_file,
+        ep4_custom_cb=None,
+        param_custom_cb=set_param_fn,  # THIS IS WHERE SERIALIZATION PARAMETERS ARE ADDED
+        demog_builder=build_demog,
+        plugin_report=None  # report
+    )
 
-    print("Adding local assets (py scripts mainly)...")
-
-    if ep4_scripts is not None:
-        for asset in ep4_scripts:
-            pathed_asset = Asset(pathlib.PurePath.joinpath(manifest.ep4_path, asset), relative_path="python")
-            task.common_assets.add_asset(pathed_asset)
-
-    # Create simulation sweep with builder
-    builder = SimulationBuilder()
-    builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
-
-    # create experiment from builder
-    print( f"Prompting for COMPS creds if necessary..." )
-    experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
-
-    print("Adding asset dir...")
-    task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
+    # We are creating one-simulation experiment straight from task.
+    # If you are doing a sweep, please see sweep_* examples.
+    experiment = Experiment.from_task(task=task, name=experiment_name)
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
@@ -169,20 +114,16 @@ def general_sim( erad_path, ep4_scripts ):
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("COMPS_ID", "w") as fd:
+    with open("experiment.id", "w") as fd:
         fd.write(experiment.uid.hex)
     print()
-    print(experiment.uid.hex) 
-    
-
-def run_test( erad_path ):
-    general_sim( erad_path, manifest.my_ep4_assets )
+    print(experiment.uid.hex)
 
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
-    plan = EradicationBambooBuilds.MALARIA_LINUX 
-    print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files( plan, manifest )
-    print("...done.") 
-    run_test( manifest.eradication_path )
+    # plan = EradicationBambooBuilds.MALARIA_LINUX
+    # print("Retrieving Eradication and schema.json from Bamboo...")
+    # get_model_files(plan, manifest)
+    print("...done.")
+    general_sim()

@@ -8,8 +8,8 @@ from enum import Enum
 
 import emod_api.campaign as camp
 from emod_api.interventions.common import *
-from emodpy_malaria.interventions.drug import AntiMalarialDrug
-import emodpy_malaria.interventions.add_treatment_seeking as ats
+from emodpy_malaria.interventions.common import AntiMalarialDrug
+import emodpy_malaria.interventions.treatment_seeking as ts
 
 parent = Path(__file__).resolve().parent
 sys.path.append(parent)
@@ -218,8 +218,8 @@ class TreatmentSeekingTest(unittest.TestCase):
         drug_ineligibility_duration = 5
         duration = 15
 
-        ret_events = ats._get_events(camp, start_day=start_day, drug=drug, targets=targets,
-                                     nodeIDs=copy.deepcopy(node_ids),
+        ret_events = ts._get_events(camp, start_day=start_day, drug=drug, targets=targets,
+                                     node_ids=copy.deepcopy(node_ids),
                                      ind_property_restrictions=copy.deepcopy(ind_property_restrictions),
                                      drug_ineligibility_duration=drug_ineligibility_duration, duration=duration,
                                      broadcast_event_name=broadcast_event_name)
@@ -248,7 +248,7 @@ class TreatmentSeekingTest(unittest.TestCase):
         """
         Asserts default values with _get_events.
         """
-        ret_events = ats._get_events(camp)
+        ret_events = ts._get_events(camp)
         first = True
         for ret_event in ret_events:
             camp.add(ret_event, first=first)
@@ -282,7 +282,7 @@ class TreatmentSeekingTest(unittest.TestCase):
         Returns:
 
         """
-        ats.add_health_seeking(camp)
+        ts.add(camp)
         campaign_file = Path(parent, "add_treatment_seeking_test.json")
         if campaign_file.is_file():
             campaign_file.unlink()
@@ -305,11 +305,11 @@ class TreatmentSeekingTest(unittest.TestCase):
         campaign_file.unlink()
 
     def validate_campaign(self, broadcast_event_name, campaign, drug, targets, drug_ineligibility_duration=0,
-                          duration=-1, ind_property_restrictions=None, node_ids=None, start_day=0):
+                          duration=-1, ind_property_restrictions=None, node_ids=None, start_day=1):
         events = campaign['Events']
         self.assertEqual(len(events), len(targets))
 
-        intervention_list = [AntiMalarialDrug(camp, start_day=0, drug_name=d) for d in drug]
+        intervention_list = [AntiMalarialDrug(camp, Drug_Type=d) for d in drug]
         intervention_list.append(BroadcastEvent(camp, Event_Trigger=broadcast_event_name))
         for i in range(len(events)):
             event = events[i]
@@ -370,7 +370,8 @@ class TreatmentSeekingTest(unittest.TestCase):
             # test ind_property_restrictions
             if not ind_property_restrictions:
                 ind_property_restrictions = []
-            self.assertEqual(event['Event_Coordinator_Config']['Property_Restrictions'],  # Property_Restrictions_Within_Node
+            self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']
+                             ['Property_Restrictions_Within_Node'],  # Property_Restrictions_Within_Node
                              ind_property_restrictions)
 
             # test duration

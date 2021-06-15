@@ -1,3 +1,8 @@
+"""
+This module contains functionality for malaria intervention distribution
+via a cascade of care that may contain diagnostics and drug treatments.
+"""
+
 from copy import deepcopy, copy
 import random
 
@@ -27,17 +32,24 @@ drug_cfg = {
 
 
 def drug_configs_from_code( camp, drug_code: str = None ):
-    """
-      Add a drug config to the simulation configuration based on its code and add the corresponding AntimalarialDrug
-      intervention to the return dictionary. The drug_code needs to be one identified in the ``drug_cfg`` dictionary.
-      For example passing the ``MDA_ALP`` drug code, will add the drugs config for Artemether, Lumefantrine, Primaquine
-      to the configuration file and will return a dictionary containing a Full Treatment course for those 3 drugs.
-      Args:
-          drug_code: Code of the drug to add
-          drug_ineligibility_duration: used as a flag, if anything is present, we add ["DrugStatus:RecentDrug"]
-          as Disqualifying_Properties
-      Returns:
-          A dictionary containing the parameters for an intervention using the given drug
+    """  
+    Add a single or multiple drug regimen to the configuration file based
+    on its code and add the corresponding 
+    :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug`
+    intervention to the return dictionary. For example, passing the ``ALP`` drug
+    code will add the drug configuration for artemether, lumefantrine, and
+    primaquine to the configuration file and will return a dictionary containing a
+    full treatment course for those three drugs. For more information, see
+    **Malaria_Drug_Params** in :doc:`emod-malaria:parameter-configuration-drugs`.
+      
+    Args:
+        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention 
+            will be added. 
+        drug_code: The code of the drug regimen. This must be listed in the ``drug_cfg`` 
+            dictionary.
+
+    Returns:
+          A dictionary containing the intervention for the given drug regimen.
     """
     if not drug_code or drug_code not in drug_cfg:
         raise Exception("Please pass in a (valid) drug_code.\n"
@@ -78,8 +90,6 @@ def add_drug_campaign(camp,
                       tsteps_btwn_repetitions: int = 60,
                       diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
                       diagnostic_threshold: float = 40,
-                      diagnostic_sensitivity: float = 1,
-                      diagnostic_specificity: float = 1,
                       measurement_sensitivity: float = 0.1,
                       fmda_radius: int = 0,
                       node_selection_type: str = 'DISTANCE_ONLY',
@@ -87,7 +97,7 @@ def add_drug_campaign(camp,
                       snowballs: int = 0,
                       treatment_delay: int = 0,
                       triggered_campaign_delay: int = 0,
-                      nodeIDs: list = None,
+                      node_ids: list = None,
                       target_group: any = 'Everyone',
                       drug_ineligibility_duration: int = 0,
                       node_property_restrictions: list = None,
@@ -99,119 +109,126 @@ def add_drug_campaign(camp,
                       target_residents_only: int = 1,
                       check_eligibility_at_trigger: bool = False,
                       receiving_drugs_event_name='Received_Campaign_Drugs'):
-    """
-    Add a drug intervention, as specified in **campaign_type**, to the campaign.
-    This intervention uses the **MalariaDiagnostic** class to create either a
-    scheduled or a triggered event to the campaign and the **AntimalarialDrug**
-    class to configure drug parameters. You can also specify a delay period
-    for a triggered event that broadcasts afterwards.
-
-    .. note:: Dosing/Dosing_Type was removed, please use adeherent_drug_configs
-        if you want something besides a full treatment. Also,
-        drug_ineligibility_duration does not prevent diagnostics from being
-        distributed, but it does prevent positively-tested patients from
-        receiving the drugs.
+    """ 
+    Add a drug intervention campaign from a list of malaria campaign types.
+    This intervention uses the
+    :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic` class
+    to create either a scheduled or a triggered event to the campaign and the
+    :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug` class
+    to configure drug interventions. You can also specify a delay period for a
+    triggered event that broadcasts afterwards.  If the campaign is repeated
+    or triggered, separate 
+    :doc:`emod-malaria:parameter-campaign-node-nodelevelhealthtriggerediv`
+    interventions are created with a delay that sends an event to distribute
+    drugs.
 
     Args:
-        cb: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-            object for building, modifying, and writing campaign
-            configuration files.
-        campaign_type: Type of drug campaign. Default is **MDA**.
-            Available options are:
-            * MDA
-            * MSAT
-            * SMC
-            * fMDA
-            * MTAT
-            * rfMSAT
-            * rfMDA
-        drug_code: The drug code of the drug regimen (AL, DP, etc;
-            allowable types are defined in malaria_drugs.py).
+        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will 
+            be added. 
+        campaign_type: The type of drug campaign. Available options are:
+
+            MDA 
+                Add a mass drug administration intervention.
+            MSAT 
+                Add a  mass screening and treatment intervention.
+            SMC 
+                Add a seasonal malaria chemoprevention intervention.
+            fMDA
+                Add a focal mass drug administration intervention based on 
+                results from a diagnostic survey, which is either scheduled or
+                triggered (when **trigger_condition_list** is present).
+            MTAT 
+                Add a mass testing and treatment intervention.
+            rfMSAT 
+                Add a reactive focal mass screening and treatment intervention.
+                Detecting malaria triggers diagnostic surveys to run on
+                neighboring nodes and so on, up to the number of triggered interventions
+                defined in the **snowballs** parameter.
+            rfMDA 
+                Add a reactive focal mass drug administration intervention. This triggers
+                :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`
+                to broadcast a "Give_Drugs_rfMDA" event, which triggers
+                :doc:`emod-malaria:parameter-campaign-individual-multiinterventiondistributor`
+                to distribute drugs and a "Received_Treatment" event followed by
+                a delayed "Give_Drugs_rfMDA" event to neighboring nodes, which
+                will trigger another drug distribution. 
+
+        drug_code: The code of the drug regimen to distribute. This must be 
+            listed in the ``drug_cfg`` dictionary.
         start_days: List of start days (integers) when the drug regimen will
             be distributed. Due to diagnostic/treatment configuration,
-            the earliest start day is 1. When trigger_condition_list is used
-            then the first entry of start_days is the day to start listening
+            the earliest start day is 1. When **trigger_condition_list** is used,
+            the first entry of **start_days** is the day to start listening
             for the trigger(s).
-        coverage: Demographic coverage of the distribution (fraction of
-            people at home during campaign).
-        repetitions: Number of repetitions.
-        tsteps_btwn_repetitions: Timesteps between the repetitions.
-        diagnostic_type: Diagnostic config for diagnostic-dependent
-            campaigns:
-            * MSAT
-            * fMDA
-            * rfMSAT
-        diagnostic_threshold: Diagnostic config for diagnostic-dependent
-            campaigns:
-            * MSAT
-            * fMDA
-            * rfMSAT
-        diagnostic_sensitivity: Setting for **Base_Sensitivity** in the MalariaDiagnostic
-        diagnostic_specificity: Setting for **Base_Specificity** in the MalariaDiagnostic
-        measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
+        coverage: The demographic coverage of the distribution (the fraction of
+            people at home during the campaign).
+        repetitions: The number of repetitions.
+        tsteps_btwn_repetitions: The timesteps between the repetitions.
+        diagnostic_type: The setting for **Diagnostic_Type** in 
+            :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
+            In addition to the accepted values listed there, you may also set
+            TRUE_INFECTION_STATUS, which calls 
+            :doc:`emod-malaria:parameter-campaign-individual-standarddiagnostic`
+            instead.
+        diagnostic_threshold: The setting for **Diagnostic_Threshold** in 
+            :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
+        measurement_sensitivity: The setting for **Measurement_Sensitivity**
+            in :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
+        detection_threshold: The setting for **Detection_Threshold** in 
+            :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
         fmda_radius: Radius (in km) of focal response upon finding infection. 
-            Default is 0. Used with household only.
-        node_selection_type: Node selection type for broadcasting focal
-            response trigger. Available options are:
-            * DISTANCE_ONLY: It will send the event to nodes that are within a
-            given distance.
-            * MIGRATION_NODES_ONLY: It will only send the event to nodes that
-            the individual can migrate to.
-            * DISTANCE_AND_MIGRATION: It will only send the even to migratable
-            nodes that are within a given distance. Migrateable nodes are Local
-            and Regional.
-        trigger_coverage: Used with RCD (Reactive Case Detection). Fraction of
-            trigger events that will trigger an RCD. Coverage param sets the
-            fraction of individuals reached during RCD response.
-        snowballs: Number of snowball levels in reactive response.
-        treatment_delay: For MSAT and fMDA, the length of time between
-            administering diagnostic and giving drugs; for RCD, the length
-            of time between treating index case and triggering RCD response.
-        triggered_campaign_delay: When using trigger_condition_list, this
+            Used in simulations with many small nodes to simulate 
+            community health workers distributing drugs to surrounding houses.
+            Used when **campaign_type** is set to fMDA.
+        node_selection_type: The setting for **Node_Selection_Type** in
+          :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
+        trigger_coverage: The fraction of trigger events that will trigger reactive
+            case detection (RCD). Used when **campaign_type** is set to rfMSAT or rfMDA. 
+            To set the fraction of individuals reached during RCD response, use **coverage**.
+        snowballs: The number of times each triggered intervention will be distributed
+            to surrounding nodes. For example, one snowball gives drugs to nodes
+            neighboring the first node and two snowballs gives drugs to the nodes 
+            neighboring those nodes. Used when **campaign_type** is set to rfMSAT.
+        treatment_delay: For **campaign_type** set to MSAT or fMDA, the length of time 
+            between administering a diagnostic and giving drugs; for values of rfMSAT 
+            or rfMDA, the length of time between treating the index case and triggering 
+            an RCD response.
+        triggered_campaign_delay: When using **trigger_condition_list**, this
             indicates the delay period between receiving the trigger event
             and running the triggered campaign intervention.
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
+        node_ids: The setting for **Node_List** in :ref:`emod-malaria:campaign-nodeset-config`. 
         target_group: A dictionary of ``{'agemin': x, 'agemax': y}`` to
             target MDA, SMC, MSAT, fMDA to individuals between x and y years
             of age. Default is Everyone.
-        drug_ineligibility_duration: When set to > 0, use IndividualProperties
-            to prevent people from receiving drugs too frequently.
-            Demographics file will need to define the IP DrugStatus with
-            possible values None and RecentDrug. Individuals with status
-            RecentDrug will not receive drugs during drug campaigns, though
-            they are still eligible for receiving diagnostics (in MSAT, etc).
-            Individuals who receive drugs during campaigns will have their
-            DrugStatus changed to RecentDrug for drug_ineligibility_duration days.
-        node_property_restrictions: List of NodeProperty key:value pairs that nodes
-            must have to receive the diagnostic intervention. For example,
-            ``[{"NodeProperty1":"PropertyValue1"},
-            {"NodeProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        ind_property_restrictions: List of IndividualProperty key:value pairs that
-            individuals must have to receive the diagnostic intervention.
-            For example, ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        disqualifying_properties: List of IndividualProperty key:value pairs that
-            cause an intervention to be aborted. For example,
-            ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``.
-        trigger_condition_list: List of events that will begin a triggerable
-            drug campaign, such as MDA, MSAT, SMC, fMDA, and MTAT.
-        listening_duration: Duration to listen for the trigger. Default is -1,
-            which listens indefinitely.
+        drug_ineligibility_duration: The number of days to set the **DrugStatus** 
+            individual property to **RecentDrug**, after which the property value
+            is reverted. This property value prevents people from receiving drugs too
+            frequently, but they can still receive diagnostics during this period.
+            For more information, see :doc:`emod-malaria:model-targeted-interventions`.
+        node_property_restrictions: The setting for **Node_Property_Restrictions**
+            in :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`
+            that nodes must have to receive the diagnostic intervention.
+        ind_property_restrictions: The setting for **Property_Restrictions_Within_Node**
+            in :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`
+            that individuals must have to receive the diagnostic intervention.
+        disqualifying_properties: The setting for **Disqualifying_Properties**
+            in :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug` or
+            in :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
+        trigger_condition_list: The setting for **Start_Trigger_Condition_List** in
+            :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`.
+        listening_duration: The setting for **Duration** in
+            :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`.
         adherent_drug_configs: List of adherent drug configurations, which are
             dictionaries from configure_adherent_drug.
-        target_residents_only: When set to true (1), the intervention is only
-            distributed to individuals for whom the node is their home node.
-            They are not visitors from another node.
-        check_eligibility_at_trigger: If triggered event is delayed, you have an
-            option to check individual/node's eligibility at the initial trigger
-            or when the event is actually distributed after delay.
-        receiving_drugs_event_name: Event to send out when person received drugs.
-            Default: 'Received_Campaign_Drugs'
+        target_residents_only: The setting for **Target_Residents_Only** in
+            :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`.
+        check_eligibility_at_trigger: Set to True to check the individual or node's 
+            eligibility at the initial trigger; set to False to check eligibility
+            when the event is actually distributed after a delay.
+        receiving_drugs_event_name: The event to broadcast when a person receives drugs.
 
     Returns:
-        Dictionary with drug campaign parameters
+        A dictionary with drug campaign parameters.
     """
 
     if not drug_code and not adherent_drug_configs:
@@ -247,7 +264,7 @@ def add_drug_campaign(camp,
             raise ValueError('"treatment_delay" parameter is not used in MDA or SMC')
         add_MDA(camp, start_days=start_days, coverage=coverage, drug_configs=drug_configs,
                 receiving_drugs_event=receiving_drugs_event, repetitions=repetitions,
-                tsteps_btwn_repetitions=tsteps_btwn_repetitions, nodeIDs=nodeIDs,
+                tsteps_btwn_repetitions=tsteps_btwn_repetitions, node_ids=node_ids,
                 expire_recent_drugs=expire_recent_drugs, node_property_restrictions=node_property_restrictions,
                 ind_property_restrictions=ind_property_restrictions, disqualifying_properties=disqualifying_properties,
                 target_group=target_group, trigger_condition_list=trigger_condition_list,
@@ -259,9 +276,8 @@ def add_drug_campaign(camp,
                  receiving_drugs_event=receiving_drugs_event, repetitions=repetitions,
                  tsteps_btwn_repetitions=tsteps_btwn_repetitions, treatment_delay=treatment_delay,
                  diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                 diagnostic_specificity=diagnostic_specificity, diagnostic_sensitivity=diagnostic_sensitivity,
                  measurement_sensitivity=measurement_sensitivity,
-                 nodeIDs=nodeIDs,
+                 node_ids=node_ids,
                  expire_recent_drugs=expire_recent_drugs, node_property_restrictions=node_property_restrictions,
                  ind_property_restrictions=ind_property_restrictions, disqualifying_properties=disqualifying_properties,
                  target_group=target_group, trigger_condition_list=trigger_condition_list,
@@ -273,10 +289,9 @@ def add_drug_campaign(camp,
                  drug_configs=drug_configs, receiving_drugs_event=receiving_drugs_event, repetitions=repetitions,
                  tsteps_btwn_repetitions=tsteps_btwn_repetitions, treatment_delay=treatment_delay,
                  diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                 diagnostic_sensitivity=diagnostic_sensitivity, diagnostic_specificity=diagnostic_specificity,
                  measurement_sensitivity=measurement_sensitivity,
                  fmda_radius=fmda_radius,
-                 node_selection_type=node_selection_type, nodeIDs=nodeIDs, expire_recent_drugs=expire_recent_drugs,
+                 node_selection_type=node_selection_type, node_ids=node_ids, expire_recent_drugs=expire_recent_drugs,
                  node_property_restrictions=node_property_restrictions,
                  ind_property_restrictions=ind_property_restrictions,
                  disqualifying_properties=disqualifying_properties, target_group=target_group,
@@ -290,10 +305,9 @@ def add_drug_campaign(camp,
                    receiving_drugs_event=receiving_drugs_event, listening_duration=listening_duration,
                    treatment_delay=treatment_delay, trigger_coverage=trigger_coverage, diagnostic_type=diagnostic_type,
                    diagnostic_threshold=diagnostic_threshold,
-                   diagnostic_sensitivity=diagnostic_sensitivity, diagnostic_specificity=diagnostic_specificity,
                    measurement_sensitivity=measurement_sensitivity,
                    fmda_radius=fmda_radius,
-                   node_selection_type=node_selection_type, snowballs=snowballs, nodeIDs=nodeIDs,
+                   node_selection_type=node_selection_type, snowballs=snowballs, node_ids=node_ids,
                    expire_recent_drugs=expire_recent_drugs, node_property_restrictions=node_property_restrictions,
                    ind_property_restrictions=ind_property_restrictions,
                    disqualifying_properties=disqualifying_properties)
@@ -303,7 +317,7 @@ def add_drug_campaign(camp,
         add_rfMDA(camp, start_day=start_days[0], coverage=coverage, drug_configs=drug_configs,
                   receiving_drugs_event=receiving_drugs_event, listening_duration=listening_duration,
                   treatment_delay=treatment_delay, trigger_coverage=trigger_coverage, fmda_radius=fmda_radius,
-                  node_selection_type=node_selection_type, nodeIDs=nodeIDs, expire_recent_drugs=expire_recent_drugs,
+                  node_selection_type=node_selection_type, node_ids=node_ids, expire_recent_drugs=expire_recent_drugs,
                   node_property_restrictions=node_property_restrictions,
                   ind_property_restrictions=ind_property_restrictions,
                   disqualifying_properties=disqualifying_properties)
@@ -321,63 +335,16 @@ def add_drug_campaign(camp,
 
 def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: list = None,
             receiving_drugs_event: BroadcastEvent = None, repetitions: int = 1, tsteps_btwn_repetitions: int = 60,
-            nodeIDs: list = None, expire_recent_drugs: PropertyValueChanger = None,
+            node_ids: list = None, expire_recent_drugs: PropertyValueChanger = None,
             node_property_restrictions: list = None,
             ind_property_restrictions: list = None, disqualifying_properties: list = None,
             target_group: any = 'Everyone',
             trigger_condition_list: list = None, listening_duration: int = -1, triggered_campaign_delay: int = 0,
             target_residents_only: int = 1, check_eligibility_at_trigger: bool = False):
     """
-        Add MDA (mass drug administration) drug intervention to campaign. If
-        there are multiple start days in a list and trigger_condition_list
-        is empty, then mda's are created to run on the days in the start_days
-        list. If the triggerer_condition_list is present, then a triggered
-        mda is created and uses the first day of the start_days. If there are
-        repetitions or a triggered_campaign_delay then separate
-        nodeleveltriggered interventions are created with a delay that sends
-        out an event that triggers the mda. Multiple start days are only
-        valid for non-triggered mdas.
-
-    Args:
-        camp: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-        object for building, modifying, and writing campaign configuration files.
-        start_days: List of integers.
-        coverage: Demographic coverage of mda's.
-        drug_configs: List of dictionaries of drug configurations to be
-            given out, created in add_drug_campaign.
-        receiving_drugs_event: (Optional) Broadcast event container with event
-            to be broadcast when drugs received.
-        repetitions: Number of repetitions for mda. For triggered mda, this is
-            for a repeated mda after a trigger.
-        tsteps_btwn_repetitions: Timesteps between repeated scheduled mdas or
-            between once-triggered repeated mdas.
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
-        expire_recent_drugs: PropertyValueChanger intervention that updates
-            DrugStatus:Recent drug to individual properties.
-        node_property_restrictions: List of NodeProperty key:value pairs that nodes
-            must have to receive the diagnostic intervention. For example,
-            ``[{"NodeProperty1":"PropertyValue1"},
-            {"NodeProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        disqualifying_properties: List of IndividualProperty key:value pairs that
-            cause an intervention to be aborted. For example,
-            ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``.
-        target_group: A dictionary targeting an age range and gender of
-            individuals for treatment. In the format
-            ``{"agemin": x, "agemax": y, "gender": z}``. Default is Everyone.
-        trigger_condition_list: List of event triggers upon which mda(s) are
-            distributed.
-        listening_duration: Duration to listen for the trigger. Default is -1,
-            which listens indefinitely.
-        triggered_campaign_delay: Delay period between the trigger and the mda.
-            Default is 0.
-        target_residents_only: When set to true (1), the intervention is only
-            distributed to individuals for whom the node is their home node.
-            They are not visitors from another node.
-        check_eligibility_at_trigger: If triggered event is delayed, you have an
-            option to check individual/node's eligibility at the initial trigger
-            or when the event is actually distributed after delay.
+    Add an MDA (mass drug administration) drug intervention to your campaign. 
+    See :py:func:`add_drug_campaign` for more information about each
+    argument.
 
     Returns:
         None
@@ -391,7 +358,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
     if disqualifying_properties is None:
         disqualifying_properties = []
 
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=nodeIDs )
+    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
     interventions = drug_configs
     if receiving_drugs_event:
@@ -435,7 +402,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
                         camp,
                         Start_Day=start_days[0],
                         Event_Name="MDA_Delayed",
-                        Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=nodeIDs ),
+                        Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=node_ids ),
                         Triggers=trigger_condition_list,
                         Duration=listening_duration,
                         Intervention_List=[BroadcastEvent( camp, broadcast_event )],
@@ -486,73 +453,16 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
 def add_MSAT(camp, start_days: list = None, coverage: float = 1.0, drug_configs: list = None,
              receiving_drugs_event: BroadcastEvent = None, repetitions: int = 1, tsteps_btwn_repetitions: int = 60,
              treatment_delay: int = 0, diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
-             diagnostic_threshold: float = 40, diagnostic_sensitivity: float = 1,
-             diagnostic_specificity: float = 1, measurement_sensitivity: float = 0.1, nodeIDs: list = None,
+             diagnostic_threshold: float = 40, measurement_sensitivity: float = 0.1, node_ids: list = None,
              expire_recent_drugs: PropertyValueChanger = None,
              node_property_restrictions: list = None, ind_property_restrictions: list = None,
              disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
              triggered_campaign_delay: int = 0, listening_duration: int = -1,
              check_eligibility_at_trigger: bool = False):
     """
-    Add a MSAT (mass screening and treatment) drug intervention to
-    campaign. This is either scheduled (on days from start_days) or
-    triggered (when trigger_condition_list is present).
-
-    Args:
-        camp: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-            object for building, modifying, and writing campaign configuration files.
-        start_days: List of days on which to start the intervention.
-        coverage: Demographic coverage of the intervention.
-        drug_configs: List of dictionaries of drug configurations to be
-            distributed, created in add_drug_campaign.
-        receiving_drugs_event: (Optional) Broadcast event container with event
-            to be broadcast when drugs received.
-        repetitions: How many times the intervention will be repeated.
-        tsteps_btwn_repetitions: Time steps between repetitions.
-        treatment_delay: Delay before the triggered drug distribution is done.
-        diagnostic_type: Diagnostic type. Available options are:
-            * TRUE_INFECTION_STATUS
-            * BLOOD_SMEAR
-            * PCR
-            * PF_HRP2
-            * TRUE_PARASITE_DENSITY
-            * HAS_FEVER
-        diagnostic_threshold: Diagnostic threshold values, which are based
-            on the selected diagnostic type.
-        diagnostic_sensitivity: Setting for **Base_Sensitivity** in the MalariaDiagnostic
-        diagnostic_specificity: Setting for **Base_Specificity** in the MalariaDiagnostic
-        measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
-        expire_recent_drugs:  PropertyValueChanger intervention that updates
-            DrugStatus to Recent drug in IndividualProperties.
-        node_property_restrictions: List of NodeProperty key:value pairs that nodes
-            must have to receive the diagnostic intervention. For example,
-            ``[{"NodeProperty1":"PropertyValue1"},
-            {"NodeProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        ind_property_restrictions: List of IndividualProperty key:value pairs that
-            individuals must have to receive the diagnostic intervention.
-            For example, ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        disqualifying_properties: List of IndividualProperty key:value pairs that
-            cause an intervention to be aborted. For example,
-            ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``.
-        target_group: A dictionary of ``{'agemin': x, 'agemax': y}`` to
-            target MDA, SMC, MSAT, fMDA to individuals between x and y years
-            of age. Default is Everyone.
-        trigger_condition_list: List of events to trigger MSAT. When trigger_string
-            is set, the first entry of start_days is the day that is used to start
-            listening for the trigger(s), the campaign happens when the trigger(s)
-            is received.
-        triggered_campaign_delay: How long to delay the actual intervention
-            (drug giving) for after the trigger is received.
-        listening_duration: Duration to listen for the trigger. Default is -1,
-            which listens indefinitely.
-        check_eligibility_at_trigger: If triggered event is delayed, you have an
-            option to check individual/node's eligibility at the initial trigger
-            or when the event is actually distributed after delay. Default is
-            false, checks at distribution.
+    Add an MSAT (mass screening and treatment) drug intervention to your
+    campaign. See :py:func:`add_drug_campaign` for more information about each
+    argument. 
 
     Returns:
         None
@@ -586,10 +496,8 @@ def add_MSAT(camp, start_days: list = None, coverage: float = 1.0, drug_configs:
                               tsteps_btwn_repetitions=tsteps_btwn_repetitions,
                               target=target_group, start_day=start_days[0],
                               diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                              sensitivity=diagnostic_sensitivity,
-                              specificity=diagnostic_specificity,
                               measurement_sensitivity=measurement_sensitivity,
-                              nodeIDs=nodeIDs, positive_diagnosis_configs=msat_cfg,
+                              node_ids=node_ids, positive_diagnosis_configs=msat_cfg,
                               IP_restrictions=ind_property_restrictions, NP_restrictions=node_property_restrictions,
                               disqualifying_properties=disqualifying_properties,
                               trigger_condition_list=trigger_condition_list,
@@ -602,10 +510,8 @@ def add_MSAT(camp, start_days: list = None, coverage: float = 1.0, drug_configs:
                                   tsteps_btwn_repetitions=tsteps_btwn_repetitions,
                                   target=target_group, start_day=start_day,
                                   diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                                  sensitivity=diagnostic_sensitivity,
-                                  specificity=diagnostic_specificity,
                                   measurement_sensitivity=measurement_sensitivity,
-                                  nodeIDs=nodeIDs, positive_diagnosis_configs=msat_cfg,
+                                  node_ids=node_ids, positive_diagnosis_configs=msat_cfg,
                                   listening_duration=listening_duration,
                                   IP_restrictions=ind_property_restrictions, NP_restrictions=node_property_restrictions,
                                   disqualifying_properties=disqualifying_properties,
@@ -623,86 +529,18 @@ def add_fMDA(
     tsteps_btwn_repetitions: int = 365,
     treatment_delay: int = 0,
     diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
-    diagnostic_threshold: float = 40,
-    diagnostic_sensitivity: float = 1,
-    diagnostic_specificity: float = 1, measurement_sensitivity: float = 0.1,
-             fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', nodeIDs: list = None,
-             expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
-             ind_property_restrictions: list = None,
-             disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
-             listening_duration: int = -1, triggered_campaign_delay: int = 0,
-             check_eligibility_at_trigger: bool = False):
+    diagnostic_threshold: float = 40, 
+    measurement_sensitivity: float = 0.1,
+    fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', node_ids: list = None,
+    expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
+    ind_property_restrictions: list = None,
+    disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
+    listening_duration: int = -1, triggered_campaign_delay: int = 0,
+    check_eligibility_at_trigger: bool = False):
     """
-    Add a fMDA (focal mass drug administration) drug intervention to
-    campaign. The fMDA is based on results from diagnostic survey,
-    which is either scheduled (on days from start_days) or
-    triggered (when trigger_condition_list is present).
-
-    Args:
-        camp: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-            object for building, modifying, and writing campaign configuration files.
-        start_days: List of days on which to start the intervention.
-        trigger_coverage: Demographic coverage of the triggered intervention.
-        coverage: Demographic coverage of the intervention.
-        drug_configs: List of dictionaries of drug configurations to be
-            distributed, created in add_drug_campaign.
-        receiving_drugs_event: (Optional) Broadcast event container with event
-            to be broadcast when drugs received.
-        repetitions: How many times the intervention will be repeated.
-        tsteps_btwn_repetitions: Time steps between repetitions.
-        treatment_delay: Delay before the triggered drug distribution is done.
-        diagnostic_type: Diagnostic type. Available options are:
-            * TRUE_INFECTION_STATUS
-            * BLOOD_SMEAR
-            * PCR
-            * PF_HRP2
-            * TRUE_PARASITE_DENSITY
-            * HAS_FEVER
-        diagnostic_threshold: Diagnostic threshold values, which are based
-            on the selected diagnostic type.
-        diagnostic_sensitivity: Setting for **Base_Sensitivity** in the MalariaDiagnostic
-        diagnostic_specificity: Setting for **Base_Specificity** in the MalariaDiagnostic
-        measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
-        fmda_radius: Radius of the follow up BroadcastToOtherNodes interventions,
-            uses node_selection_type.
-        node_selection_type: Node selection type for broadcasting fMDA trigger.
-            Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and
-            MIGRATION_NODES_ONLY criteria.
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
-        expire_recent_drugs: PropertyValueChanger intervention that updates DrugStatus
-            to Recent drug in IndividualProperties.
-        node_property_restrictions: List of NodeProperty key:value pairs that nodes
-            must have to receive the diagnostic intervention. For example,
-            ``[{"NodeProperty1":"PropertyValue1"},
-            {"NodeProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        ind_property_restrictions: List of IndividualProperty key:value pairs that
-            individuals must have to receive the diagnostic intervention.
-            For example, ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        disqualifying_properties: List of IndividualProperty key:value pairs that
-            cause an intervention to be aborted. For example,
-            ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``.
-        target_group: A dictionary of ``{'agemin': x, 'agemax': y}`` to
-            target MDA, SMC, MSAT, fMDA to individuals between x and y years
-            of age. Default is Everyone.
-        trigger_condition_list: List of events to trigger fMDA. When trigger_string
-            is set, the first entry of start_days is the day that is used to start
-            listening for the trigger(s), the campaign happens when the trigger(s)
-            is received.
-        listening_duration: Duration to listen for the trigger. Default is -1,
-            which listens indefinitely.
-        triggered_campaign_delay: How long to delay the actual intervention
-            (drug giving) after the trigger is received.
-        check_eligibility_at_trigger: If triggered event is delayed, you have an
-            option to check individual/node's eligibility at the initial trigger
-            or when the event is actually distributed after delay. Default is
-            false, checks at distribution.
+    Add an fMDA (focal mass drug administration) drug intervention to your
+    campaign. See :py:func:`add_drug_campaign` for more information about each
+    argument.
 
     Returns:
         None
@@ -715,7 +553,7 @@ def add_fMDA(
                         "malaria.interventions.malaria_drugs import drug_configs_from_code.\n")
     if node_property_restrictions is None:
         node_property_restrictions = []
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=nodeIDs )
+    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
     # rewritten to give out a unique trigger for the fmda
     fmda_trigger_tether = "Give_Drugs_fMDA_{}".format(random.randint(1, 10000))
@@ -739,10 +577,8 @@ def add_fMDA(
                               tsteps_btwn_repetitions=tsteps_btwn_repetitions,
                               target=target_group, start_day=start_days[0],
                               diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                              sensitivity=diagnostic_sensitivity,
-                              specificity=diagnostic_specificity,
                               measurement_sensitivity=measurement_sensitivity,
-                              nodeIDs=nodeIDs, positive_diagnosis_configs=fmda_setup,
+                              node_ids=node_ids, positive_diagnosis_configs=fmda_setup,
                               IP_restrictions=ind_property_restrictions, NP_restrictions=node_property_restrictions,
                               trigger_condition_list=trigger_condition_list,
                               listening_duration=listening_duration, triggered_campaign_delay=triggered_campaign_delay,
@@ -776,10 +612,8 @@ def add_fMDA(
                                       tsteps_btwn_repetitions=tsteps_btwn_repetitions,
                                       target=target_group, start_day=start_day + tsteps_btwn_repetitions * rep,
                                       diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                                      sensitivity=diagnostic_sensitivity,
-                                      specificity=diagnostic_specificity,
                                       measurement_sensitivity=measurement_sensitivity,
-                                      nodeIDs=nodeIDs, positive_diagnosis_configs=fmda_setup,
+                                      node_ids=node_ids, positive_diagnosis_configs=fmda_setup,
                                       IP_restrictions=ind_property_restrictions,
                                       NP_restrictions=node_property_restrictions,
                                       disqualifying_properties=disqualifying_properties,
@@ -807,68 +641,16 @@ def add_fMDA(
 def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list = None,
                receiving_drugs_event: BroadcastEvent = None, listening_duration: int = -1, treatment_delay: int = 0,
                trigger_coverage: float = 1, diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
-               diagnostic_threshold: float = 40, diagnostic_sensitivity: float = 1,
-               diagnostic_specificity: float = 1, measurement_sensitivity: float = 0.1,
+               diagnostic_threshold: float = 40, 
+               measurement_sensitivity: float = 0.1,
                fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', snowballs: int = 0,
-               nodeIDs: list = None,
+               node_ids: list = None,
                expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
                ind_property_restrictions: list = None, disqualifying_properties: list = None):
     """
-    Add a rfMDA (reactive focal mass drug administration) drug intervention to
-    campaign. Detecting malaria triggers diagnostic surveys to run on
-    neighboring nodes and so on, up to the number of trigggered interventions
-    defined in **snowballs** parameter.
-
-    Args:
-        camp: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-            object for building, modifying, and writing campaign configuration files.
-        start_day: List of days on which to start the intervention.
-        coverage: Demographic coverage of the intervention.
-        drug_configs: List of dictionaries of drug configurations to be
-            distributed, created in add_drug_campaign.
-        receiving_drugs_event: (Optional) Broadcast event container with event
-            to be broadcast when drugs received.
-        listening_duration: Duration of the existence of the intervention.
-        treatment_delay: delay before the triggered drug distribution is done
-        trigger_coverage: Demographic coverage for the triggered intervention
-        diagnostic_type: Diagnostic type. Available options are:
-            * TRUE_INFECTION_STATUS
-            * BLOOD_SMEAR
-            * PCR
-            * PF_HRP2
-            * TRUE_PARASITE_DENSITY
-            * HAS_FEVER
-        diagnostic_threshold: Diagnostic threshold values, which are based
-            on the selected diagnostic type.
-        diagnostic_sensitivity: Setting for **Base_Sensitivity** in the MalariaDiagnostic
-        diagnostic_specificity: Setting for **Base_Specificity** in the MalariaDiagnostic
-        measurement_sensitivity: setting for **Measurement_Sensitivity** in MalariaDiagnostic
-        fmda_radius: Radius of the follow up BroadcastToOtherNodes interventions,
-            uses node_selection_type.
-        node_selection_type: Node selection type for broadcasting fMDA trigger.
-            Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and
-            MIGRATION_NODES_ONLY criteria.
-        snowballs: Number of triggered interventions after the first.
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
-        expire_recent_drugs: PropertyValueChanger intervention that updates DrugStatus
-            to Recent drug in IndividualProperties.
-        node_property_restrictions: List of NodeProperty key:value pairs that nodes
-            must have to receive the diagnostic intervention. For example,
-            ``[{"NodeProperty1":"PropertyValue1"},
-            {"NodeProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        ind_property_restrictions: List of IndividualProperty key:value pairs that
-            individuals must have to receive the diagnostic intervention.
-            For example, ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        disqualifying_properties: List of IndividualProperty key:value pairs that
-            cause an intervention to be aborted. For example,
-            ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``.
+    Add a rfMSAT (reactive focal mass screening and treatment) drug intervention to your
+    campaign. See :py:func:`add_drug_campaign` for more information about each
+    argument. 
 
     Returns:
         None
@@ -880,7 +662,7 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
 
     if disqualifying_properties is None:
         disqualifying_properties = []
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=nodeIDs )
+    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
     fmda_setup = fmda_cfg(camp, fmda_radius, node_selection_type, event_trigger='')  # no trigger used
     snowball_setup = [deepcopy(fmda_setup) for x in range(snowballs + 1)]
@@ -912,9 +694,8 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
 
     add_diagnostic_survey(camp, coverage=coverage, start_day=start_day,
                           diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                          sensitivity=diagnostic_sensitivity, specificity=diagnostic_specificity,
                           measurement_sensitivity=measurement_sensitivity,
-                          nodeIDs=nodeIDs,
+                          node_ids=node_ids,
                           trigger_condition_list=[snowball_setup[0].Event_Trigger],
                           event_name='Reactive MSAT level 0',
                           positive_diagnosis_configs=event_config,
@@ -927,10 +708,8 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
         curr_trigger = snowball_trigger + str(snowball)
         add_diagnostic_survey(camp, coverage=coverage, start_day=start_day,
                               diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
-                              sensitivity=diagnostic_sensitivity,
-                              specificity=diagnostic_specificity,
                               measurement_sensitivity=measurement_sensitivity,
-                              nodeIDs=nodeIDs,
+                              node_ids=node_ids,
                               trigger_condition_list=[curr_trigger],
                               event_name='Snowball level ' + str(snowball),
                               positive_diagnosis_configs=event_config,
@@ -942,63 +721,13 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
 def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list = None,
               receiving_drugs_event: BroadcastEvent = None, listening_duration: int = -1, treatment_delay: int = 0,
               trigger_coverage: float = 1, fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY',
-              nodeIDs: list = None, expire_recent_drugs: PropertyValueChanger = None,
+              node_ids: list = None, expire_recent_drugs: PropertyValueChanger = None,
               node_property_restrictions: list = None,
               ind_property_restrictions: list = None, disqualifying_properties: list = None):
     """
-    This function adds two interventions to your campaign file:
-    1) "Received_Treatment"- triggered BroadcastEventToOtherNodes of
-    "Give_Drugs_rfMDA" event to fmda_radius, with a "treatment_delay"
-    option, and "coverage" coverage.
-    2) "Give_Drugs_rfMDA" event-triggered MultiIntervention event
-    distributing "drug_configs" drugs, with "trigger_coverage"
-    demographic coverage, with an option to restrict to
-    {"DrugStatus": "None"} IndividualProperty and optional
-    receiving_drugs_event.
-
-    Upon "Received_Treatment" event a delayed "Give_Drugs_rfMDA" is
-    sent out to (optionally) neighboring nodes, which triggers giving
-    of drugs, and (optionally) an individualproperty change and
-    another event being sent.
-
-    Args:
-        camp: The :py:class:`DTKConfigBuilder <dtk.utils.core.DTKConfigBuilder>`
-            object for building, modifying, and writing campaign configuration
-            files.
-        start_day: The day the intervention is distributed. Default is 0.
-        coverage: Demographic coverage of the intervention.
-        drug_configs: List of dictionaries of drug configurations to be
-            distributed, created in add_drug_campaign.
-        receiving_drugs_event: Event to be sent out upon receiving drugs.
-            Default is 1, everyone.
-        listening_duration: Duration of the existence of the intervention.
-            Default is ongoing.
-        treatment_delay: Delay of treatment (in days) after intervention is triggered.
-        trigger_coverage: Demographic coverage for intervention triggered by
-            successful treatment.
-        fmda_radius: Radius (km) of sending event to other nodes.
-        node_selection_type: Node selection type. Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and
-            MIGRATION_NODES_ONLY criteria.
-        nodeIDs: The list of nodes to apply this intervention to (**Node_List**
-            parameter). If not provided, set value of NodeSetAll.
-        expire_recent_drugs: PropertyValueChanger intervention that updates DrugStatus
-            to Recent drug in IndividualProperties.
-        node_property_restrictions: List of NodeProperty key:value pairs that nodes
-            must have to receive the diagnostic intervention. For example,
-            ``[{"NodeProperty1":"PropertyValue1"},
-            {"NodeProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        ind_property_restrictions: List of IndividualProperty key:value pairs that
-            individuals must have to receive the diagnostic intervention.
-            For example, ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``. Default is no restrictions.
-        disqualifying_properties: ist of IndividualProperty key:value pairs that
-            cause an intervention to be aborted. For example,
-            ``[{"IndividualProperty1":"PropertyValue1"},
-            {"IndividualProperty2":"PropertyValue2"}]``.
+    Add an rfMDA (reactive focal mass drug administration) drug intervention
+    to your campaign. See :py:func:`add_drug_campaign` for more information
+    about each argument.
 
     Returns:
         None
@@ -1010,7 +739,7 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
     interventions = drug_configs
     if receiving_drugs_event:
         interventions.append(receiving_drugs_event)
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=nodeIDs )
+    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
     if disqualifying_properties is None:
         disqualifying_properties = []
@@ -1061,22 +790,19 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
 
 def fmda_cfg(camp, fmda_type: any = 0, node_selection_type: str = 'DISTANCE_ONLY', event_trigger: str = 'Give_Drugs'):
     """
-    By Default, this is within the node-only (Distance_Only with distance=0).
+    Create an fMDA (focal mass drug administration) configuration.
 
     Args:
-        fmda_type: Radius in km of the follow up BroadcastToOtherNodes interventions, 
-            uses node_selection_type.
-        node_selection_type: Node selection type for broadcasting to other nodes. 
-            Available options are:
-            * DISTANCE_ONLY: Nodes located within the distance specified by fmda_type 
-            are selected.
-            * MIGRATION_NODES_ONLY: Nodes that are local or regional are selected.
-            * DISTANCE_AND_MIGRATION: Nodes are selected using DISTANCE_ONLY and 
-            MIGRATION_NODES_ONLY criteria.
-        event_trigger: String that triggers the broadcast.
+        fmda_type: The setting for **Max_Distance_To_Other_Nodes_Km** in
+          :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
+        node_selection_type: The setting for **Node_Selection_Type** in
+          :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
+        event_trigger: The setting for **Event_Trigger** in
+          :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`.
 
     Returns:
-        Configured BroadcastEventToOtherNodes
+        Configured :doc:`emod-malaria:parameter-campaign-individual-broadcasteventtoothernodes`
+        intervention.
     """
     if isinstance(fmda_type, str):
         fmda_type = 0

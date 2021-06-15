@@ -17,7 +17,7 @@ def SugarTrap(
         node_ids=None
     ): 
     """
-    SugarTrap intervention wrapper.  
+        Create anew SugarTrap scheduled campaign event.  
     """
     schema_path = camp.schema_path
     # First, get the objects
@@ -51,14 +51,9 @@ def SugarTrap(
     return event
 
 def new_intervention_as_file( camp, start_day, filename=None ):
-    campaign = {}
-    campaign["Events"] = []
-    campaign["Events"].append( SugarTrap( camp, start_day ) )
-
+    camp.add( SugarTrap( camp, start_day ), first=True ) 
     if filename is None:
         filename = "SugarTrap.json"
-    with open( filename, "w" ) as camp_file:
-        json.dump( campaign, camp_file, sort_keys=True, indent=4 )
-
+    camp.save( filename )
     return filename
 

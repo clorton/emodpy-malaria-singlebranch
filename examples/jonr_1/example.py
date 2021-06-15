@@ -58,7 +58,6 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config.parameters.Simulation_Type = "MALARIA_SIM"
 
     import emodpy_malaria.config as conf
     config = conf.set_team_defaults( config, manifest )
@@ -94,7 +93,7 @@ def build_camp():
     camp.schema_path = manifest.schema_file
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( irs.IRSHousingModification( camp, start_day=100, coverage=0.5, killing_eff=0.5, blocking_eff=0.5 ) )
+    camp.add( irs.IRSHousingModification( camp, start_day=100, coverage=0.5, killing_eff=0.5, repelling_eff=0.5 ) )
     camp.add( drug.AntiMalarialDrug( camp, start_day=300, coverage=0.5 ) )
     """
     add_IRS(cb, start=start,
@@ -124,8 +123,8 @@ def build_demog():
     import emodpy_malaria.demographics.MalariaDemographics as Demographics
     import emod_api.migration.Migration as Migration
 
-    demog = Demographics.from_synth_pop( tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria" )
-    mig = Migration.from_synth_pop( pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", migration_type=Migration.Migration.REGIONAL ) 
+    demog = Demographics.from_params( tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria" )
+    mig = Migration.from_params( pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", migration_type=Migration.Migration.REGIONAL ) 
 
     return demog, mig
 
@@ -145,8 +144,9 @@ def add_reports( task, manifest ):
         params.Reporting_Interval = 365
         params.Max_Number_Reports = 1
         params.Age_Bins = [2, 10, 125]
-        params.Parasitemia_Bins = [0, 50, 200, 500, 2000000]
-        # 'class', 'Duration_Days', 'Event_Trigger_List', 'Individual_Property_Filter', 'Infectiousness_Bins', 'Nodeset_Config', 'Pretty_Format'
+        params.Parasitemia_Bins = [0, 50, 200, 500, 2000000] 
+        params.Event_Trigger_List.append("NewInfectionEvent")
+
         return params
 
     reporter.config( msr_config_builder, manifest )
@@ -160,6 +160,7 @@ def add_reports( task, manifest ):
         params.Duration_Days = (years-report_start)*365
         params.Start_Day = (report_start)*365
         params.Report_Description = "Jon's Transmission Report"
+        params.Event_Trigger_List.append("NewInfectionEvent")
         # 'class', '', 'Event_Trigger_List', 'Nodeset_Config', 'Pretty_Format'
 
         return params
@@ -183,7 +184,9 @@ def general_sim( erad_path, ep4_scripts ):
     """
     print_params()
 
-    platform = Platform("Calculon") 
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
     #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 

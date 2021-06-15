@@ -1,0 +1,106 @@
+import os
+import pathlib
+dirs = os.listdir()
+input_files = list()
+for dir in dirs:
+    if os.path.isdir( dir ) and str( dir ).startswith( "." ) == False:
+        input_files.append( str( pathlib.PurePath( dir, "COMPS_ID" ) ) )
+print( input_files )
+
+rule run:
+    input: input_files
+    output:
+    shell: ""
+rule start_here:
+    input: 
+    output: "start_here/COMPS_ID"
+    run:
+        shell("pushd start_here && ./example.py") 
+rule filtered_report:
+    input: 
+    output: "filtered_report/COMPS_ID"
+    run:
+        shell("pushd filtered_report && ./example.py")
+rule burnin_create:
+    input: 
+    output: "burnin_create/experiment.id"
+    run:
+        shell("pushd burnin_create && ./example.py")
+rule burnin_use:
+    input: 
+    output: "burnin_use/COMPS_ID"
+    run:
+        shell("pushd burnin_use && ./example.py")
+rule drug_campaign:
+    input: 
+    output: "drug_campaign/COMPS_ID"
+    run:
+        shell("pushd drug_campaign && ./example.py")
+rule ivermectin:
+    input: 
+    output: "ivermectin/experiment.id"
+    run:
+        shell("pushd ivermectin && ./example.py")
+rule jonr_1:
+    input: 
+    output: "jonr_1/COMPS_ID"
+    run:
+        shell("pushd jonr_1 && ./example.py")
+rule kill_only_males_camp_sweep:
+    input: 
+    output: "kill_only_males_camp_sweep/COMPS_ID"
+    run:
+        shell("pushd kill_only_males_camp_sweep && ./example.py")
+rule male_vector_fertility_test:
+    input: 
+    output: "male_vector_fertility_test/COMPS_ID"
+    run:
+        shell("pushd male_vector_fertility_test && ./example.py")
+rule outdoor_rest_kill_male_mosquitoes:
+    input: 
+    output: "outdoor_rest_kill_male_mosquitoes/COMPS_ID"
+    run:
+        shell("pushd outdoor_rest_kill_male_mosquitoes && ./example.py")
+rule simple_sim_template_emodpy:
+    input: 
+    output: "simple-sim-template-emodpy/COMPS_ID"
+    run:
+        shell("pushd simple-sim-template-emodpy && ./example.py")
+rule spatial:
+    input: 
+    output: "spatial/COMPS_ID"
+    run:
+        shell("pushd spatial && ./example.py")
+rule campaign_sweep:
+    input: 
+    output: "campaign_sweep/COMPS_ID"
+    run:
+        shell("pushd campaign_sweep && ./example.py")
+rule demog_sweep:
+    input: 
+    output: "demog_sweep/COMPS_ID"
+    run:
+        shell("pushd demog_sweep && ./example.py")
+rule input_eir:
+    input: 
+    output: "inputEIR/experiment.id"
+    run:
+        shell("pushd inputEIR && ./example.py")
+rule vector_basic:
+    input: 
+    output: "vector_basic/experiment.id"
+    run:
+        shell("pushd vector_basic && ./example.py")
+rule vgir:
+    input: 
+    output: "vector_genetics_insecticide_resistance/COMPS_ID"
+    run:
+        shell("pushd vector_genetics_insecticide_resistance && ./example.py")
+
+
+rule clean:
+    input: 
+    output: 
+    run:
+        shell("rm */COMPS_ID" )
+        shell("rm */experiment.id" )

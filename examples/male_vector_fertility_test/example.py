@@ -60,7 +60,6 @@ def update_killing_config_effectiveness(simulation, value):
 # endregion
 
 def set_malaria_config(config):
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     config.parameters.Infectious_Period_Constant = 0
     config.parameters.Enable_Demographics_Birth = 1
     config.parameters.Enable_Demographics_Reporting = 0
@@ -70,7 +69,6 @@ def set_malaria_config(config):
     config.parameters.Run_Number = 99
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1
-    config.parameters.Enable_Natural_Mortality = 1
 
     return config
 
@@ -117,7 +115,6 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     config = conf.set_team_defaults(config, manifest)
     conf.set_species(config, ["gambiae"])
     config = set_malaria_config(config)
@@ -176,7 +173,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    demog = Demographics.from_template_node( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
     return demog
 
 
@@ -191,7 +188,9 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("Calculon") 
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")

@@ -58,3 +58,23 @@ class MalariaTransmissionReport(BuiltInReporter):
         report_params.pop( "Sim_Types" )  #  maybe that should be in finalize
         self.parameters.update( dict( report_params ) )
 
+@dataclass
+class FilteredMalariaReport(BuiltInReporter):
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportMalariaFiltered"
+        report_params = s2c.get_class_with_defaults( "ReportMalariaFiltered", manifest.schema_file ) 
+        report_params = config_builder( report_params )
+        report_params.finalize()
+        report_params.pop( "Sim_Types" )  #  maybe that should be in finalize
+        self.parameters.update( dict( report_params ) )
+
+
+@dataclass
+class ReportEventCounter(BuiltInReporter):
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportEventCounter"
+        report_params = s2c.get_class_with_defaults( "ReportEventCounter", manifest.schema_file )
+        report_params = config_builder( report_params )
+        report_params.finalize()
+        report_params.pop( "Sim_Types" )
+        self.parameters.update( dict( report_params ) )

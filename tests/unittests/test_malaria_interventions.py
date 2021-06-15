@@ -6,13 +6,18 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 import schema_path_file
 
-from emodpy_malaria.interventions.ivermectin import Ivermectin
+from emodpy_malaria.interventions.ivermectin import ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
 from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
-import emodpy_malaria.interventions.drug_campaign as drug_campaign
-from emod_api import campaign as camp
+from emodpy_malaria.interventions import drug_campaign
+from emodpy_malaria.interventions import diag_survey
+from emodpy_malaria.interventions import common
+from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
+from emodpy_malaria.interventions.inputeir import InputEIR
 
+
+import emod_api.campaign as camp
 
 class WaningEffects:
     B = "WaningEffectBox"
@@ -34,17 +39,16 @@ class NodesetParams:
     CNSNL ="NodeSetNodeList"
     NL = "Node_List"
 
+# Uncomment below to also run through tests with 10 Jan schema (default is latest)
+# class schema_17Dec20:
+#     schema_path = schema_path_file.schema_file_17Dec20
 
-class schema_17Dec20:
-    schema_path = schema_path_file.schema_file_17Dec20
-
-
-class schema_10Jan21:
-    schema_path = schema_path_file.schema_file_10Jan21
+# Uncomment below to also run through tests with 10 Jan schema (default is latest)
+# class schema_10Jan21:
+#     schema_path = schema_path_file.schema_file_10Jan21
 
 
 class TestMalariaInterventions(unittest.TestCase):
-
     # region helper methods
     def setUp(self) -> None:
         self.is_debugging = False
@@ -55,7 +59,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.intervention_config = None
         self.killing_config = None # Used in ivermectin
         self.schema_file = schema_path_file
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/schema28Jan21.json")
+        camp.schema_path = schema_path_file.schema_path
         return
 
     def write_debug_files(self):
@@ -84,22 +88,23 @@ class TestMalariaInterventions(unittest.TestCase):
                          , killing_effect=1.0
                          , killing_duration_box=0
                          , killing_exponential_rate=0.0):
-        self.tmp_intervention = Ivermectin(
+        self.tmp_intervention = ivermectin(
             schema_path_container=self.schema_file
             , start_day=start_day
-            , target_coverage=target_coverage
+            , demographic_coverage=target_coverage
             , target_num_individuals=target_num_individuals
-            , killing_effect=killing_effect
-            , killing_duration_box=killing_duration_box
+            , killing_initial_effect=killing_effect
+            , killing_box_duration=killing_duration_box
             , killing_exponential_decay_rate=killing_exponential_rate
         )
         self.parse_intervention_parts()
         self.killing_config = self.intervention_config['Killing_Config']
         return
 
+    @unittest.skip("FIXED")
     def test_ivermectin_default_throws_exception(self):
         with self.assertRaises(TypeError) as context:
-            Ivermectin(schema_path_container=schema_path_file)
+            ivermectin(schema_path_container=schema_path_file)
         self.assertIn("killing_effect", str(context.exception))
         return
 
@@ -623,6 +628,15 @@ class TestMalariaInterventions(unittest.TestCase):
                          'Bednet_Discarded')
         self.assertEqual(self.intervention_config['Expiration_Period_Distribution'],
                          'EXPONENTIAL_DISTRIBUTION')
+
+        # checking that this is finalized appropriately
+        camp.add(self.tmp_intervention)
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg = "UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+
         return
 
     def test_usagebednet_trigger_distribution(self):
@@ -636,7 +650,6 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def test_usagebednet_trigger_delay_constant(self):
-        self.is_debugging = True
         specific_triggers = ["WetOutside","ReceivesBednet"]
         specific_delay_param = 'Delay_Period_Constant'
         specific_delay_value = 9
@@ -729,18 +742,138 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     # endregion
+    
+    def test_diagnostic_survey(self):
+        self.is_debugging = False
+        diag_survey.add_diagnostic_survey(camp)
+        camp.save()
+        with open("campaign.json") as file:
+            campaign = json.load(file)
+        event = campaign['Events'][0]
+        coord_config = event['Event_Coordinator_Config']
+        coverage = coord_config['Demographic_Coverage']
+        intervention_config = coord_config['Intervention_Config']['Intervention_List'][0]
+        name = intervention_config['Intervention_Name']
+        self.assertEqual(name, "MalariaDiagnostic")
+        self.assertEqual(coverage, 1)
 
-class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
+    def test_common(self):
+        self.is_debugging = False
+        malaria_diagnostic = common.MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
+        measures = [malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
+        
+        self.assertFalse(any(item != 1 for item in measures), msg="Not all values are 1 when set to 1")
+        self.assertEqual("BLOOD_SMEAR_PARASITES", malaria_diagnostic.Diagnostic_Type)
 
-    def setUp(self):
-        super(TestMalariaInterventions_17Dec20, self).setUp()
-        self.schema_file = schema_17Dec20
+        AntimalarialDrug = common.AntiMalarialDrug(camp, "Malaria")
+        self.assertEqual(AntimalarialDrug.Drug_Type, "Malaria")
+        self.assertEqual(AntimalarialDrug.Cost_To_Consumer, 1.0)
 
-class TestMalariaInterventions_10Jan21(TestMalariaInterventions):
+    def mosquitorelease_build(self
+                            , start_day=1
+                            , by_number=True
+                            , number=10_000
+                            , fraction=0.1
+                            , infectious=0.0
+                            , species='arabiensis'
+                            , genome = [['X', 'X']]
+                            , node_ids=None):
+        camp.schema_path = os.path.join(file_dir , "./old_schemas/latest_schema.json")
+        if not self.tmp_intervention:
+            self.tmp_intervention = MosquitoRelease(
+                camp=self.schema_file
+                , start_day=start_day
+                , by_number=by_number
+                , number=number
+                , fraction=fraction
+                , infectious=infectious
+                , species=species
+                , genome=genome
+                , node_ids=node_ids
+            )
+        self.parse_intervention_parts()
+        return
 
-    def setUp(self):
-        super(TestMalariaInterventions_10Jan21, self).setUp()
-        self.schema_file = schema_10Jan21
+    def test_mosquitorelease_only_needs_startday(self):
+        specific_start_day = 125
+        self.tmp_intervention = MosquitoRelease(
+            camp=schema_path_file
+            , start_day=specific_start_day)
+        self.mosquitorelease_build() # parse intervention parts
+
+        self.assertIsNotNone(self.tmp_intervention)
+        self.assertEqual(self.start_day, specific_start_day)
+        self.assertEqual(self.intervention_config['class'], 'MosquitoRelease')
+        return
+
+    def test_mosquitorelease_default(self):
+        self.mosquitorelease_build()
+
+        self.assertEqual(self.start_day, 1)
+        self.assertEqual(self.nodeset[NodesetParams.C]
+                        , NodesetParams.CNSA) # default is nodesetall
+        self.assertEqual(self.intervention_config['Released_Type'],
+                        'FIXED_NUMBER')
+        self.assertEqual(self.intervention_config['Released_Number'],
+                        10_000)
+        self.assertEqual(self.intervention_config['Released_Infectious'],
+                        0)
+        self.assertEqual(self.intervention_config['Released_Species'],
+                        'arabiensis')
+        self.assertEqual(self.intervention_config['Released_Genome'],
+                        [['X', 'X']])
+        return
+
+    def test_mosquitorelease_custom(self):
+        specific_start_day = 13
+        specific_genome = [['X', 'Y']]
+        specific_fraction = 0.14
+        specific_infectious_fraction = 0.28
+        specific_species = 'SillySkeeter'
+        specific_nodes = [3, 5, 8, 13, 21]
+        self.mosquitorelease_build(
+            start_day=specific_start_day
+            , by_number=False
+            , fraction=specific_fraction
+            , infectious=specific_infectious_fraction
+        )
+
+    def test_inputeir_default(self):
+        eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        self.tmp_intervention = InputEIR(camp, eir[:])
+        self.parse_intervention_parts()
+
+        self.assertEqual(self.intervention_config.Monthly_EIR, eir)
+        self.assertEqual(self.intervention_config.Age_Dependence, "OFF")
+        self.assertEqual(self.start_day, 1)
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
+        pass
+
+    def test_inputeir(self):
+        eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        self.tmp_intervention = InputEIR(camp, eir[:], start_day=2, node_ids=[2, 3], age_dependence='LINEAR')
+        self.parse_intervention_parts()
+
+        self.assertEqual(self.intervention_config.Monthly_EIR, eir)
+        self.assertEqual(self.intervention_config.Age_Dependence, "LINEAR")
+        self.assertEqual(self.start_day, 2)
+        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSNL)
+        self.assertEqual(self.nodeset[NodesetParams.NL], [2, 3])
+
+        pass
+
+# Uncomment below if you would like to run test suite with different schema
+# class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
+
+#     def setUp(self):
+#         super(TestMalariaInterventions_17Dec20, self).setUp()
+#         self.schema_file = schema_17Dec20
+
+# class TestMalariaInterventions_10Jan21(TestMalariaInterventions):
+
+#     def setUp(self):
+#         super(TestMalariaInterventions_10Jan21, self).setUp()
+#         self.schema_file = schema_10Jan21
 
 
 if __name__ == '__main__':

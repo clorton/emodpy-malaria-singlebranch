@@ -12,24 +12,16 @@ default_config = None # is set in setUpClass()
 
 import schema_path_file
 
-from emodpy_malaria.config import \
-    set_team_defaults, \
+from emodpy_malaria.config import set_team_defaults
+
+from emodpy_malaria.vector_config import \
     add_alleles, \
     add_mutation , \
     add_resistance
 
-from emodpy_malaria.config import alleles as conf_alleles
-from emodpy_malaria.config import mutations as conf_mutations
-from emodpy_malaria.config import insecticides as conf_insecticides
-
-
-
-class schema_17Dec20:
-    schema_path = schema_path_file.schema_file_17Dec20
-
-
-class schema_10Jan21:
-    schema_path = schema_path_file.schema_file_10Jan21
+from emodpy_malaria.vector_config import alleles as conf_alleles
+from emodpy_malaria.vector_config import mutations as conf_mutations
+from emodpy_malaria.vector_config import insecticides as conf_insecticides
 
 
 class TestMalariaConfig(unittest.TestCase):
@@ -59,13 +51,9 @@ class TestMalariaConfig(unittest.TestCase):
         config.parameters.Infectious_Period_Constant = 0
         config.parameters.Enable_Demographics_Birth = 1
         config.parameters.Enable_Demographics_Reporting = 0
-        config.parameters.Enable_Immune_Decay = 0
-        config.parameters.Mortality_Blocking_Immunity_Decay_Rate = 0
-        config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 270
         config.parameters.Run_Number = 99
         config.parameters.Simulation_Duration = 60
         config.parameters.Enable_Demographics_Risk = 1
-        config.parameters.Enable_Natural_Mortality = 1
 
         return config
 

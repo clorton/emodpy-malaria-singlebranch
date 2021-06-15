@@ -70,7 +70,6 @@ def set_malaria_config(config):
     config.parameters.Run_Number = 99
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1
-    config.parameters.Enable_Natural_Mortality = 1
 
     return config
 
@@ -181,7 +180,7 @@ def build_demog():
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
 
-    demog = Demographics.fromBasicNode( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
+    demog = Demographics.from_template_node( lat=0, lon=0, pop=10000, name=1, forced_id=1 )
     return demog
 
 
@@ -196,7 +195,7 @@ def general_sim( erad_path, ep4_scripts ):
     every time we run an emod experiment. 
     """
 
-    platform = Platform("Calculon") 
+    platform = Platform("SLURMStage")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")

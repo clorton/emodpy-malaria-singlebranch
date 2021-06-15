@@ -15,11 +15,7 @@ def SpaceSpraying(
         node_ids=None
     ):
     """
-    MCV1 Campaign
-    :param coverage: Demographic Coverage
-    :param blocking: 
-    :param killing: 
-    Note Start_Day is initialized as 1, recommend that this be aligned with the start of the simulation
+        Create a new SpaceSpraying scheduled campaign event.
     """
     schema_path = camp.schema_path
     # First, get the objects
@@ -52,11 +48,8 @@ def SpaceSpraying(
     return event
 
 def new_intervention_as_file( camp, start_day, filename=None ):
-    campaign = {}
-    campaign["Events"] = []
-    campaign["Events"].append( SpaceSpraying( camp, start_day ) )
+    camp.add( SpaceSpraying( camp, start_day ), first=True )
     if filename is None:
         filename = "SpaceSpraying.json"
-    with open( filename, "w" ) as camp_file:
-        json.dump( campaign, camp_file, sort_keys=True, indent=4 )
+    camp.save( filename )
     return filename
