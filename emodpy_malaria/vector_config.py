@@ -72,7 +72,7 @@ def set_team_defaults(config, mani):
     config.parameters.Base_Land_Temperature = 27
     config.parameters.Base_Relative_Humidity = 0.75
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
-
+    config.parameters.Inset_Chart_Reporting_Include_30Day_Avg_Infection_Duration = 0
     config.parameters.Simulation_Duration = 365
 
     config = set_team_vs_params(config, mani)
@@ -81,10 +81,9 @@ def set_team_defaults(config, mani):
 
 
 def set_team_vs_params(config, mani):
-    with open(os.path.join(os.path.dirname(__file__), 'malaria_vs_params.csv'), newline='') as csvfile:
+    with open(os.path.join(os.path.dirname(__file__), 'malaria_vector_species_params.csv'), newline='') as csvfile:
         my_reader = csv.reader(csvfile)
         header = next(my_reader)
-        drug_name_idx = header.index("Name")
         for row in my_reader:
             vsp = dfs.schema_to_config_subnode(mani.schema_file, ["idmTypes", "idmType:VectorSpeciesParameters"])
             vsp.parameters.Anthropophily = float(row[header.index("Anthropophily")])
@@ -127,6 +126,26 @@ def get_species_params(cb, species):
         if vector_species.Name == species:
             return cb.parameters.Vector_Species_Params[idx]
     raise ValueError(f"{species} not found.")
+
+
+def set_species_param(config, species, parameter, value):
+    """
+    Sets a parameter value for a specific species.
+    Raises value error if species not found
+    Args:
+        cb: ??
+        species: name of species for which to set the parameter
+        parameter: parameter to set
+        value: value to set the parameter to
+
+    Returns:
+        Nothing
+    """
+    for vector_species in config.parameters.Vector_Species_Params:
+        if vector_species.Name == species:
+            vector_species[parameter] = value
+            return
+    raise ValueError(f"Species {species} not found.\n")
 
 
 def set_species(config, species_to_select):
@@ -339,3 +358,39 @@ def _get_allele_set_key_from_allele(allele_in):
             break
 
     return ret_key
+
+
+def set_species_drivers(config, drivers):
+    """
+        Set vector species and gene parameters of config argument and return.
+
+        Example::
+
+            drivers = {"arabiensis": [
+                                    {
+                                        "Alleles_Driven": [
+                                            {
+                                                "Allele_To_Copy": "a1",
+                                                "Allele_To_Replace": "a0",
+                                                "Copy_To_Likelihood": {
+                                                    "a0": 0.1,
+                                                    "a1": 0.9
+                                                }
+                                            },
+                                            {
+                                                "Allele_To_Copy": "b1",
+                                                "Allele_To_Replace": "b0",
+                                                "Copy_To_Likelihood": {
+                                                    "b0": 0.1,
+                                                    "b1": 0.9
+                                                }
+                                            }
+                                        ],
+                                        "Driver_Type": "INTEGRAL_AUTONOMOUS",
+                                        "Driving_Allele": "a1"
+                                    },
+                                   ]
+        """
+
+    for species, driver in drivers.items():
+        set_species_param(config, species, 'Drivers', driver)

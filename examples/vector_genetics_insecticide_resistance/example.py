@@ -21,7 +21,6 @@ from emodpy.bamboo import get_model_files
 from emodpy_malaria.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malaria_config
 from emodpy_malaria import vector_config as vector_config
 import manifest
 
@@ -30,6 +29,7 @@ In this example, we add vector genetics to the vector population and insecticide
 adds a VectorGeneticsReporter.
 The important bits are in set_param_fn, build_campaign.
 """
+
 
 def set_param_fn(config):
     """
@@ -69,7 +69,7 @@ def set_param_fn(config):
 
     # adding insecticide resistance to "pyrenthroid"
     vector_config.add_resistance(manifest, "pyrethroid", "gambiae", [["three", "three"]], blocking=0.0,
-                                  killing=0.0)
+                                 killing=0.0)
     # this actually sets all the resistance parameters
     config = vector_config.set_resistances(config)
     config.parameters.Simulation_Duration = 10
@@ -84,7 +84,7 @@ def build_campaign():
     """
     import emod_api.campaign as campaign
     import emodpy_malaria.interventions.bednet as bednet
-    import emodpy_malaria.interventions.mosquitorelease as mr
+    import emodpy_malaria.interventions.mosquitorelease as mosquitorelease
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     campaign.schema_path = manifest.schema_file
@@ -94,8 +94,9 @@ def build_campaign():
                                insecticide="pyrethroid"))
 
     campaign.add(
-        mr.MosquitoRelease(campaign, start_day=1, by_number=True, number=20000, infectious=0.2, species="gambiae",
-                           genome=[["X", "X"], ["a", "b"], ["three", "three"]]))
+        mosquitorelease.MosquitoRelease(campaign, start_day=1, released_number=20000, released_infectious=0.2,
+                                        released_species="gambiae",
+                                        released_genome=[["X", "X"], ["a", "b"], ["three", "three"]]))
 
     return campaign
 

@@ -8,19 +8,20 @@ import json
 
 iv_name = "AntimalarialDrug"
 
-def AntiMalarialDrug( 
-        camp, 
-        start_day=1, 
-        coverage=1.0, 
-        drug_name="Chloroquine",
-        node_ids=None
-    ):
+
+def AntimalarialDrug(
+        campaign,
+        start_day: int = 1,
+        coverage: float = 1.0,
+        drug_name: str = "Chloroquine",
+        node_ids: list = None
+):
     """
     Add an antimalarial drug intervention to your campaign. This is equivalent to 
     :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug`.
 
     Args:
-        camp: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will be added. 
+        campaign: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will be added.
         start_day: The day of the simulation on which the drug is distributed. We recommend 
             aligning this with the start of the simulation. 
         coverage: The proportion of the population that will receive the drug.
@@ -32,37 +33,37 @@ def AntiMalarialDrug(
     Returns:
         The intervention event.
     """
-    schema_path = camp.schema_path
+    schema_path = campaign.schema_path
     # First, get the objects
-    event = s2c.get_class_with_defaults( "CampaignEvent", schema_path )
-    coordinator = s2c.get_class_with_defaults( "StandardEventCoordinator", schema_path )
+    event = s2c.get_class_with_defaults("CampaignEvent", schema_path)
+    coordinator = s2c.get_class_with_defaults("StandardEventCoordinator", schema_path)
     if coordinator is None:
-        print( "s2c.get_class_with_defaults returned None. Maybe no schema.json was provided." )
+        print("s2c.get_class_with_defaults returned None. Maybe no schema.json was provided.")
         return ""
+    coordinator.Node_Property_Restrictions = []
+    coordinator.Property_Restrictions_Within_Node = []
+    coordinator.Property_Restrictions = []
 
-    intervention = s2c.get_class_with_defaults( "AntimalarialDrug", schema_path )
+    intervention = s2c.get_class_with_defaults("AntimalarialDrug", schema_path)
 
     # Second, hook them up
-    event.Event_Coordinator_Config = coordinator
-    coordinator.Intervention_Config = intervention
 
-    event.Start_Day = float(start_day)
+    coordinator.Intervention_Config = intervention
+    coordinator.Demographic_Coverage = coverage
+
+    event.Event_Coordinator_Config = coordinator
+    event.Start_Day = start_day
 
     # Third, do the actual settings
     intervention.Intervention_Name = iv_name
-    coordinator.Demographic_Coverage = coverage
+    intervention.Drug_Type = drug_name
 
-    #intervention.Expiration_Constant = constant_duration
-    #intervention.Cost_To_Consumer = 3.75
-    # 'Cost_To_Consumer', 'Drug_Type'
-    intervention.Drug_Type = drug_name 
-
-    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
+    event.Nodeset_Config = utils.do_nodes(schema_path, node_ids)
 
     return event
 
 
-def new_intervention_as_file( camp, start_day, filename=None ):
+def new_intervention_as_file(camp, start_day, filename=None):
     """
     Take an :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug`
     intervention from a JSON file and add it to your campaign.
@@ -76,8 +77,8 @@ def new_intervention_as_file( camp, start_day, filename=None ):
     Returns:
         The filename.
     """
-    camp.add( AntiMalarialDrug( camp, start_day ), first=True )
+    camp.add(AntimalarialDrug(camp, start_day), first=True)
     if filename is None:
         filename = "AntimalarialDrug.json"
-    camp.save( filename )
+    camp.save(filename)
     return filename

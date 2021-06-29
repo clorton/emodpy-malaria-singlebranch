@@ -40,13 +40,13 @@ import manifest
 
 # When you're doing a sweep across campaign parameters, you want those parameters exposed
 # in the build_campaign function as done here
-def build_campaign(start_day=1, coverage=1.0, killing_effectiveness=0, constant_duration=25):
+def build_campaign(start_day=1, coverage=1.0, killing_effect=0, constant_duration=25):
     """
         Adds a SpaceSpraying intervention, using parameters passed in.
     Args:
         start_day: the day the intervention goes in effect
         coverage: portion of each node covered by the intervention
-        killing_effectiveness: portion of vectors killed by the intervention
+        killing_effect: portion of vectors killed by the intervention
         constant_duration: the duration of effectiveness of the SpaceSpraying
     Returns:
         completed campaign
@@ -58,15 +58,12 @@ def build_campaign(start_day=1, coverage=1.0, killing_effectiveness=0, constant_
 
     # passing in manifest
     campaign.schema_path = manifest.schema_file
-
-    # adding SpaceSpraying from emodpy_malaria.interventions.spacespraying
-
-    campaign.add(spray.SpaceSpraying(campaign, start_day=start_day, coverage=coverage,
-                                     killing_eff=killing_effectiveness, constant_duration=constant_duration),
-                 first=True) #this flag should only be set in the first intervention if there are multiple being added
+    campaign.add(spray.SpaceSpraying(campaign, start_day=start_day, spray_coverage=coverage,
+                                      killing_effect=killing_effect, box_duration=constant_duration, decay_rate=0.03),
+                 first=True)  # this flag should only be set in the first intervention if there are multiple being added
 
     # Pleast notice lack of "first=True" flag, only the first (within this function) intervention needs it
-    campaign.add(ivermectin.ivermectin(schema_path_container=campaign,
+    campaign.add(ivermectin.Ivermectin(schema_path_container=campaign,
                                        start_day=20,
                                        demographic_coverage=0.57,
                                        killing_initial_effect=0.65,
@@ -86,7 +83,7 @@ def update_campaign_start_day(simulation, value):
     Returns:
         tag that will be added to the simulation run
     """
-    build_campaign_partial = partial(build_campaign, constant_duration=value)
+    build_campaign_partial = partial(build_campaign, star_day=value)
     simulation.task.create_campaign_from_callback(build_campaign_partial)
     return {"start_day": value}
 
@@ -104,7 +101,7 @@ def update_campaign_multiple_parameters(simulation, values):
         tags for the simulation to use in comps
     """
     build_campaign_partial = partial(build_campaign, start_day=values[0], coverage=values[1],
-                                     killing_effectiveness=values[2])
+                                     killing_effect=values[2])
     simulation.task.create_campaign_from_callback(build_campaign_partial)
     return {"start_day": values[0], "spray_coverage": values[1], "killing_effectiveness": values[2]}
 
@@ -114,7 +111,7 @@ def set_config_parameters(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     # sets "default" malaria parameters as determined by the malaria team
-    import emodpy_malaria.config as malaria_config
+    import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
     # you have to explicitly set larval habitats for the species currently
 
@@ -178,7 +175,6 @@ def general_sim():
     # .product([start_days],[spray_coverages], [killing_effectivenesses])
     builder.add_sweep_definition(update_campaign_multiple_parameters,
                                  list(itertools.product([3, 5], [0.95, 0.87, 0.58], [0.79, 0.51])))
-
 
     # create experiment from builder
     experiment = Experiment.from_builder(builder, task, name="Campaign Sweep, SpaceSpraying")

@@ -17,7 +17,7 @@ from emodpy.bamboo import get_model_files
 # emod_api
 import emod_api.migration as migration
 
-from emodpy_malaria import config as malaria_config
+from emodpy_malaria import malaria_config as malaria_config
 import manifest
 
 """
@@ -73,7 +73,6 @@ def build_demographics():
     input_file = malaria_config.get_file_from_http(
         "http://ipadvweb02.linux.idm.ctr:8000/" + manifest.population_input_path)
     demographics = Demographics.from_pop_csv(input_file, site='burkina')
-
 
     migration_partial = partial(migration.from_demog_and_param_gravity,
                                 gravity_params=[7.50395776e-06, 9.65648371e-01, 9.65648371e-01, -1.10305489e+00],

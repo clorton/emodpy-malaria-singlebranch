@@ -16,7 +16,7 @@ from emodpy.bamboo import get_model_files
 from emodpy_malaria.reporters.builtin import ReportVectorGenetics, ReportVectorStats
 import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malconf
+from emodpy_malaria import malaria_config as malconf
 import set_config
 import manifest
 import vector_report_support as vrs

@@ -30,7 +30,7 @@ def set_team_defaults(config, mani):
     # config.parameters.Enable_Malaria_CoTransmission = 0
 
     # INFECTION
-    config.parameters.PKPD_Model = "CONCENTRATION_VERSUS_TIME"
+
     config.parameters.Max_MSP1_Antibody_Growthrate = 0
     config.parameters.Min_Adapted_Response = 0
     config.parameters.Infection_Updates_Per_Timestep = 8
@@ -138,6 +138,7 @@ def set_team_drug_params(config, mani):
 
         header = next(my_reader)
         drug_name_idx = header.index("Name")
+        # drug_pkpd_model_idx = header.index("PKPD_Model")
         drug_cmax_idx = header.index("Drug_Cmax")
         drug_decayt1_idx = header.index("Drug_Decay_T1")
         drug_decayt2_idx = header.index("Drug_Decay_T2")
@@ -171,6 +172,7 @@ def set_team_drug_params(config, mani):
             mdp.parameters.Drug_GametocyteM_Killrate = float(row[drug_gamM_idx])
             mdp.parameters.Drug_Hepatocyte_Killrate = float(row[drug_hep_idx])
             mdp.parameters.Max_Drug_IRBC_Kill = float(row[drug_maxirbc_idx])
+            # mdp.parameters.PKPD_Model = row[drug_pkpd_model_idx]
             mdp.parameters.Name = row[drug_name_idx]
             # mdp.parameters.Drug_Adherence_Rate = float(row[ drug_adher_idx ])
             mdp.parameters.Bodyweight_Exponent = float(row[drug_bwexp_idx])
@@ -205,11 +207,41 @@ def get_drug_params(cb, drug_name):
             return cb.parameters.Malaria_Drug_Params[idx]
     raise ValueError(f"{drug_name} not found.")
 
-def get_species_params(cb, species):
+
+def set_drug_param(config, drug_name: str = None, parameter: str = None, value: any = None):
+    """
+     Set a drug parameter, by passing in drug name, parameter and the parameter value.
+     Added to facilitate adding drug Resistances, example:
+     artemether_drug_resistance = [{
+        "Drug_Resistant_String": "A",
+        "PKPD_C50_Modifier": 2.0,
+        "Max_IRBC_Kill_Modifier": 0.9}]
+    set_drug_param(cb, drug_name='Artemether', parameter="Resistances", value=artemether_drug_resistance)
+    Args:
+        config:
+        drug_name: The drug that has a parameter to set
+        parameter: The parameter to set
+        value: The new value to set
+
+    Returns:
+        Nothing or error if drug name is not found
+    """
+
+    if not drug_name or not parameter or not value:
+        raise Exception("Please pass in all: drug_name, parameter, and value.\n")
+    for drug in config.parameters.Malaria_Drug_Params:
+        if drug.Name == drug_name:
+            drug[parameter] = value
+            return  # should I return anything here?
+    raise ValueError(f"{drug_name} not found.\n")
+
+
+def set_species_param(cb, species, parameter, value):
     """
         Pass through for vector version of function.
     """
-    return vector_config.get_species_params(cb, species)
+    return vector_config.set_species_param(cb, species, parameter, value)
+
 
 def set_species(config, species_to_select):
     """

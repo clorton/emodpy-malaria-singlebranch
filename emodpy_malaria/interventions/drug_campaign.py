@@ -75,8 +75,7 @@ def drug_configs_from_code( camp, drug_code: str = None ):
 
     drug_configs = []
     for drug in drug_array:
-        #cb.config["parameters"]["Malaria_Drug_Params"][drug] = drug_params[drug]
-        drug_intervention = AntiMalarialDrug(camp, Drug_Type=drug, ctc=1.5)
+        drug_intervention = AntimalarialDrug(camp, Drug_Type=drug, ctc=1.5)
         drug_configs.append(drug_intervention)
     return drug_configs
 
@@ -241,6 +240,12 @@ def add_drug_campaign(camp,
         drug_configs = adherent_drug_configs
     else:
         drug_configs = drug_configs_from_code(camp, drug_code=drug_code)
+    if not node_property_restrictions:
+        node_property_restrictions = []
+    if not ind_property_restrictions:
+        ind_property_restrictions = []
+    if not disqualifying_properties:
+        disqualifying_properties = []
 
     # set up events to broadcast when receiving campaign drug
     receiving_drugs_event = BroadcastEvent(camp, Event_Trigger=receiving_drugs_event_name)
@@ -357,6 +362,8 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
                         "malaria.interventions.malaria_drugs import drug_configs_from_code.\n")
     if disqualifying_properties is None:
         disqualifying_properties = []
+    if not node_property_restrictions:
+        node_property_restrictions = []
 
     nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
@@ -398,16 +405,16 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
                 ind_property_restrictions = []
             for x in range(repetitions):
                 tcde = TriggeredCampaignEvent(
-                        camp,
-                        Start_Day=start_days[0],
-                        Event_Name="MDA_Delayed",
-                        Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=node_ids ),
-                        Triggers=trigger_condition_list,
-                        Duration=listening_duration,
-                        Intervention_List=[BroadcastEvent( camp, broadcast_event )],
-                        Node_Property_Restrictions=trigger_node_property_restrictions,
-                        Property_Restrictions=trigger_ind_property_restrictions,
-                        Delay=triggered_campaign_delay + (x * tsteps_btwn_repetitions))
+                    camp,
+                    Start_Day=start_days[0],
+                    Event_Name="MDA_Delayed",
+                    Nodeset_Config=utils.do_nodes(camp.schema_path, node_ids=node_ids),
+                    Triggers=trigger_condition_list,
+                    Duration=listening_duration,
+                    Intervention_List=[BroadcastEvent(camp, broadcast_event)],
+                    Node_Property_Restrictions=trigger_node_property_restrictions,
+                    Property_Restrictions=trigger_ind_property_restrictions,
+                    Delay=triggered_campaign_delay + (x * tsteps_btwn_repetitions))
                 camp.add(tcde)
             trigger_condition_list = [broadcast_event]
 
@@ -438,7 +445,6 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
                 Nodeset_Config=nodeset_config,
                 Target_Age_Min=target_age_min,
                 Target_Age_Max=target_age_max,
-                Node_Property_Restrictions=node_property_restrictions,
                 Property_Restrictions=ind_property_restrictions,
                 Demographic_Coverage=coverage,
                 Intervention_List=interventions,
@@ -516,24 +522,24 @@ def add_MSAT(camp, start_days: list = None, coverage: float = 1.0, drug_configs:
 
 
 def add_fMDA(
-    camp,
-    start_days: list = None,
-    trigger_coverage: float = 1,
-    coverage: float = 1,
-    drug_configs: list = None,
-    receiving_drugs_event: BroadcastEvent = None,
-    repetitions: int = 1,
-    tsteps_btwn_repetitions: int = 365,
-    treatment_delay: int = 0,
-    diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
-    diagnostic_threshold: float = 40, 
-    measurement_sensitivity: float = 0.1,
-    fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', node_ids: list = None,
-    expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
-    ind_property_restrictions: list = None,
-    disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
-    listening_duration: int = -1, triggered_campaign_delay: int = 0,
-    check_eligibility_at_trigger: bool = False):
+        camp,
+        start_days: list = None,
+        trigger_coverage: float = 1,
+        coverage: float = 1,
+        drug_configs: list = None,
+        receiving_drugs_event: BroadcastEvent = None,
+        repetitions: int = 1,
+        tsteps_btwn_repetitions: int = 365,
+        treatment_delay: int = 0,
+        diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
+        diagnostic_threshold: float = 40,
+        measurement_sensitivity: float = 0.1,
+        fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', node_ids: list = None,
+        expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
+        ind_property_restrictions: list = None,
+        disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
+        listening_duration: int = -1, triggered_campaign_delay: int = 0,
+        check_eligibility_at_trigger: bool = False):
     """
     Add an fMDA (focal mass drug administration) drug intervention to your
     campaign. See :py:func:`add_drug_campaign` for more information about each
@@ -550,12 +556,14 @@ def add_fMDA(
                         "malaria.interventions.malaria_drugs import drug_configs_from_code.\n")
     if node_property_restrictions is None:
         node_property_restrictions = []
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
+
+    nodeset_config = utils.do_nodes(camp.schema_path, node_ids=node_ids)
 
     # rewritten to give out a unique trigger for the fmda
     fmda_trigger_tether = "Give_Drugs_fMDA_{}".format(random.randint(1, 10000))
     fmda_trigger_event = BroadcastEvent(camp, Event_Trigger="Give_Drugs_fMDA")
-    fmda_setup = [fmda_cfg(camp, fmda_radius, node_selection_type, event_trigger=fmda_trigger_tether), fmda_trigger_event]
+    fmda_setup = [fmda_cfg(camp, fmda_radius, node_selection_type, event_trigger=fmda_trigger_tether),
+                  fmda_trigger_event]
 
     interventions = drug_configs
     if receiving_drugs_event:
@@ -566,7 +574,7 @@ def add_fMDA(
     if treatment_delay > 0:
         fmda_setup = [DelayedIntervention(
             camp,
-            Delay_Dict={ "Delay_Period_Constant":treatment_delay },
+            Delay_Dict={"Delay_Period_Constant": treatment_delay},
             Configs=fmda_setup)]
 
     if trigger_condition_list:
@@ -638,7 +646,7 @@ def add_fMDA(
 def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list = None,
                receiving_drugs_event: BroadcastEvent = None, listening_duration: int = -1, treatment_delay: int = 0,
                trigger_coverage: float = 1, diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
-               diagnostic_threshold: float = 40, 
+               diagnostic_threshold: float = 40,
                measurement_sensitivity: float = 0.1,
                fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', snowballs: int = 0,
                node_ids: list = None,
@@ -677,9 +685,9 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
         Triggers=["Received_Treatment"],
         Intervention_List=[DelayedIntervention(
             camp,
-            Delay_Dict={ "Delay_Period_Constant":treatment_delay },
-            Configs=[snowball_setup[0]] ) ]
-        )
+            Delay_Dict={"Delay_Period_Constant": treatment_delay},
+            Configs=[snowball_setup[0]])]
+    )
 
     camp.add(rcd_event)
 
@@ -736,7 +744,7 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
     interventions = drug_configs
     if receiving_drugs_event:
         interventions.append(receiving_drugs_event)
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
+    nodeset_config = utils.do_nodes(camp.schema_path, node_ids=node_ids)
 
     if disqualifying_properties is None:
         disqualifying_properties = []
@@ -757,10 +765,10 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
         Intervention_List=[
             DelayedIntervention(
                 camp,
-                Delay_Dict={ "Delay_Period_Constant":treatment_delay },
+                Delay_Dict={"Delay_Period_Constant": treatment_delay},
                 Configs=[fmda_setup])
-            ]
-        )
+        ]
+    )
 
     if expire_recent_drugs:
         interventions = interventions + [expire_recent_drugs]

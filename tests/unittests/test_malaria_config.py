@@ -12,7 +12,7 @@ default_config = None # is set in setUpClass()
 
 import schema_path_file
 
-from emodpy_malaria.config import set_team_defaults
+from emodpy_malaria.malaria_config import set_team_defaults
 
 from emodpy_malaria.vector_config import \
     add_alleles, \

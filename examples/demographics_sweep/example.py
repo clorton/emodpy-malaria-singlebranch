@@ -17,20 +17,18 @@ from emodpy.bamboo import get_model_files
 
 import manifest
 
-
-
 """
     We create an intervention that sweeps over demographics parameters
 """
 
 
-def build_campaign(start_day=1, coverage=1.0, killing_effectiveness=0):
+def build_campaign(start_day=1, coverage=1.0, killing_effect=0):
     """
     Adds a SpaceSpraying intervention, using parameters passed in
     Args:
         start_day: the day the intervention goes in effect
         coverage: portion of each node covered by the intervention
-        killing_effectiveness: portion of vectors killed by the intervention
+        killing_effect: portion of vectors killed by the intervention
 
     Returns:
         campaign object
@@ -42,8 +40,8 @@ def build_campaign(start_day=1, coverage=1.0, killing_effectiveness=0):
     campaign.schema_path = manifest.schema_file
 
     # adding SpaceSpraying from emodpy_malaria.interventions.spacespraying
-    campaign.add(spray.SpaceSpraying(campaign, start_day=start_day, coverage=coverage,
-                                     killing_eff=killing_effectiveness, constant_duration=73),
+    campaign.add(spray.SpaceSpraying(campaign, start_day=start_day, spray_coverage=coverage,
+                                      killing_effect=killing_effect, box_duration=73),
                  first=True)
     return campaign
 
@@ -54,7 +52,7 @@ def set_config_parameters(config):
     """
     config.parameters.Simulation_Type = "MALARIA_SIM"
     # sets "default" malaria parameters as determined by the malaria team
-    import emodpy_malaria.config as malaria_config
+    import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
     # you have to explicitly set larval habitats for the species currently
 
@@ -96,7 +94,8 @@ def update_demographics_multiple_params(simulation, values):
     Returns:
         tag that will be used with the simulation
     """
-    build_demog_partial = partial(build_demographics, birth_rate=values[0], rural_fraction=values[1], total_population=values[2])
+    build_demog_partial = partial(build_demographics, birth_rate=values[0], rural_fraction=values[1],
+                                  total_population=values[2])
     simulation.task.create_demog_from_callback(build_demog_partial, from_sweep=True)
     return {"birth_rate": values[0], "rural_fraction": values[1], "total_population": values[2]}
 
@@ -134,7 +133,6 @@ def general_sim():
     # number of simulations created.
     # comment out the builder below when using this
     # builder.add_sweep_definition(update_campaign_start_day, [23, 3, 84, 1])
-
 
     # this is how you sweep over a multiple-parameters space:
     # itertools product creates a an array with all the combinations of parameters (cross-product)

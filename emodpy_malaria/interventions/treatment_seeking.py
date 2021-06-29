@@ -1,6 +1,6 @@
 from emod_api.interventions.common import *
 import emod_api.interventions.utils as utils
-from emodpy_malaria.interventions.common import AntiMalarialDrug
+from emodpy_malaria.interventions.common import AntimalarialDrug
 
 def _get_events(
            camp,
@@ -20,7 +20,7 @@ def _get_events(
         targets = [{'trigger': 'NewClinicalCase', 'coverage': 0.1, 'agemin': 15, 'agemax': 70, 'seek': 0.4, 'rate': 0.3},
                    {'trigger': 'NewSevereCase', 'coverage': 0.8, 'seek': 0.6, 'rate': 0.5}]
 
-    drugs = [ AntiMalarialDrug(camp,Drug_Type=d) for d in drug ]
+    drugs = [ AntimalarialDrug(camp,Drug_Type=d) for d in drug ]
     drugs.append( BroadcastEvent( camp, Event_Trigger=broadcast_event_name ) )
     drug_config = MultiInterventionDistributor(camp, Intervention_List=drugs)
 

@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-import pathlib  # for a join
-from functools import \
-    partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
 
 # idmtools ...
 from idmtools.core.platform_factory import Platform
@@ -13,21 +10,24 @@ import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 
+# importing all the reports functions, they all start with add_
+from emodpy_malaria.reporters.builtin import *
 
 import manifest
 
-# ****************************************************************
-# This is an example template with the most basic functions
-# which create config and demographics from pre-set defaults
-# and adds one intervention to campaign file. Runs the simulation
-# and writes experiment id into experiment.id
-#
-# ****************************************************************
+"""
+    This is an example that shows how all the builtin custom reports are added to the simulations.
+    Adding the reports creates custom_reports.json with the report parameters. 
+    The reports need to be added after the emod_task.EMODTask is created as it needs to be passed
+    to the reports so they can add themselves to the simulation. Please look in general_sim() for
+    all the interesting bits. 
+
+"""
 
 
 def build_campaign():
     """
-       Adding a scheduled ivermectin intervention
+        Addind one intervention, so this template is easier to use when adding other interventions, replacing this one
     Returns:
         campaign object
     """
@@ -38,34 +38,17 @@ def build_campaign():
     # passing in schema file to verify that everything is correct.
     campaign.schema_path = manifest.schema_file
     # creating an Ivermectin intervention inside the ivermectin, and adding it to campaign
-    campaign.add(ivermectin.Ivermectin(schema_path_container=campaign,
-                                       start_day=20,
-                                       target_num_individuals=43,
-                                       demographic_coverage=0.95, # this will be ignored because we have target_num_idividuals set
-                                       killing_initial_effect=0.65,
-                                       killing_box_duration=2,
-                                       killing_exponential_decay_rate=0.25))
-    # same intervention but now targeting only a portion of the demographic
-    campaign.add(ivermectin.Ivermectin(schema_path_container=campaign,
-                                       start_day=20,
-                                       demographic_coverage=0.57,
-                                       killing_initial_effect=0.65,
-                                       killing_box_duration=2,
-                                       killing_exponential_decay_rate=0.25))
+    campaign.add(ivermectin.Ivermectin(schema_path_container=campaign))
+
     return campaign
 
 
 def set_config_parameters(config):
     """
-        This function is a callback that is passed to emod-api.config to set parameters The Right Way.
-    Args:
-        config:
-
-    Returns:
-        configuration settings
+    This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-
     # You have to set simulation type explicitly before you set other parameters for the simulation
+    config.parameters.Simulation_Type = "MALARIA_SIM"
     # sets "default" malaria parameters as determined by the malaria team
     import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
@@ -77,15 +60,13 @@ def set_config_parameters(config):
 
 def build_demographics():
     """
-        Build a demographics input file for the DTK using emod_api.
+    Build a demographics input file for the DTK using emod_api.
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     Also right now this function takes care of the config updates that are required as a result of specific demog
     settings. We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in
     emod-api as much as possible.
-    Returns:
-        demographics.. object???
-    """
 
+    """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
 
     demographics = Demographics.from_template_node(lat=0, lon=0, pop=10000, name=1, forced_id=1)
@@ -102,9 +83,10 @@ def general_sim():
 
     # Set platform
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
+    global add_report_event_counter
+    platform = Platform("Calculon", node_group="idm_48cores")
 
-    experiment_name = "Ivermectin_Example"
+    experiment_name = "all_reports example"
 
     # create EMODTask
     print("Creating EMODTask (from files)...")
@@ -117,6 +99,44 @@ def general_sim():
         param_custom_cb=set_config_parameters,
         demog_builder=build_demographics
     )
+
+    """THIS IS WHERE WE ADD THE REPORTS"""
+
+
+    # ReportDrugStatus
+    add_drug_status_report(task, manifest, start_day=5, end_day=43)
+
+    # ReportHumanMigrationTracking
+    add_human_migration_tracking(task, manifest)
+
+
+    # ReportEventCounter
+    add_report_event_counter(task, manifest, event_trigger_list=["HappyBirthday"], report_description="HappyBirthday")
+
+    # MalariaImmunityReport
+    add_malaria_immunity_report(task, manifest, duration_days=10, reporting_interval=2, max_number_reports=2, nodes=[],
+                                age_bins=[24, 50, 115], report_description="TestReport2")
+
+    # MalariaPatientJSONReport
+    add_malaria_patient_json_report(task, manifest)
+
+    # MalariaSummaryReport
+    add_malaria_summary_report(task, manifest, start_day=56, duration=23, reporting_interval=7, age_bins=[3, 77, 115],
+                               infectiousness_bins=[0.023, 0.1, 0.5], max_number_reports=3, parasitemia_bins=[12, 3423],
+                               pretty_format=True, report_description="TestReport3")
+
+    # ReportNodeDemographics
+    add_report_node_demographics(task, manifest, age_bins=[5, 25, 100])
+
+    # ReportVectorMigration
+    add_report_vector_migration(task, manifest, start_day=56, end_day=64)
+
+    add_report_vector_stats(task, manifest, species_list=["arabiensis", "gambiae"], stratify_by_species=1)
+    add_drug_status_report(task, manifest, start_day=25, end_day=37)
+
+
+    add_spatial_report_malaria_filtered(task, manifest)
+    add_vector_habitat_report(task, manifest)
 
     # We are creating one-simulation experiment straight from task.
     # If you are doing a sweep, please see sweep_* examples.
@@ -139,8 +159,8 @@ def general_sim():
 
 if __name__ == "__main__":
     # Getting the latest LINUX version of eradicaiton app
-    plan = EradicationBambooBuilds.MALARIA_LINUX
-    print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files(plan, manifest)
-    print("...done.")
+    # plan = EradicationBambooBuilds.MALARIA_LINUX
+    # print("Retrieving Eradication and schema.json from Bamboo...")
+    # get_model_files(plan, manifest)
+    # print("...done.")
     general_sim()

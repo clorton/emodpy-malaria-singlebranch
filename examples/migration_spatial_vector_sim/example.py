@@ -18,7 +18,7 @@ from emodpy.bamboo import get_model_files
 import emod_api.migration as migration
 
 from emodpy_malaria import vector_config
-from emodpy_malaria import config as malaria_config
+from emodpy_malaria import malaria_config as malaria_config
 import manifest
 
 """

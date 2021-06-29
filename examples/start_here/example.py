@@ -18,7 +18,7 @@ from emodpy.bamboo import get_model_files
 from emodpy.reporters.custom import *
 import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malconf
+
 import params
 import set_config
 import manifest
@@ -58,7 +58,8 @@ def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
-    import emodpy_malaria.config as conf
+    import emodpy_malaria.malaria_config as conf
+    import emodpy_malaria.vector_config as vector_config
     conf.set_team_defaults(config, manifest)
     set_config.set_config(config)
     conf.set_species( config, [ "gambiae" ] )
@@ -66,7 +67,7 @@ def set_param_fn(config):
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 2*112500000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
+    vector_config.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
 
     conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
     config.parameters.Base_Rainfall = 150
@@ -149,29 +150,6 @@ def run():
     task.reporters.add_reporter(reporter)
 
 
-    from emodpy_malaria.reporters.builtin import FilteredMalariaReport
-    def fmr_config_builder( params ):
-        throwaway = 29
-        start_day=throwaway * 365
-        end_day=(throwaway + 1) * 365
-        """
-        These are the params from the schema at time of coding (3/23/21):
-        Start_Day
-        End_Day
-        Inset_Chart_Has_Interventions
-        Inset_Chart_Reporting_Include_30Day_Avg_Infection_Duration
-        Node_IDs_Of_Interest
-        Report_File_Name
-        Sim_Types
-        """
-        params.Start_Day = start_day
-        params.End_Day = end_day
-        params.Node_IDs_Of_Interest = list()
-        #params.description = "tbd"
-        return params
-    filtered_report = FilteredMalariaReport()
-    filtered_report.config( fmr_config_builder, manifest )
-    task.reporters.add_reporter(filtered_report) 
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()

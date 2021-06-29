@@ -19,7 +19,8 @@ from emodpy.bamboo import get_model_files
 from emodpy_malaria.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malconf
+from emodpy_malaria import malaria_config as malconf
+from emodpy_malaria import vector_config as vector_config
 import params
 import set_config
 import manifest
@@ -59,7 +60,7 @@ def set_param_fn(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
 
-    import emodpy_malaria.config as conf
+    import emodpy_malaria.malaria_config as conf
     config = conf.set_team_defaults( config, manifest )
     conf.set_species( config, [ "gambiae" ] )
     config = set_config.set_config( config )
@@ -67,7 +68,7 @@ def set_param_fn(config):
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 225000000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
+    vector_config.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365

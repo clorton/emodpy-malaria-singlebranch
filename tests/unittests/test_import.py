@@ -41,7 +41,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import drug
 
         self.expected_items = [
-            "AntiMalarialDrug", "utils"
+            "AntimalarialDrug", "utils"
         ]
         self.verify_expected_items_present(namespace=drug)
         return
@@ -101,7 +101,7 @@ class MalariaTestImports(unittest.TestCase):
     def test_ivermectin(self):
         from emodpy_malaria.interventions import ivermectin
         self.expected_items = [
-            "ivermectin"
+            "Ivermectin"
         ]
         self.verify_expected_items_present(namespace=ivermectin)
 
@@ -115,7 +115,7 @@ class MalariaTestImports(unittest.TestCase):
     def test_common_imports(self):
         from emodpy_malaria.interventions import common
         self.expected_items = [
-            "AntiMalarialDrug", "MalariaDiagnostic"
+            "AntimalarialDrug", "MalariaDiagnostic"
         ]
 
         self.verify_expected_items_present(namespace=common)
@@ -135,7 +135,7 @@ class MalariaTestImports(unittest.TestCase):
 
     # region config
     def test_config_imports(self):
-        import emodpy_malaria.config as conf
+        import emodpy_malaria.malaria_config as conf
 
         self.expected_items = [
             "get_file_from_http", "set_team_defaults",
