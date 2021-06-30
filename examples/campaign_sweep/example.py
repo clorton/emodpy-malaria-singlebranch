@@ -151,7 +151,7 @@ def general_sim():
     task = emod_task.EMODTask.from_default2(
         config_path="config.json",
         eradication_path=manifest.eradication_path,
-        campaign_builder=build_campaign,
+        campaign_builder=None,
         schema_path=manifest.schema_file,
         ep4_custom_cb=None,
         param_custom_cb=set_config_parameters,

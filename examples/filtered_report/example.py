@@ -58,17 +58,18 @@ def set_param_fn(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
 
-    import emodpy_malaria.malaria_config as conf
-    config = conf.set_team_defaults(config, manifest)
+    import emodpy_malaria.malaria_config as mal_conf
+    import emodpy_malaria.vector_config as vec_conf
+    config = mal_conf.set_team_defaults(config, manifest)
     config = set_config.set_config(config)
-    conf.set_species( config, [ "gambiae" ] )
+    vec_conf.set_species( config, [ "gambiae" ] )
 
     lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
     lhm.parameters.Max_Larval_Capacity = 2*112500000
     lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
+    vec_conf.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
 
-    conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
+    mal_conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
     config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
@@ -150,7 +151,7 @@ def general_sim( erad_path, ep4_scripts ):
     task.reporters.add_reporter(reporter)
 
 
-    from emodpy_malaria.reporters.builtin import FilteredMalariaReport
+    from emodpy_malaria.reporters.builtin import SpatialReportMalariaFiltered as SRMF
     def fmr_config_builder( params ):
         throwaway = 0
         start_day=throwaway * 365
@@ -170,7 +171,7 @@ def general_sim( erad_path, ep4_scripts ):
         params.Node_IDs_Of_Interest = list()
         #params.description = "tbd"
         return params
-    filtered_report = FilteredMalariaReport()
+    filtered_report = SRMF()
     filtered_report.config( fmr_config_builder, manifest )
     task.reporters.add_reporter(filtered_report) 
 

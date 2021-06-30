@@ -153,14 +153,14 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open(manifest.experiment_id, "w") as fd:
         fd.write(experiment.uid.hex)
 
 
 if __name__ == "__main__":
     # Getting the latest LINUX version of eradicaiton app
-    # plan = EradicationBambooBuilds.MALARIA_LINUX
-    # print("Retrieving Eradication and schema.json from Bamboo...")
-    # get_model_files(plan, manifest)
-    # print("...done.")
+    plan = EradicationBambooBuilds.MALARIA_LINUX
+    print("Retrieving Eradication and schema.json from Bamboo...")
+    get_model_files(plan, manifest)
+    print("...done.")
     general_sim()

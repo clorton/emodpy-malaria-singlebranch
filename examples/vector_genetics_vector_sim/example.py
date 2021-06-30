@@ -74,7 +74,7 @@ def build_campaign():
     campaign.schema_path = manifest.schema_file
 
     campaign.add(
-        mr.mosquito_release(campaign, start_day=1, released_number=20000, released_infectious=0.2,
+        mr.MosquitoRelease(campaign, start_day=1, released_number=20000, released_infectious=0.2,
                             released_species="gambiae",
                             released_genome=[["X", "X"], ["a", "b"], ["three", "three"]]))
 
@@ -163,7 +163,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open(manifest.experiment_id, "w") as fd:
         fd.write(experiment.uid.hex)
     print()
     print(experiment.uid.hex)
@@ -172,6 +172,7 @@ def general_sim():
 if __name__ == "__main__":
     plan = EradicationBambooBuilds.MALARIA_LINUX
     print("Retrieving Eradication and schema.json from Bamboo...")
-    #get_model_files(plan, manifest)
+    from emodpy.bamboo import get_model_files
+    get_model_files(plan, manifest)
     print("...done.")
     general_sim()

@@ -70,8 +70,7 @@ def set_param_fn(config):
 
     conf.set_species( config, "gambiae" )
     config.parameters.Simulation_Duration = 365*5
-    config.parameters.Climate_Model = "CLIMATE_CONSTANT"
-    config.parameters.Enable_Disease_Mortality = 0
+    config.parameters.Malaria_Model = "MALARIA_MECHANISTIC_MODEL_WITH_CO_TRANSMISSION"
     config.parameters.Enable_Vector_Species_Report = 1
     config.parameters.pop( "Serialized_Population_Filenames" ) 
 
@@ -94,7 +93,7 @@ def build_camp():
     
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
     camp.add( irs.IRSHousingModification( camp, start_day=100, coverage=0.5, killing_eff=0.5, repelling_eff=0.5 ) )
-    camp.add( drug.AntiMalarialDrug( camp, start_day=300, coverage=0.5 ) )
+    camp.add( drug.AntimalarialDrug( camp, start_day=300, coverage=0.5 ) )
     """
     add_IRS(cb, start=start,
             coverage_by_ages=[{'coverage': coverage}],
@@ -121,10 +120,10 @@ def build_demog():
 
     """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics
-    import emod_api.migration.Migration as Migration
+    import emod_api.migration as mig
 
     demog = Demographics.from_params( tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria" )
-    mig = Migration.from_params( pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", migration_type=Migration.Migration.REGIONAL ) 
+    mig = mig.from_params( pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", migration_type=mig.Migration.REGIONAL ) 
 
     return demog, mig
 
@@ -135,7 +134,7 @@ def add_reports( task, manifest ):
     """
 
     from emodpy_malaria.reporters.builtin import MalariaSummaryReport
-    from emodpy_malaria.reporters.builtin import MalariaTransmissionReport
+    from emodpy_malaria.reporters.builtin import ReportSimpleMalariaTransmissionJSON as MTR
     from emodpy.reporters.builtin import ReportHumanMigrationTracking
     reporter = MalariaSummaryReport()  # Create the reporter
     def msr_config_builder( params ):
@@ -145,7 +144,7 @@ def add_reports( task, manifest ):
         params.Max_Number_Reports = 1
         params.Age_Bins = [2, 10, 125]
         params.Parasitemia_Bins = [0, 50, 200, 500, 2000000] 
-        params.Event_Trigger_List.append("NewInfectionEvent")
+        #params.Event_Trigger_List.append("NewInfectionEvent")
 
         return params
 
@@ -153,14 +152,14 @@ def add_reports( task, manifest ):
     task.reporters.add_reporter(reporter)
 
 
-    reporter = MalariaTransmissionReport()  # Create the reporter
+    reporter = MTR()  # Create the reporter
     def mtr_config_builder( params ):
         report_start = 1
         years = 1
         params.Duration_Days = (years-report_start)*365
         params.Start_Day = (report_start)*365
         params.Report_Description = "Jon's Transmission Report"
-        params.Event_Trigger_List.append("NewInfectionEvent")
+        #params.Event_Trigger_List.append("NewInfectionEvent")
         # 'class', '', 'Event_Trigger_List', 'Nodeset_Config', 'Pretty_Format'
 
         return params
