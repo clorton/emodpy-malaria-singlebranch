@@ -64,3 +64,41 @@ I see a lot of MALARIA_SIM examples. Are there any VECTOR_SIM examples?
       * examples/vector_basic
       * examples/vector_genetics_insecticide_resistance
       * examples/vector_genetics_vector_sim
+
+Is there a multi-node or spatial example?
+   Yes. See:
+
+      * examples/migration_spatial_vector_sim/example.py
+      * examples/migration_spatial_malaria_sim/example.py
+      * examples/jonr_1/example.py
+
+Are there simple campaign/intervention examples?
+   Yes. See:
+      * examples/outdoor_rest_kill_male_mosquitoes/example.py
+      * examples/inputEIR/example.py
+      * examples/ivermectin/example.py
+
+Is there a drug campaign example?
+   Yes. See:
+      * examples/drug_campaign/example.py
+      * examples/diagnostic_survey/example.py
+
+Is there a campaign sweep example?
+   Yes. See:
+      * examples/campaign_sweep/example.py
+
+Is there a demographics sweep example?
+   Yes. See:
+      * examples/demographics_sweep/example.py
+
+Is there a serialization/burn-in example?
+   Yes. See:
+      * examples/burnin_create/example.py
+      * examples/burnin_use/example.py
+
+Is there a reporter configuration example?
+   Yes. See:
+      * examples/add_reports/example.py
+      * examples/filtered_report/example.py
+
+
