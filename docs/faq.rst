@@ -73,30 +73,36 @@ Is there a multi-node or spatial example?
       * examples/jonr_1/example.py
 
 Are there simple campaign/intervention examples?
+
    Yes. See:
       * examples/outdoor_rest_kill_male_mosquitoes/example.py
       * examples/inputEIR/example.py
       * examples/ivermectin/example.py
 
 Is there a drug campaign example?
+
    Yes. See:
       * examples/drug_campaign/example.py
       * examples/diagnostic_survey/example.py
 
 Is there a campaign sweep example?
+
    Yes. See:
       * examples/campaign_sweep/example.py
 
 Is there a demographics sweep example?
+
    Yes. See:
       * examples/demographics_sweep/example.py
 
 Is there a serialization/burn-in example?
+
    Yes. See:
       * examples/burnin_create/example.py
       * examples/burnin_use/example.py
 
 Is there a reporter configuration example?
+
    Yes. See:
       * examples/add_reports/example.py
       * examples/filtered_report/example.py
