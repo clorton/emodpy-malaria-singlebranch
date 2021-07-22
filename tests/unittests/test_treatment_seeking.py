@@ -19,7 +19,6 @@ import schema_path_file
 class ResultType(Enum):
     EQUAL = 0
     NOT_EQUAL = 1
-    NOT_PRESENT = 2
 
 
 class TreatmentSeekingTest(unittest.TestCase):
@@ -100,13 +99,16 @@ class TreatmentSeekingTest(unittest.TestCase):
         Returns:
         """
         count = []
-        if self.is_valueequal_internal(test_dict, test_key, test_value, count) == ResultType.EQUAL:
+        result = self.is_valueequal_internal(test_dict, test_key, test_value)
+        if result == ResultType.EQUAL:
             return True
-        else:
+        elif result == ResultType.NOT_EQUAL:
             return False
 
-    def is_valueequal_internal(self, test_dict: dict, test_key: str, test_value, count: list = []):
+
+    def is_valueequal_internal(self, test_dict: dict, test_key: str, test_value):
         """
+        NOTE: This breaks if the test_value/value is a list of int/strs, so I hacked it at the bottom
         Args:
             test_dict:
             test_key:
@@ -116,34 +118,32 @@ class TreatmentSeekingTest(unittest.TestCase):
         """
         if test_key in test_dict:
             if test_value == test_dict[test_key]:
-                count.append("Y")
                 return ResultType.EQUAL
             else:
                 return ResultType.NOT_EQUAL
         else:
             for key, value in test_dict.items():
                 if isinstance(value, dict):
-                    if self.is_valueequal_internal(value, test_key, test_value, count) == ResultType.NOT_EQUAL:
+                    if self.is_valueequal_internal(value, test_key, test_value) == ResultType.NOT_EQUAL:
                         return ResultType.NOT_EQUAL
-
                 elif isinstance(value, list):
                     for item in value:
                         if isinstance(item, dict):
-                            if self.is_valueequal_internal(item, test_key, test_value, count) == ResultType.NOT_EQUAL:
+                            if self.is_valueequal_internal(item, test_key, test_value) == ResultType.NOT_EQUAL:
                                 return ResultType.NOT_EQUAL
+                else:
+                    # this means that it's a list of ints or strings and we don't need to worry about it
+                    return ResultType.EQUAL
 
-        if not count:
-            return ResultType.NOT_PRESENT
-        else:
-            return ResultType.EQUAL
+
 
     def to_test_is_valueequal(self):
         key = "test_key"
         value = "test_value"
-        dict_1 = {"a lit": [{key: value}]}
+        dict_1 = {"a list": [{key: value}]}
         self.assertTrue(self.is_valueequal(dict_1, key, value))
         self.assertTrue(self.is_valueequal({key: value}, key, value))
-        dict_2 = {"a lit": [{key: value}], "another list": [{'a': 1}, {key: value + "1"}]}
+        dict_2 = {"a list": [{key: value}], "another list": [{'a': 1}, {key: value + "1"}]}
         self.assertFalse(self.is_valueequal(dict_2, key, value))
 
     def run_in_comps(self, campaign_buider, broadcast_event_name='Received_Treatment'):
@@ -158,7 +158,9 @@ class TreatmentSeekingTest(unittest.TestCase):
         pass
 
     @staticmethod
-    def save_varaibles_to_json_files(variable_dict={}, path_to_save=Path('.')):
+    def save_varaibles_to_json_files(variable_dict=None, path_to_save=Path('.')):
+        if not variable_dict:
+            variable_dict = {}
         if path_to_save.is_dir():
             shutil.rmtree(path_to_save)
         path_to_save.mkdir()
@@ -182,7 +184,7 @@ class TreatmentSeekingTest(unittest.TestCase):
             variable_dict[variable_name] = variable
         return variable_dict
 
-    def save_json_files(self, locals, variables=[], path_to_save=""):
+    def save_json_files(self, locals, variables=None, path_to_save=""):
         """
         Save a list of variables as json files, named by the original variable name.
         Args:
@@ -191,6 +193,8 @@ class TreatmentSeekingTest(unittest.TestCase):
             path_to_save:
         Returns:
         """
+        if not variables:
+            variables = []
         variable_dict = self.generate_variable_dict(locals, variables)
         p = Path('health_seaking')
         if not p.is_dir():
@@ -215,6 +219,7 @@ class TreatmentSeekingTest(unittest.TestCase):
         node_ids = [1, 2]
         ind_property_restrictions = [{"IndividualProperty1": "PropertyValue1"},
                                      {"IndividualProperty2": "PropertyValue2"}]
+        # ind_property_restrictions = ["IndividualProperty1:PropertyValue1", "IndividualProperty2:PropertyValue2"]
         drug_ineligibility_duration = 5
         duration = 15
 
@@ -306,6 +311,9 @@ class TreatmentSeekingTest(unittest.TestCase):
 
     def validate_campaign(self, broadcast_event_name, campaign, drug, targets, drug_ineligibility_duration=0,
                           duration=-1, ind_property_restrictions=None, node_ids=None, start_day=1):
+        if not ind_property_restrictions:
+            ind_property_restrictions = []
+
         events = campaign['Events']
         self.assertEqual(len(events), len(targets))
 
@@ -367,11 +375,13 @@ class TreatmentSeekingTest(unittest.TestCase):
             } if node_ids else {"class": "NodeSetAll"}
             self.assertEqual(expected_nodeset_config, event['Nodeset_Config'])
 
+            property_restrictions_param = "Property_Restrictions"
+            if ind_property_restrictions:
+                if isinstance(ind_property_restrictions[0], dict):
+                    property_restrictions_param = "Property_Restrictions_Within_Node"
             # test ind_property_restrictions
-            if not ind_property_restrictions:
-                ind_property_restrictions = []
             self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']
-                             ['Property_Restrictions_Within_Node'],  # Property_Restrictions_Within_Node
+                             [property_restrictions_param],  # Property_Restrictions_Within_Node
                              ind_property_restrictions)
 
             # test duration

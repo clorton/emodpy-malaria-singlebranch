@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "InterventionUpdate4 (116c6be)",
-        "DTK_Build_Date": "Apr 27 2021 11:56:48",
-        "DTK_Version": "2.20.5009.0"
+        "DTK_Branch": "FPG2_to_MO(3a5c3ad7c8)",
+        "DTK_Build_Date": "Jul  9 2021",
+        "DTK_Version": "2.20.5043.0"
     },
     "config": {
         "Climate.ByData": {
@@ -359,12 +359,6 @@
                 "item_type": "idmType:Insecticide",
                 "type": "Vector idmType:Insecticide"
             },
-            "Malaria_Drug_Params": {
-                "default": [],
-                "description": "This JSON structure contains the names of anti-malarial drugs and the parameters that define them.",
-                "item_type": "idmType:MalariaDrugTypeParameters",
-                "type": "Vector idmType:MalariaDrugTypeParameters"
-            },
             "Migration_Model": {
                 "default": "NO_MIGRATION",
                 "description": "Model to use for migration.  Note: VARIABLE_RATE_MIGRATION and LEVY FLIGHTS are currently not supported.",
@@ -470,7 +464,7 @@
             "Enable_Superinfection": {
                 "default": 0,
                 "depends-on": {
-                    "Simulation_Type": "VECTOR_SIM,STI_SIM,ENVIRONMENTAL_SIM,MALARIA_SIM"
+                    "Simulation_Type": "STI_SIM,ENVIRONMENTAL_SIM,VECTOR_SIM,MALARIA_SIM"
                 },
                 "description": "Controls whether or not an individual can have multiple infections simultaneously.",
                 "type": "bool"
@@ -1001,6 +995,16 @@
                 "min": 1,
                 "type": "integer"
             },
+            "Number_Substrains": {
+                "default": 1,
+                "depends-on": {
+                    "Simulation_Type": "GENERIC_SIM, ENVIRONMENTAL_SIM, TBHIV_SIM"
+                },
+                "description": "The number of disease substrains for each base strain, such as genetic variants.",
+                "max": 16777200.0,
+                "min": 1,
+                "type": "integer"
+            },
             "Symptomatic_Infectious_Offset": {
                 "default": 3.40282e+38,
                 "depends-on": {
@@ -1139,32 +1143,6 @@
                 "description": "A value of one will cause the VectorSpeciesReport.json file to be created.",
                 "type": "bool"
             },
-            "Falciparum_MSP_Variants": {
-                "default": 100,
-                "description": "The number of distinct MSP variants for P. falciparum malaria in the overall parasite population in the simulation, not necessarily in an individual.",
-                "max": 1000,
-                "min": 0,
-                "type": "integer"
-            },
-            "Falciparum_Nonspecific_Types": {
-                "default": 20,
-                "description": "The number of distinct non-specific types of P. falciparum malaria.",
-                "max": 1000,
-                "min": 0,
-                "type": "integer"
-            },
-            "Falciparum_PfEMP1_Variants": {
-                "default": 1000,
-                "description": "The number of distinct PfEMP1 variants for P. falciparum malaria in the overall parasite population in the simulation.",
-                "max": 100000,
-                "min": 0,
-                "type": "integer"
-            },
-            "Genome_Markers": {
-                "default": [],
-                "description": "A list of the names (strings) of genome marker(s) that represent the genetic components in a strain of an infection.",
-                "type": "Vector String"
-            },
             "Human_Feeding_Mortality": {
                 "default": 0.1,
                 "description": "The fraction of mosquitoes, for all species, that die while feeding on a human.",
@@ -1220,12 +1198,6 @@
                 "min": 0.01,
                 "type": "float"
             },
-            "Malaria_Drug_Params": {
-                "default": [],
-                "description": "This JSON structure contains the names of anti-malarial drugs and the parameters that define them.",
-                "item_type": "idmType:MalariaDrugTypeParameters",
-                "type": "Vector idmType:MalariaDrugTypeParameters"
-            },
             "Mean_Egg_Hatch_Delay": {
                 "default": 0,
                 "description": "The mean delay in egg hatch time, in days, from the time of oviposition.",
@@ -1248,15 +1220,6 @@
                 "max": 90,
                 "min": 0.004167,
                 "type": "float"
-            },
-            "PKPD_Model": {
-                "default": "FIXED_DURATION_CONSTANT_EFFECT",
-                "description": "The pharmacokinetic pharmacodynamic model to use.",
-                "enum": [
-                    "FIXED_DURATION_CONSTANT_EFFECT",
-                    "CONCENTRATION_VERSUS_TIME"
-                ],
-                "type": "enum"
             },
             "Rainfall_In_mm_To_Fill_Swamp": {
                 "default": 1000,
@@ -2908,6 +2871,14 @@
                 "description": "Controls whether or not an exogeneous reservoir of infectivity will be included in the simulation and allows for the infectivity in a node to be increased additively.",
                 "type": "bool"
             },
+            "Enable_Initial_Prevalence": {
+                "default": 0,
+                "depends-on": {
+                    "Simulation_Type": "GENERIC_SIM, VECTOR_SIM, STI_SIM, ENVIRONMENTAL_SIM, MALARIA_SIM"
+                },
+                "description": "Controls whether or not parameters in the demographics file are used to define a distribution for the number of infected people per node at the beginning of the simulation. Set the distribution under IndividualAttributes using PrevalenceDistributionFlag, PrevalenceDistribution1, and PrevalenceDistribution2.",
+                "type": "bool"
+            },
             "Enable_Maternal_Infection_Transmission": {
                 "default": 0,
                 "depends-on": {
@@ -4198,10 +4169,37 @@
                 "description": "Controls whether or not the simulation should be ended when total infectivity falls to zero. Supported only in single-node simulations.",
                 "type": "bool"
             },
+            "Falciparum_MSP_Variants": {
+                "default": 100,
+                "description": "The number of distinct MSP variants for P. falciparum malaria in the overall parasite population in the simulation, not necessarily in an individual.",
+                "max": 1000,
+                "min": 0,
+                "type": "integer"
+            },
+            "Falciparum_Nonspecific_Types": {
+                "default": 20,
+                "description": "The number of distinct non-specific types of P. falciparum malaria.",
+                "max": 1000,
+                "min": 0,
+                "type": "integer"
+            },
+            "Falciparum_PfEMP1_Variants": {
+                "default": 1000,
+                "description": "The number of distinct PfEMP1 variants for P. falciparum malaria in the overall parasite population in the simulation.",
+                "max": 100000,
+                "min": 0,
+                "type": "integer"
+            },
             "Load_Balance_Filename": {
                 "default": "UNINITIALIZED STRING",
                 "description": "Path to input file used when a static load balancing scheme is selected.",
                 "type": "string"
+            },
+            "Malaria_Drug_Params": {
+                "default": [],
+                "description": "This JSON structure contains the names of anti-malarial drugs and the parameters that define them.",
+                "item_type": "idmType:MalariaDrugTypeParameters",
+                "type": "Vector idmType:MalariaDrugTypeParameters"
             },
             "Malaria_Model": {
                 "default": "MALARIA_MECHANISTIC_MODEL",
@@ -4797,12 +4795,6 @@
                 "max": 1000,
                 "min": 0.01,
                 "type": "float"
-            },
-            "Malaria_Drug_Params": {
-                "default": [],
-                "description": "This JSON structure contains the names of anti-malarial drugs and the parameters that define them.",
-                "item_type": "idmType:MalariaDrugTypeParameters",
-                "type": "Vector idmType:MalariaDrugTypeParameters"
             },
             "Mean_Egg_Hatch_Delay": {
                 "default": 0,
@@ -9116,50 +9108,13 @@
                     "class": "OutbreakIndividual",
                     "iv_type": "IndividualTargeted"
                 },
-                "OutbreakIndividualMalaria": {
-                    "Antigen": {
-                        "default": 0,
-                        "description": "The antigenic base strain ID of the outbreak infection.",
-                        "max": 10,
-                        "min": 0,
-                        "type": "integer"
-                    },
-                    "Create_Random_Genome": {
-                        "default": 0,
-                        "description": "If set to true (1), then a random genome is created for the infection and the Genome_Markers parameter is not used. If set to false (0), then you must define the  Genome_Markers parameter which allows you to then specify genetic components in a strain of infection.",
-                        "type": "bool"
-                    },
-                    "Genome_Markers": {
-                        "default": [],
-                        "description": "A list of the names of genome marker(s) that represent the genetic components in a strain of an infection.",
-                        "type": "Vector String",
-                        "value_source": "<configuration>.Genome_Markers"
-                    },
-                    "Ignore_Immunity": {
-                        "default": 1,
-                        "description": "Individuals will be force-infected (with a specific strain) regardless of actual immunity level when set to true (1).",
-                        "type": "bool"
-                    },
-                    "Incubation_Period_Override": {
-                        "default": -1,
-                        "description": "The incubation period, in days, that infected individuals will go through before becoming infectious. This value overrides the incubation period set in the configuration file. Set to -1 to honor the configuration parameter settings.",
-                        "max": 2147480000.0,
-                        "min": -1,
-                        "type": "integer"
-                    },
-                    "Sim_Types": [
-                        "MALARIA_SIM"
-                    ],
-                    "class": "OutbreakIndividualMalaria",
-                    "iv_type": "IndividualTargeted"
-                },
                 "OutbreakIndividualMalariaGenetics": {
                     "Barcode_Allele_Frequencies_Per_Genome_Location": {
                         "default": [],
                         "depends-on": {
                             "Create_Nucleotide_Sequence_From": "ALLELE_FREQUENCIES"
                         },
-                        "description": "The fractions of allele occurences for each location in the barcode.  This 2D array should have one array for each location/character in the barcode.  For each location, there should be four values between 0 and 1 indicating the probability that specific character will appear.  The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3.",
+                        "description": "The fractions of allele occurrences for each location in the barcode.  This 2D array should have one array for each location/character in the barcode.  For each location, there should be four values between 0 and 1 indicating the probability that specific character will appear.  The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3.",
                         "max": 1,
                         "min": 0,
                         "type": "Vector2d Float"
@@ -9169,7 +9124,7 @@
                         "depends-on": {
                             "Create_Nucleotide_Sequence_From": "NUCLEOTIDE_SEQUENCE,BARCODE_STRING"
                         },
-                        "description": "A series of nucleotide base letters (A, C, G, T) that represent the values at locations in the genome.",
+                        "description": "A series of nucleotide base letters (A, C, G, T) that represent the barcode values at locations in the genome.",
                         "type": "string"
                     },
                     "Create_Nucleotide_Sequence_From": {
@@ -9181,6 +9136,24 @@
                             "ALLELE_FREQUENCIES"
                         ],
                         "type": "enum"
+                    },
+                    "Drug_Resistant_Allele_Frequencies_Per_Genome_Location": {
+                        "default": [],
+                        "depends-on": {
+                            "Create_Nucleotide_Sequence_From": "ALLELE_FREQUENCIES"
+                        },
+                        "description": "The fractions of allele occurrences for each location in the drug resistant markers.  This 2D array should have one array for each drug resistant location.  For each location, there should be four values between 0 and 1 indicating the probability that specific character will appear.  The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3.",
+                        "max": 1,
+                        "min": 0,
+                        "type": "Vector2d Float"
+                    },
+                    "Drug_Resistant_String": {
+                        "default": "",
+                        "depends-on": {
+                            "Create_Nucleotide_Sequence_From": "NUCLEOTIDE_SEQUENCE,BARCODE_STRING"
+                        },
+                        "description": "A series of nucleotide base letters (A, C, G, T) that represent the drug resistant values at locations in the genome.  There must be one character for each location defined in <config>.Parasite_Genetics.Drug_Resistant_Genome_Locations.",
+                        "type": "string"
                     },
                     "Ignore_Immunity": {
                         "default": 1,
@@ -9210,7 +9183,7 @@
                         "depends-on": {
                             "Create_Nucleotide_Sequence_From": "NUCLEOTIDE_SEQUENCE"
                         },
-                        "description": "The PfEMP1 Variant values / major empitopes that are used to define how the antiboies will recognize the infected red blood cells.",
+                        "description": "The PfEMP1 Variant values / major epitopes that are used to define how the antiboies will recognize the infected red blood cells.",
                         "max": 10000,
                         "min": 0,
                         "type": "Vector Int"
@@ -12847,6 +12820,28 @@
             },
             "class": "DoseFractionByAge"
         },
+        "idmType:DrugModifier": {
+            "Drug_Resistant_String": {
+                "default": "",
+                "description": "A series of nucleotide base letters (A, C, G, T) that represent the drug resistant values at locations in the genome.  There must be one character for each location defined in <config>.Parasite_Genetics.Drug_Resistant_Genome_Locations.",
+                "type": "string"
+            },
+            "Max_IRBC_Kill_Modifier": {
+                "default": 1,
+                "description": "If the parasite has this drug resistant string, this value will be multiplied times the 'Max_Drug_IRBC_Kill' value of the drug.  Genomes with multiple matching strings will be simply multiplied together.",
+                "max": 1000,
+                "min": 0,
+                "type": "float"
+            },
+            "PKPD_C50_Modifier": {
+                "default": 1,
+                "description": "If the parasite has this drug resistant string, this value will be multiplied times the 'Drug_PKPD_C50' value of the drug.  Genomes with multiple matching strings will be simply multiplied together.",
+                "max": 1000,
+                "min": 0,
+                "type": "float"
+            },
+            "class": "DrugModifier"
+        },
         "idmType:GeneToTraitModifierConfig": {
             "Allele_Combinations": {
                 "default": [],
@@ -12861,29 +12856,6 @@
                 "type": "Vector idmType:TraitModifier"
             },
             "class": "GeneToTraitModifierConfig"
-        },
-        "idmType:GenomeMarkerModifiers": {
-            "Genome_Marker_Name": {
-                "default": "",
-                "description": "The name of the marker associated with these resistance parameters.  The name must be deinfed in 'Genome_Markers'.",
-                "type": "Constrained String",
-                "value_source": "<configuration>:Genome_Markers"
-            },
-            "Max_IRBC_Kill_Modifier": {
-                "default": 1,
-                "description": "If the parasite has this genome marker, this value will be multiplied times the 'Max_Drug_IRBC_Kill' value of the drug.  Genomes with multiple markers will be simply multiplied together.",
-                "max": 1000,
-                "min": 0,
-                "type": "float"
-            },
-            "PKPD_C50_Modifier": {
-                "default": 1,
-                "description": "If the parasite has this genome marker, this value will be multiplied times the 'Drug_PKPD_C50' value of the drug.  Genomes with multiple markers will be simply multiplied together.",
-                "max": 1000,
-                "min": 0,
-                "type": "float"
-            },
-            "class": "GenomeMarkerModifiers"
         },
         "idmType:IReport": {
             "MalariaImmunityReport": {
@@ -12935,7 +12907,7 @@
                 ],
                 "Start_Day": {
                     "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
+                    "description": "The day of the simulation to start collecting data.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
@@ -12955,6 +12927,11 @@
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
+                },
+                "Include_Drug_Status_Table": {
+                    "default": 0,
+                    "description": "Include the table that provides data at each time step for each drug the person has.",
+                    "type": "bool"
                 },
                 "Include_Health_Table": {
                     "default": 1,
@@ -13048,7 +13025,7 @@
                 ],
                 "Start_Day": {
                     "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
+                    "description": "The day of the simulation to start collecting data.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
@@ -13170,7 +13147,7 @@
                 ],
                 "Start_Day": {
                     "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
+                    "description": "The day of the simulation to start collecting data.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
@@ -13288,7 +13265,7 @@
                 ],
                 "Start_Day": {
                     "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
+                    "description": "The day of the simulation to start collecting data.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
@@ -13403,7 +13380,21 @@
                 },
                 "Barcodes": {
                     "default": [],
-                    "description": "A list of barcode strings where a column will be created with the number of human infections with that barcode.  One can use '*' for a wild card.  A 'BarcodeOther' column will be created for barcodes not defined.",
+                    "description": "A list of barcode strings where a column will be created with the number of humans with infections with that barcode.  One can use '*' for a wild card.  A 'BarcodeOther' column will be created for barcodes not defined.",
+                    "type": "Vector String"
+                },
+                "Drug_Resistant_Stat_Type": {
+                    "default": "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
+                    "description": "Indicates the stat in the Drug Resistant columns: NUM_PEOPLE_WITH_RESISTANT_INFECTION = A person is counted if they have one infection with that drug resistant marker; NUM_INFECTIONS = The total number of infections with that marker.",
+                    "enum": [
+                        "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
+                        "NUM_INFECTIONS"
+                    ],
+                    "type": "enum"
+                },
+                "Drug_Resistant_Strings": {
+                    "default": [],
+                    "description": "A list of strings representing the set of drug resistant markers.  A column will be created with the number of humans infetions with that barcode.  One can use '*' for a wild card.  A 'BarcodeOther' column will be created for barcodes not defined.",
                     "type": "Vector String"
                 },
                 "IP_Key_To_Collect": {
@@ -13475,7 +13466,7 @@
                 ],
                 "Start_Day": {
                     "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
+                    "description": "The day of the simulation to start collecting data.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
@@ -13513,11 +13504,6 @@
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
-                },
-                "File_Name_Suffix": {
-                    "default": "",
-                    "description": "The text to add to the file name right before the extension.",
-                    "type": "string"
                 },
                 "Gender": {
                     "default": "VECTOR_FEMALE",
@@ -13558,13 +13544,13 @@
                     "depends-on": {
                         "Stratify_By": "SPECIFIC_GENOME"
                     },
-                    "description": "If stratifying by SPECIFC_GENOME, then use these genomes to stratify by. '*' = list all entries at that location, '?' = combine all entries at that location",
+                    "description": "If stratifying by SPECIFIC_GENOME, then use these genomes to stratify by. '*' = list all entries at that location, '?' = combine all entries at that location",
                     "item_type": "idmType:RVG_AlleleCombo",
                     "type": "Vector idmType:RVG_AlleleCombo"
                 },
                 "Start_Day": {
                     "default": 0,
-                    "description": "The day of the simulation to activate the event's event coordinator.",
+                    "description": "The day of the simulation to start collecting data.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"
@@ -13631,32 +13617,6 @@
                     "type": "bool"
                 },
                 "class": "ReportVectorStats"
-            },
-            "ReportVectorStatsMalaria": {
-                "Include_Gestation_Columns": {
-                    "default": 0,
-                    "description": "Adds columns for feeding and gestation",
-                    "type": "bool"
-                },
-                "Include_Wolbachia_Columns": {
-                    "default": 0,
-                    "description": "Add a column for each type of Wolbachia.  Summation of columns should equal VectorPopulation.",
-                    "type": "bool"
-                },
-                "Sim_Types": [
-                    "MALARIA_SIM"
-                ],
-                "Species_List": {
-                    "default": [],
-                    "description": "The species to include information on.",
-                    "type": "Vector String"
-                },
-                "Stratify_By_Species": {
-                    "default": 0,
-                    "description": "If true data will break out each the species for each node",
-                    "type": "bool"
-                },
-                "class": "ReportVectorStatsMalaria"
             },
             "ReportVectorStatsMalariaGenetics": {
                 "Barcodes": {
@@ -14124,6 +14084,9 @@
             },
             "Drug_Cmax": {
                 "default": 1000,
+                "depends-on": {
+                    "PKPD_Model": "CONCENTRATION_VERSUS_TIME"
+                },
                 "description": "The maximum drug concentration used.",
                 "max": 100000,
                 "min": 0,
@@ -14187,6 +14150,9 @@
             },
             "Drug_PKPD_C50": {
                 "default": 100,
+                "depends-on": {
+                    "PKPD_Model": "CONCENTRATION_VERSUS_TIME"
+                },
                 "description": "The concentration at which drug killing rates are half of maximum.",
                 "max": 100000,
                 "min": 0,
@@ -14194,6 +14160,9 @@
             },
             "Drug_Vd": {
                 "default": 10,
+                "depends-on": {
+                    "PKPD_Model": "CONCENTRATION_VERSUS_TIME"
+                },
                 "description": "The volume of drug distribution in a pharmacokinetic two compartment model. This value is the ratio of the volume of the second compartment to that of the first.",
                 "max": 100000,
                 "min": 0,
@@ -14217,11 +14186,23 @@
                 "description": "The unique name of the drug.",
                 "type": "string"
             },
-            "Resistance": {
+            "PKPD_Model": {
+                "default": "FIXED_DURATION_CONSTANT_EFFECT",
+                "description": "The pharmacokinetic pharmacodynamic model to use.",
+                "enum": [
+                    "FIXED_DURATION_CONSTANT_EFFECT",
+                    "CONCENTRATION_VERSUS_TIME"
+                ],
+                "type": "enum"
+            },
+            "Resistances": {
                 "default": [],
+                "depends-on": {
+                    "Malaria_Model": "MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS"
+                },
                 "description": "Specifies the drug resistance multiplier.",
-                "item_type": "idmType:GenomeMarkerModifiers",
-                "type": "Vector idmType:GenomeMarkerModifiers"
+                "item_type": "idmType:DrugModifier",
+                "type": "Vector idmType:DrugModifier"
             },
             "class": "MalariaDrugTypeParameters"
         },
@@ -14273,18 +14254,26 @@
                 "type": "Vector Int"
             },
             "Crossover_Gamma_K": {
-                "default": 2000,
-                "description": "The 'K' or shape parameter of the gamma distribution used to select the secondary crossover points.  Remember the mean is K*Theta and variance is K*Theta*Theta.",
-                "max": 3.40282e+38,
+                "default": 2,
+                "description": "The 'K' or shape parameter of the gamma distribution used to select the secondary crossover points.  Remember the mean is K*Theta and variance is K*Theta*Theta.  Output of the distribution is assumed to be in centimorgans which is internally converted to genome locations/base pairs.",
+                "max": 10,
                 "min": 1.19209e-07,
                 "type": "float"
             },
             "Crossover_Gamma_Theta": {
-                "default": 100,
-                "description": "The 'Theta' or scale parameter of the gamma distribution used to select the secondary crossover points.  Remember the mean is K*Theta and variance is K*Theta*Theta.",
-                "max": 3.40282e+38,
+                "default": 0.38,
+                "description": "The 'Theta' or scale parameter of the gamma distribution used to select the secondary crossover points.  Remember the mean is K*Theta and variance is K*Theta*Theta.  Output of the distribution is assumed to be in centimorgans which is internally converted to genome locations/base pairs.",
+                "max": 10,
                 "min": 1.19209e-07,
                 "type": "float"
+            },
+            "Drug_Resistant_Genome_Locations": {
+                "ascending": 1,
+                "default": [],
+                "description": "This is an array of genome locations where each drug resistant allele is found.  Its length determines the total number of possible drug related markers.  These locations and possible values can be used in Malaria_Drug_Params.Resistances to indicate when the effect of a drug should be modified.",
+                "max": 22790000.0,
+                "min": 1,
+                "type": "Vector Int"
             },
             "Enable_FPG_Similarity_To_Base": {
                 "default": 0,
@@ -14546,7 +14535,7 @@
             },
             "Var_Gene_Randomness_Type": {
                 "default": "FIXED_NEIGHBORHOOD",
-                "description": "This controls how random the var genes are in each new infection.  FIXED_NEIGHBOHOOD implies that the are set when the genome is created and each infection with this genome gets the same set of var genes.  FIXED_MSP implies that the MSP var gene is fixed but the PfEMP1 Major var genes are random for every infection.  ALL_RANDOM implies that the MPS and PfEMP1 Major var genes are random with every infection.  The minor epitopes are always random.",
+                "description": "This controls how random the var genes are in each new infection.  FIXED_NEIGHBORHOOD implies that the are set when the genome is created and each infection with this genome gets the same set of var genes.  FIXED_MSP implies that the MSP var gene is fixed but the PfEMP1 Major var genes are random for every infection.  ALL_RANDOM implies that the MPS and PfEMP1 Major var genes are random with every infection.  The minor epitopes are always random.",
                 "enum": [
                     "FIXED_NEIGHBORHOOD",
                     "FIXED_MSP",

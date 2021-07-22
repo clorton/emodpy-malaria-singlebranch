@@ -5,23 +5,23 @@ from emod_api import schema_to_class as s2c
 import emod_api.interventions.utils as utils
 
 
-def add_report_vector_genetics(task, manifest, start_day: int = 0, duration: int = 365000,
+def add_report_vector_genetics(task, manifest, start_day: int = 0, duration_days: int = 365000,
                                nodes: list = None,
                                species: str = None, gender: str = "VECTOR_FEMALE",
-                               include_vector_state: bool = 1, stratify_by: str = "GENOME",
-                               combine_similar_genomes: bool = 0,
-                               specific_genome_combinations_for_stratification: any = None,
+                               include_vector_state: int = 1, stratify_by: str = "GENOME",
+                               combine_similar_genomes: int = 0,
+                               specific_genome_combinations_for_stratification: list = None,
                                allele_combinations_for_stratification: list = None,
                                alleles_for_stratification: list = None,
-                               report_description: str = None):
+                               report_description: str = ""):
     """
     Adds ReportVectorGenetics to the simulation. See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start reporting data
-        duration: number of days over which to report data
+        duration_days: number of days over which to report data
         nodes: the list of nodes in which to collect data, empty or None means all nodes
         species: the species to include information on
         gender: gender of species to include information on. Default: "VECTOR_FEMALE",
@@ -56,32 +56,40 @@ def add_report_vector_genetics(task, manifest, start_day: int = 0, duration: int
 
     def rec_config_builder(params):  # not used yet
         params.Start_Day = start_day
-        params.Duration_Days = duration
+        params.Duration_Days = duration_days
         params.Nodeset_Config = utils.do_nodes(manifest.schema_file, nodes)
         params.Species = species
         params.Gender = gender
         params.Include_Vector_State_Columns = include_vector_state
         params.Stratify_By = stratify_by
-        params.Combine_Similar_Genomes = combine_similar_genomes
-        params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification
-        params.Allele_Combinations_For_Stratification = allele_combinations_for_stratification
-        params.Alleles_For_Stratification = alleles_for_stratification
+        if stratify_by=="GENOME" or stratify_by == "SPECIFIC_GENOME":
+            params.Combine_Similar_Genomes = combine_similar_genomes
+        if stratify_by == "SPECIFIC_GENOME":
+            params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification if specific_genome_combinations_for_stratification else []
+        elif stratify_by == "ALLELE":
+            params.Allele_Combinations_For_Stratification = allele_combinations_for_stratification if allele_combinations_for_stratification else []
+        elif stratify_by == "ALLELE_FREQ":
+            params.Alleles_For_Stratification = alleles_for_stratification if alleles_for_stratification else []
         params.Report_Description = report_description
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_report_vector_stats(task, manifest,
                             species_list: list = None,
-                            stratify_by_species: bool = 0,
-                            include_wolbachia: bool = 0,
-                            include_gestation: bool = 0):
+                            stratify_by_species: int = 0,
+                            include_wolbachia: int = 0,
+                            include_gestation: int = 0):
     """
     Adds ReportVectorStats report to the simulation. See class definition for description of the report.
     Args:
-        task:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         species_list: a list of species to include information on
         stratify_by_species: if 1(true), data will break out each the species for each node
         include_wolbachia: if 1(true), add a column for each type of Wolbachia
@@ -94,31 +102,34 @@ def add_report_vector_stats(task, manifest,
     reporter = ReportVectorStats()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
-        params.Species_List = species_list
+        params.Species_List = species_list if species_list else []
         params.Stratify_By_Species = stratify_by_species
         params.Include_Wolbachia_Columns = include_wolbachia
         params.Include_Gestation_Columns = include_gestation
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
-def add_malaria_summary_report(task, manifest, start_day: int = 0, duration: int = 365000,
+def add_malaria_summary_report(task, manifest, start_day: int = 0, duration_days: int = 365000,
                                nodes: list = None, reporting_interval: float = 1000000,
                                age_bins: list = None, individual_property_filter: str = "",
                                infectiousness_bins: list = None, max_number_reports: int = 100,
                                parasitemia_bins: list = None,
                                pretty_format: int = 0,
-                               report_description: str = None):
+                               report_description: str = ""):
     """
     Adds MalariaSummaryReport to the simulation. See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to starts collecting data for the report
-        duration: The duration of simulation days over which to report events. The report will stop collecting
+        duration_days: The duration of simulation days over which to report events. The report will stop collecting
             data when the simulation day is greater than Start_Day + Duration_Days.
         nodes: a list of nodes from which to collect data for the report
         reporting_interval: Defines the cadence of the report by specifying how many time steps to collect data
@@ -143,7 +154,7 @@ def add_malaria_summary_report(task, manifest, start_day: int = 0, duration: int
 
     def rec_config_builder(params):  # not used yet
         params.Start_Day = start_day
-        params.Duration_Days = duration
+        params.Duration_Days = duration_days
         params.Nodeset_Config = utils.do_nodes(manifest.schema_file, nodes)
         params.Age_Bins = age_bins if age_bins else []
         params.Individual_Property_Filter = individual_property_filter
@@ -156,7 +167,10 @@ def add_malaria_summary_report(task, manifest, start_day: int = 0, duration: int
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_malaria_patient_json_report(task, manifest):
@@ -164,8 +178,8 @@ def add_malaria_patient_json_report(task, manifest):
     Adds MalariaPatientJSONReport report to the simulation. See class definition for description of the report.
     You do not need to configure any data parameters to generate this report.
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
 
     Returns:
         Nothing
@@ -177,7 +191,10 @@ def add_malaria_patient_json_report(task, manifest):
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_malaria_transmission_report(task, manifest,
@@ -191,8 +208,8 @@ def add_malaria_transmission_report(task, manifest,
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day to start collecting data for the report.
         duration_days: The duration of simulation days over which to report events. The report will stop
             collecting data when the simulation day is greater than Start_Day + Duration_Days
@@ -216,7 +233,10 @@ def add_malaria_transmission_report(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_spatial_report_malaria_filtered(task, manifest,
@@ -231,8 +251,8 @@ def add_spatial_report_malaria_filtered(task, manifest,
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day:  the day of the simulation to start collecting data
         end_day: the day of simulation to stop collecting data
         reporting_interval: defines the cadence of the report by specifying how many time steps to collect data before
@@ -266,7 +286,10 @@ def add_spatial_report_malaria_filtered(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_report_event_counter(task, manifest,
@@ -279,8 +302,8 @@ def add_report_event_counter(task, manifest,
     Adds ReportEventCounter report to the simulation.
     See class definition for description of the report.
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start counting events
         duration_days: number of days for which to count events
         event_trigger_list: list of events which to count
@@ -301,22 +324,25 @@ def add_report_event_counter(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_malaria_sql_report(task, manifest,
                            start_day: int = 0,
                            end_day: int = 365000,
-                           include_infection_table: bool = 1,
-                           include_health_table: bool = 1,
-                           include_drug_table: bool = 0):
+                           include_infection_table: int = 1,
+                           include_health_table: int = 1,
+                           include_drug_table: int = 0):
     """
     Adds MalariaSqlReport report to the simulation.
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start collecting data
         end_day: the day of the simulation to stop collecting data
         include_infection_table: if 1(true), include the table that provides data at each time step for each active
@@ -339,7 +365,10 @@ def add_malaria_sql_report(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_vector_habitat_report(task, manifest):
@@ -348,8 +377,8 @@ def add_vector_habitat_report(task, manifest):
     You do not need to configure any data parameters to generate this report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
 
     Returns:
         Nothing
@@ -361,7 +390,10 @@ def add_vector_habitat_report(task, manifest):
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_malaria_immunity_report(task, manifest,
@@ -378,8 +410,8 @@ def add_malaria_immunity_report(task, manifest,
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start collecting data
         duration_days: number of days over which to report data
         reporting_interval: defines the cadence of the report by specifying how many time steps to collect data before
@@ -411,7 +443,10 @@ def add_malaria_immunity_report(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_malaria_survey_analyzer(task, manifest,
@@ -428,8 +463,8 @@ def add_malaria_survey_analyzer(task, manifest,
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start collecting data
         duration_days: number of days over which to report data
         event_trigger_list: list of events to include into the report
@@ -451,7 +486,7 @@ def add_malaria_survey_analyzer(task, manifest,
         params.Start_Day = start_day
         params.Duration_Days = duration_days
         params.Max_Number_Reports = max_number_reports
-        params.Event_Trigger_List = event_trigger_list
+        params.Event_Trigger_List = event_trigger_list if event_trigger_list else []
         params.IP_Key_To_Collect = individual_property_to_collect
         params.Nodeset_Config = utils.do_nodes(manifest.schema_file, nodes)
         params.Pretty_Format = pretty_format
@@ -460,7 +495,10 @@ def add_malaria_survey_analyzer(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_drug_status_report(task, manifest,
@@ -471,8 +509,8 @@ def add_drug_status_report(task, manifest,
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start collecting data
         end_day: the day of the simulation to stop collecting data
 
@@ -489,18 +527,21 @@ def add_drug_status_report(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_human_migration_tracking(task, manifest):
     """
     Adds ReportHumanMigrationTracking report to the simulation.
-    There are no special parameters that need to be configured to generate the report. However, the simulation
+    There are no special parameter that need to be configured to generate the report. However, the simulation
     must have migration enabled.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
 
     Returns:
         Nothing
@@ -512,20 +553,22 @@ def add_human_migration_tracking(task, manifest):
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
-
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 def add_report_node_demographics(task, manifest,
                                  age_bins: list = None,
                                  individual_property_to_collect: str = "",
-                                 stratify_by_gender: bool = 1):
+                                 stratify_by_gender: int = 1):
     """
     Adds ReportNodeDemographics report to the simulation.
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         age_bins: the age bins (in years) to aggregate within and report. An empty array does not stratify by age. You
             must sort your input data from low to high.
         individual_property_to_collect: The name of theIndividualProperties key by which to stratify the report.
@@ -545,7 +588,10 @@ def add_report_node_demographics(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_report_node_demographics_malaria_genetics(task, manifest,
@@ -554,14 +600,14 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   drug_resistant_stat_type: str = "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
                                                   age_bins: list = None,
                                                   individual_property_to_collect: str = "",
-                                                  stratify_by_gender: bool = 1):
+                                                  stratify_by_gender: int = 1):
     """
     Adds ReportNodeDemographicsMalariaGenetics report to the simulation.
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         barcodes: a list of barcode strings. The report contains the number of human infections with each barcode.
             Use '*' for a wild card at a loci to include all values at that loci.  For example, “A*T” includes AAT,
             ACT, AGT, and ATT. The report contains a BarcodeOther column for barcodes that are not defined.
@@ -595,7 +641,10 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_report_vector_migration(task, manifest,
@@ -605,8 +654,8 @@ def add_report_vector_migration(task, manifest,
     See class definition for description of the report.
 
     Args:
-        task:
-        manifest:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         start_day: the day of the simulation to start collecting data
         end_day: the day of the simulation to stop collecting data
 
@@ -622,20 +671,24 @@ def add_report_vector_migration(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 def add_report_vector_stats_malaria_genetics(task, manifest,
                                              species_list: list = None,
-                                             stratify_by_species: bool = 0,
-                                             include_wolbachia: bool = 0,
-                                             include_gestation: bool = 0,
+                                             stratify_by_species: int = 0,
+                                             include_wolbachia: int = 0,
+                                             include_gestation: int = 0,
                                              barcodes: list = None):
     """
     Adds ReportVectorStatsMalariaGenetics report to the simulation. See class definition for description of the report.
 
     Args:
-        task:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
         species_list: a list of species to include information on
         stratify_by_species: if 1(true), data will break out each the species for each node
         include_wolbachia: if 1(true), add a column for each type of Wolbachia
@@ -651,7 +704,7 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
     reporter = ReportVectorStatsMalariaGenetics()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
-        params.Species_List = species_list
+        params.Species_List = species_list if species_list else []
         params.Stratify_By_Species = stratify_by_species
         params.Include_Wolbachia_Columns = include_wolbachia
         params.Include_Gestation_Columns = include_gestation
@@ -659,7 +712,10 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
-    task.reporters.add_reporter(reporter)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
 
 
 @dataclass

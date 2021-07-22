@@ -110,7 +110,7 @@ class TestMalariaConfig(unittest.TestCase):
                          msg=f"Malaria_Drug_Params should start empty. got:"
                              f" {raw_mdp}")
         self.config = set_team_defaults(config=self.config,
-                                        mani=schema_path_file)
+                                        manifest=schema_path_file)
         updated_config_parameters = self.config['parameters']
         updated_vsp = updated_config_parameters['Vector_Species_Params']
         updated_mdp = updated_config_parameters['Malaria_Drug_Params']

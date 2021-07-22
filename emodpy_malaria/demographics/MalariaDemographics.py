@@ -32,7 +32,7 @@ class MalariaDemographics(Demog.Demographics):
         super().__init__( nodes, idref, base_file )
         #super().SetDefaultProperties()
         super().SetDefaultNodeAttributes(birth=True)
-        DT.InitPrevUniform( self, init_prev )
+        # DT.InitPrevUniform( self, init_prev ) # removing because otherwise Enable_Initial_Prevalence is turned on
         self.set_risk_lowmedium() # lognormal, default=1.6
 
     def set_risk_lowmedium( self ):
@@ -66,7 +66,7 @@ def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2
     Returns:
         A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance.
     """
-    new_nodes = [ Demog.Node(lat=lat, lon=lon, pop=pop, name=name, forced_id=forced_id) ] 
+    new_nodes = [Demog.Node(lat=lat, lon=lon, pop=pop, name=name, forced_id=forced_id) ]
     return MalariaDemographics(nodes=new_nodes, init_prev=init_prev)
 
 def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", site="No_Site" ):

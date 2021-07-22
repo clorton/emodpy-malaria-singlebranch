@@ -20,7 +20,6 @@ def set_team_defaults(config, mani):
     config.parameters.Infection_Updates_Per_Timestep = 8
     config.parameters.Incubation_Period_Constant = 7
     config.parameters.Infectious_Period_Constant = 10
-    #config.parameters.Number_Substrains = 1
 
     # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
     config.parameters.Enable_Vector_Species_Report = 0
@@ -51,7 +50,6 @@ def set_team_defaults(config, mani):
     config.parameters.Enable_Egg_Mortality = 0
     config.parameters.Enable_Drought_Egg_Hatch_Delay = 0
     config.parameters.Insecticides = []
-    config.parameters.Genome_Markers = []
 
     # Other defaults from dtk-tools transition  #fixme very likely needs pruning
     config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
@@ -262,7 +260,7 @@ def add_resistance(manifest, insecticide_name, species, combo, blocking=1.0, kil
                   ]
                  ],
                 "Blocking_Modifier": 1.0,
-                "Killing_Modifier": pyrethroid_killing,
+                "Killing_Modifier": 0.33,
                 "Species": "gambiae"
               }
              ]

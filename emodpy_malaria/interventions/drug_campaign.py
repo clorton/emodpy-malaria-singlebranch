@@ -31,7 +31,7 @@ drug_cfg = {
 }
 
 
-def drug_configs_from_code( camp, drug_code: str = None ):
+def drug_configs_from_code(camp, drug_code: str = None):
     """  
     Add a single or multiple drug regimen to the configuration file based
     on its code and add the corresponding 
@@ -70,8 +70,6 @@ def drug_configs_from_code( camp, drug_code: str = None ):
                         "\"SPA\": Sulfadoxine, Pyrimethamine, Amodiaquine.\n"
                         "\"Vehicle\": Vehicle.\n")
     drug_array = drug_cfg[drug_code]
-
-    #cb.set_param("PKPD_Model", "CONCENTRATION_VERSUS_TIME")
 
     drug_configs = []
     for drug in drug_array:
