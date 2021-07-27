@@ -11,6 +11,10 @@ Additional information about how to use |IT_s| can be found at in
 :doc:`idmtools:index`.  Additional information about |EMOD_s| malaria
 parameters can be found in :doc:`emod-malaria:parameter-overview`.
 
+See :doc:`idmtools:index` for a diagram showing how |IT_s| and each of the
+related packages are used in an end-to-end workflow using |EMOD_s| as the
+disease transmission model.
+
 .. toctree::
    :maxdepth: 3
    :titlesonly:
