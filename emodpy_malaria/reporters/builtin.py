@@ -51,10 +51,13 @@ def add_report_vector_genetics(task, manifest, start_day: int = 0, duration_days
     Returns:
         Nothing
     """
+    # verifying that there are alleles to report on
+    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
+        raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
+                         f"use ReportVectorGenetics.\n")
 
     reporter = ReportVectorGenetics()  # Create the reporter
-
-    def rec_config_builder(params):  # not used yet
+    def rec_config_builder(params):
         params.Start_Day = start_day
         params.Duration_Days = duration_days
         params.Nodeset_Config = utils.do_nodes(manifest.schema_file, nodes)
@@ -62,7 +65,7 @@ def add_report_vector_genetics(task, manifest, start_day: int = 0, duration_days
         params.Gender = gender
         params.Include_Vector_State_Columns = include_vector_state
         params.Stratify_By = stratify_by
-        if stratify_by=="GENOME" or stratify_by == "SPECIFIC_GENOME":
+        if stratify_by == "GENOME" or stratify_by == "SPECIFIC_GENOME":
             params.Combine_Similar_Genomes = combine_similar_genomes
         if stratify_by == "SPECIFIC_GENOME":
             params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification if specific_genome_combinations_for_stratification else []
@@ -98,7 +101,9 @@ def add_report_vector_stats(task, manifest,
     Returns:
         Nothing
     """
-
+    if task and not task.config.parameters.Vector_Species_Params:
+        raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
+                         f"use ReportVectorStats.\n")
     reporter = ReportVectorStats()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
@@ -384,6 +389,10 @@ def add_vector_habitat_report(task, manifest):
         Nothing
     """
 
+    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
+        raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
+                         f"use VectorHabitatReport.\n")
+
     reporter = VectorHabitatReport()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
@@ -558,6 +567,7 @@ def add_human_migration_tracking(task, manifest):
     else:  # assume we're running a unittest
         return reporter
 
+
 def add_report_node_demographics(task, manifest,
                                  age_bins: list = None,
                                  individual_property_to_collect: str = "",
@@ -663,6 +673,9 @@ def add_report_vector_migration(task, manifest,
         Nothing
     """
 
+    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
+        raise ValueError(f"No Vector_Species_Params defined.\n")
+
     reporter = ReportVectorMigration()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
@@ -700,6 +713,9 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
     Returns:
         Nothing
     """
+
+    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
+        raise ValueError(f"No Vector_Species_Params defined.\n")
 
     reporter = ReportVectorStatsMalariaGenetics()  # Create the reporter
 
