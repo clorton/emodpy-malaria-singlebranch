@@ -3,6 +3,7 @@ import csv
 import os
 from . import vector_config
 
+
 #
 # PUBLIC API section
 #
@@ -24,7 +25,7 @@ def set_team_defaults(config, manifest):
     """
         Set configuration defaults using team-wide values, including drugs and vector species.
     """
-    vector_config.set_team_defaults( config, manifest )
+    vector_config.set_team_defaults(config, manifest)
     config.parameters.Simulation_Type = "MALARIA_SIM"
     config.parameters.Malaria_Strain_Model = "FALCIPARUM_RANDOM_STRAIN"
     # config.parameters.Enable_Malaria_CoTransmission = 0
@@ -436,8 +437,19 @@ def set_species_param(cb, species, parameter, value):
     return vector_config.set_species_param(cb, species, parameter, value)
 
 
-def set_species(config, species_to_select):
+def add_species(config, manifest, species_to_select):
     """
         Pass through for vector version of function.
     """
-    vector_config.set_species(config, species_to_select)
+    vector_config.add_species(config, manifest, species_to_select)
+
+
+def add_insecticide_resistance(config, manifest, insecticide_name: str = "", species: str = "",
+                               allele_combo: list = None, blocking: float = 1.0, killing: float = 1.0,
+                               repelling: float = 1.0, larval_killing: float = 1.0):
+    """
+        Pass through for vector version of function.
+    """
+    vector_config.add_insecticide_resistance(config, manifest, insecticide_name, species,
+                                             allele_combo, blocking, killing,
+                                             repelling, larval_killing)

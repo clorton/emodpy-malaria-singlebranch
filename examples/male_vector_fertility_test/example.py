@@ -14,13 +14,12 @@ from idmtools.entities.experiment import Experiment
 import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy_malaria.reporters.builtin import ReportVectorGenetics, ReportVectorStats
+from emodpy_malaria.reporters.builtin import *
 import emodpy_malaria.malaria_config as malconf
 import emodpy_malaria.vector_config as vector_config
 import emod_api.config.default_from_schema_no_validation as dfs
 
 import manifest
-import vector_report_support as vrs
 
 
 # ****************************************************************
@@ -67,9 +66,9 @@ def set_malaria_config(config):
     config.parameters.Infectious_Period_Constant = 0
     config.parameters.Enable_Demographics_Birth = 1
     config.parameters.Enable_Demographics_Reporting = 0
-    config.parameters.Enable_Immune_Decay = 0
-    config.parameters.Mortality_Blocking_Immunity_Decay_Rate = 0
-    config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 270
+    # config.parameters.Enable_Immune_Decay = 0
+    # config.parameters.Mortality_Blocking_Immunity_Decay_Rate = 0
+    # config.parameters.Mortality_Blocking_Immunity_Duration_Before_Decay = 270
     config.parameters.Run_Number = 99
     config.parameters.Simulation_Duration = 60
     config.parameters.Enable_Demographics_Risk = 1
@@ -121,30 +120,22 @@ def set_param_fn(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     config = malconf.set_team_defaults(config, manifest)
-    malconf.set_species(config, ["gambiae"])
-    config = set_malaria_config(config)
+    config.parameters.Vector_Species_Params = []  # clearing out automatically set species
+    malconf.add_species(config, manifest,  ["gambiae", "SillySkeeter"])
 
-    config.parameters.Base_Rainfall = 150
     config.parameters.Simulation_Duration = 365
-    config.parameters.Climate_Model = "CLIMATE_CONSTANT"
-    config.parameters.Enable_Disease_Mortality = 0
-    config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
-    config.parameters.Enable_Vector_Species_Report = 1
-    config.parameters.pop("Serialized_Population_Filenames")
 
     # Vector Genetics
-    vector_config.add_resistance(manifest,
-                                 insecticide_name="only_kill_male_silly",
-                                 species="gambiae",
-                                 combo=[["X", "*"]],
-                                 killing=0.0)
-    vector_config.add_resistance(manifest,
-                                 insecticide_name="only_kill_male_silly",
-                                 species="SillySkeeter",
-                                 combo=[["X", "X"]],
-                                 killing=0.0)
-
-    config = vector_config.set_resistances(config)
+    malconf.add_insecticide_resistance(config, manifest,
+                                       insecticide_name="only_kill_male_silly",
+                                       species="gambiae",
+                                       allele_combo=[["X", "*"]],
+                                       killing=0.0)
+    malconf.add_insecticide_resistance(config, manifest,
+                                       insecticide_name="only_kill_male_silly",
+                                       species="SillySkeeter",
+                                       allele_combo=[["X", "X"]],
+                                       killing=0.0)
 
     # Vector Species Params
     config = set_vsp(config, manifest)
@@ -160,9 +151,9 @@ def build_camp(actual_start_day=90, current_insecticide="kill_male_silly",
     camp.schema_path = manifest.schema_file
 
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add(spray.space_spraying(camp, start_day=actual_start_day, spray_coverage=coverage,
-                                  killing_effect=killing_effectiveness, box_duration=730,
-                                  insecticide=current_insecticide),
+    camp.add(spray.SpaceSpraying(camp, start_day=actual_start_day, spray_coverage=coverage,
+                                 killing_effect=killing_effectiveness, box_duration=730,
+                                 insecticide=current_insecticide),
              first=True)
     return camp
 
@@ -213,14 +204,9 @@ def general_sim(erad_path, ep4_scripts):
     # print("Adding asset dir...")
     # task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
 
-    reporter_female = vrs.get_report_vector_genetics(manifest, sex=vrs.VectorGender.Female)
-    task.reporters.add_reporter(reporter_female)  # Add the reporter
-
-    reporter_male = vrs.get_report_vector_genetics(manifest, sex=vrs.VectorGender.Male)
-    task.reporters.add_reporter(reporter_male)  # Add the reporter
-
-    reporter_vstats = vrs.get_report_vector_stats(manifest, species_list=["gambiae", "SillySkeeter"])
-    task.reporters.add_reporter(reporter_vstats)
+    add_report_vector_genetics(task, manifest, species="gambiae")
+    add_report_vector_genetics(task, manifest, species="SillySkeeter", gender="VECTOR_MALE")
+    add_report_vector_stats(task, manifest, species_list=["gambiae", "SillySkeeter"])
 
     # Set task.campaign to None to not send any campaign to comps since we are going to override it later with
     # dtk-pre-process.

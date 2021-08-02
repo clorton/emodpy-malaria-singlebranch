@@ -8,7 +8,7 @@ from emod_api.config import default_from_schema_no_validation as dfs
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-default_config = None # is set in setUpClass()
+default_config = None  # is set in setUpClass()
 
 import schema_path_file
 
@@ -16,35 +16,24 @@ from emodpy_malaria.malaria_config import set_team_defaults
 
 from emodpy_malaria.vector_config import \
     add_alleles, \
-    add_mutation , \
-    add_resistance
-
-from emodpy_malaria.vector_config import alleles as conf_alleles
-from emodpy_malaria.vector_config import mutations as conf_mutations
-from emodpy_malaria.vector_config import insecticides as conf_insecticides
+    add_mutation, \
+    add_insecticide_resistance
 
 
 class TestMalariaConfig(unittest.TestCase):
     default_config = None
+
     @classmethod
     def setUpClass(cls) -> None:
-        cls.default_config = dfs.write_default_from_schema(schema_path_file.schema_path) # default_config.json
-
+        cls.default_config = dfs.write_default_from_schema(schema_path_file.schema_path)  # default_config.json
 
     def setUp(self) -> None:
         self.is_debugging = False
-
-        self.config = None
-        default_config_name = \
-            dfs.write_default_from_schema(schema_path_file.schema_path)
         self.config = dfs.get_config_from_default_and_params(
             config_path='default_config.json',
             set_fn=self.set_malaria_config
         )
-        self.insecticides = None
-        # Unused yet
-        self.alleles = None
-        self.mutations = None
+        self.config = set_team_defaults(self.config, schema_path_file)
 
     def set_malaria_config(self, config):
         config.parameters.Simulation_Type = "MALARIA_SIM"
@@ -57,31 +46,19 @@ class TestMalariaConfig(unittest.TestCase):
 
         return config
 
-    def add_alleles(self, allele_names_in, allele_values_in):
-        add_alleles(allele_names_in=allele_names_in,
-                         allele_inits_in=allele_values_in)
-        self.alleles = conf_alleles
-        raise NotImplemented("The method under test is not used anywhere")
-
-    def add_mutation(self, from_allele, to_allele, rate):
-        add_mutation(
-            from_allele=from_allele,
-            to_allele=to_allele,
-            rate=rate)
-        self.mutations = conf_mutations
-        raise NotImplemented("The method under test is not used anywhere")
-
-    def add_resistance(self, insecticide_name, species, combo,
-                       blocking=1.0, killing=1.0):
-        add_resistance(
+    def add_insecticide_resistance(self, schema_path_file, insecticide_name, species, combo,
+                                   blocking=1.0, killing=1.0, larval_killing=1.0, repelling=1.0):
+        add_insecticide_resistance(
+            self.config,
             manifest=schema_path_file,
             insecticide_name=insecticide_name,
             species=species,
-            combo=combo,
+            allele_combo=combo,
             blocking=blocking,
-            killing=killing
+            killing=killing,
+            larval_killing=larval_killing,
+            repelling=repelling
         )
-        self.insecticides = conf_insecticides
 
     def tearDown(self) -> None:
         if self.is_debugging:
@@ -90,67 +67,140 @@ class TestMalariaConfig(unittest.TestCase):
                 debug_object['config'] = self.config
                 json.dump(debug_object, outfile, indent=4, sort_keys=True)
 
-    @unittest.skip("NYI")
-    def test_alleles(self):
-        self.assertIsNone(self.alleles)
-        # self.add_alleles() # Don't know how to add one
-        self.assertGreater(len(self.alleles), 0) # list should have an allele or two
-
     def test_team_defaults(self):
-        self.is_debugging = False
-        # with open('DEBUG_a_config.json','w') as outfile:
-        #     json.dump(self.config, outfile, indent=4, sort_keys=True)
-        raw_config_parameters = deepcopy(self.config['parameters'])
-        raw_vsp = raw_config_parameters['Vector_Species_Params']
-        raw_mdp = raw_config_parameters['Malaria_Drug_Params']
-        self.assertEqual(len(raw_vsp), 0,
-                         msg=f"Vector Species Params should start empty. got:"
-                             f" {raw_vsp}")
-        self.assertEqual(len(raw_vsp), 0,
-                         msg=f"Malaria_Drug_Params should start empty. got:"
-                             f" {raw_mdp}")
-        self.config = set_team_defaults(config=self.config,
-                                        manifest=schema_path_file)
-        updated_config_parameters = self.config['parameters']
-        updated_vsp = updated_config_parameters['Vector_Species_Params']
-        updated_mdp = updated_config_parameters['Malaria_Drug_Params']
-        self.assertGreater(len(updated_vsp),
-                           len(raw_vsp))
-        self.assertGreater(len(updated_mdp),
-                           len(raw_mdp))
+
         found_species_names = []
-        for vsp in updated_vsp:
+        for vsp in self.config.parameters.Vector_Species_Params:
             found_species_names.append(vsp['Name'])
         self.assertIn('gambiae', found_species_names)
         self.assertIn('funestus', found_species_names)
         self.assertIn('arabiensis', found_species_names)
 
         found_drug_names = []
-        for mdp in updated_mdp:
+        for mdp in self.config.parameters.Malaria_Drug_Params:
             found_drug_names.append(mdp['Name'])
         self.assertIn('Chloroquine', found_drug_names)
         self.assertIn('Artemether', found_drug_names)
         self.assertIn('Lumefantrine', found_drug_names)
 
     def test_add_resistance_new_insecticide(self):
-        self.add_resistance(insecticide_name='Honey'
-                            , species='arabiensis'
-                            , combo=[['X', '*']]
-                            , killing=0.0
-                            , blocking=0.2)
-        self.add_resistance(insecticide_name='Honey'
-                            , species='funestus'
-                            , combo=[['X', 'Y']]
-                            , killing=0.0
-                            , blocking=0.2)
-        self.add_resistance(insecticide_name='Vinegar'
-                            , species='arabiensis'
-                            , combo=[['X', 'Y']]
-                            , killing=0.0)
-        self.assertEqual(len(self.insecticides), 2)
-        self.assertEqual(len(self.insecticides['Honey']['parameters']['Resistances']), 2)
-        self.assertEqual(len(self.insecticides['Honey']['parameters']['Resistances']), 2)
-        self.assertEqual(len(self.insecticides['Vinegar']['parameters']['Resistances']), 1)
+        add_insecticide_resistance(self.config,
+                                   schema_path_file,
+                                   insecticide_name='Honey',
+                                   species='arabiensis',
+                                   allele_combo=[['X', '*']],
+                                   killing=0.17,
+                                   blocking=0.22,
+                                   larval_killing=0.7,
+                                   repelling=0.33)
+        add_insecticide_resistance(self.config,
+                                   schema_path_file,
+                                   insecticide_name='Honey',
+                                   species='funestus',
+                                   allele_combo=[['X', 'Y']],
+                                   killing=0.15,
+                                   blocking=0.2,
+                                   larval_killing=0.55,
+                                   repelling=0.33)
+        add_insecticide_resistance(self.config,
+                                   schema_path_file,
+                                   insecticide_name='Vinegar',
+                                   species='arabiensis',
+                                   allele_combo=[['X', 'Y']],
+                                   killing=0.5,
+                                   blocking=0.2,
+                                   larval_killing=0.7,
+                                   repelling=0.44)
+        self.assertEqual(len(self.config.parameters.Insecticides), 2)
+        for insecticide in self.config.parameters.Insecticides:
+            if insecticide.Name == "Honey":
+                self.assertEqual(len(insecticide.Resistances), 2)
+                for resistance in insecticide.Resistances:
+                    if resistance.Species == "arabiensis":
+                        self.assertEqual(resistance.Allele_Combinations, [['X', '*']])
+                        self.assertEqual(resistance.Larval_Killing_Modifier, 0.7)
+                        self.assertEqual(resistance.Killing_Modifier, 0.17)
+                        self.assertEqual(resistance.Blocking_Modifier, 0.22)
+                    elif resistance.Species == "funestus":
+                        if resistance.Species == "arabiensis":
+                            self.assertEqual(resistance.Larval_Killing_Modifier, 0.55)
+                            self.assertEqual(resistance.Killing_Modifier, 0.15)
+                            self.assertEqual(resistance.Blocking_Modifier, 0.2)
+            elif insecticide.Name == "Vinegar":
+                self.assertEqual(len(insecticide.Resistances), 1)
+                self.assertEqual(insecticide.Resistances[0].Species, "arabiensis")
+                self.assertEqual(insecticide.Resistances[0].Repelling_Modifier, 0.44)
+
+            else:
+                raise ValueError(f"We should not be here, shouldn't have insecticide with name {insecticide.Name}.\n")
+
+    def test_add_alleles(self):
+        add_alleles(self.config,
+                    schema_path_file,
+                    species="funestus",
+                    alleles=[("a0", 0.5), ("a1", 0.35), ("a2", 0.15)])
+        add_alleles(self.config,
+                    schema_path_file,
+                    species="funestus",
+                    alleles=[("b0", 0.90), ("b1", 0.1)])
+        add_alleles(self.config,
+                    schema_path_file,
+                    species="arabiensis",
+                    alleles=[("c0", 0.66), ("c1", 0.1), ("c2", 0.24)])
+        for species in self.config.parameters.Vector_Species_Params:
+            if species.Name == "funestus":
+                self.assertEqual(len(species.Genes), 2)
+                for gene in species.Genes:
+                    for allele in gene.Alleles:
+                        if allele.Name == "a2":
+                            self.assertEqual(allele.Initial_Allele_Frequency, 0.15)
+            elif species.Name == "arabiensis":
+                self.assertEqual(len(species.Genes), 1)
+                for gene in species.Genes:
+                    for allele in gene.Alleles:
+                        if allele.Name == "c0":
+                            self.assertEqual(allele.Initial_Allele_Frequency, 0.66)
+
+    def test_add_mutation(self):
+        add_alleles(self.config,
+                    schema_path_file,
+                    species="funestus",
+                    alleles=[("a0", 0.5), ("a1", 0.35), ("a2", 0.15)])
+        add_alleles(self.config,
+                    schema_path_file,
+                    species="funestus",
+                    alleles=[("b0", 0.90), ("b1", 0.1)])
+        add_alleles(self.config,
+                    schema_path_file,
+                    species="arabiensis",
+                    alleles=[("c0", 0.66), ("c1", 0.1), ("c2", 0.24)])
+        add_mutation(self.config, schema_path_file, "arabiensis", mutate_from="c1", mutate_to="c2",
+                     probability=0.04)
+        add_mutation(self.config, schema_path_file, "arabiensis", mutate_from="c0", mutate_to="c1",
+                     probability=0.02)
+        add_mutation(self.config, schema_path_file, "funestus", mutate_from="a0", mutate_to="a1",
+                     probability=0.023)
+        for species in self.config.parameters.Vector_Species_Params:
+            if species.Name == "funestus":
+                for gene in species.Genes:
+                    for allele in gene.Alleles:
+                        if allele.Name == "a2":
+                            self.assertEqual(gene.Mutations[0].Mutate_From, "a0")
+                            self.assertEqual(gene.Mutations[0].Mutate_To, "a1")
+                            self.assertEqual(gene.Mutations[0].Probability_Of_Mutation, 0.023)
+            elif species.Name == "arabiensis":
+                for gene in species.Genes:
+                    for allele in gene.Alleles:
+                        if allele.Name == "c0":
+                            self.assertEqual(len(gene.Mutations), 2)
+                            for mutation in gene.Mutations:
+                                if mutation.Mutate_From == "c0":
+                                    self.assertEqual(mutation.Mutate_To, "c1")
+                                    self.assertEqual(mutation.Probability_Of_Mutation, 0.02)
+                                elif mutation.Mutate_From == "c1":
+                                    self.assertEqual(mutation.Mutate_To, "c2")
+                                    self.assertEqual(mutation.Probability_Of_Mutation, 0.04)
+
 
 
 if __name__ == '__main__':
