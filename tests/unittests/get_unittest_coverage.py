@@ -3,7 +3,7 @@ import unittest
 loader = unittest.TestLoader()
 cov = coverage.Coverage(source=[
     "emodpy_malaria.demographics.MalariaDemographics"
-    , "emodpy_malaria.config"
+    , "emodpy_malaria.malaria_config"
     , "emodpy_malaria.interventions.bednet"
     , "emodpy_malaria.interventions.drug"
     , "emodpy_malaria.interventions.irs"
@@ -12,6 +12,9 @@ cov = coverage.Coverage(source=[
     , "emodpy_malaria.interventions.spacespraying"
     , "emodpy_malaria.interventions.sugartrap"
     , "emodpy_malaria.interventions.udbednet"
+    , "emodpy_malaria.interventions.outbreakindividualmalariagenetics"
+    , "emodpy_malaria.interventions.outbreakindividualmalariavargenes"
+
 ])
 cov.start()
 
