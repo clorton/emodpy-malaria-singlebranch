@@ -48,6 +48,7 @@ extensions = [
     'sphinx.ext.todo',
     'plantweb.directive',
     'sphinxcontrib.programoutput',
+    'sphinx_copybutton',
     'sphinx.ext.intersphinx',
     'sphinxext.remoteliteralinclude'
 ]
