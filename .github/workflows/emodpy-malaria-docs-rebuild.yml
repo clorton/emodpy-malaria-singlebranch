@@ -45,10 +45,10 @@ jobs:
       run: |
         make clean
         make htmlnobreak
-
-    - name: Build docs linkcheck
+        
+   # This check won't run until issue below is addressed:
+   # https://github.com/InstituteforDiseaseModeling/emodpy-malaria/issues/284
+    - name: Build docs linkcheck - disabled
       working-directory: 'docs'
       run: |
-        echo Running equivalent command to: (From Makefile) - Removing -W option
-        echo $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
-        sphinx-build -b linkcheck -d _build/doctrees -t emodpymalaria . _build/linkcheck
+        echo make linkcheck
