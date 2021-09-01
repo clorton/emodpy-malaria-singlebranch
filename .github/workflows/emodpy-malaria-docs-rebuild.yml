@@ -20,7 +20,8 @@ jobs:
     steps:
     - name: Repo Checkout
       uses: actions/checkout@v2
-    
+      with:
+        ref: ${{ github.event.inputs.branch }}
     # Environment Setup
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
@@ -52,3 +53,4 @@ jobs:
       working-directory: 'docs'
       run: |
         echo make linkcheck
+        
