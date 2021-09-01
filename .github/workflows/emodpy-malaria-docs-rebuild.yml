@@ -12,6 +12,9 @@ on:
       - '**.py'
       - '**/*docs/**'
       - '**/requirements.txt'   
+  repository_dispatch:
+    types: 
+      - main
 
 jobs:
   emodpy-malaria-docs-rebuild:
@@ -50,3 +53,5 @@ jobs:
       working-directory: 'docs'
       run: |
         echo make linkcheck
+        sphinx-build -b linkcheck -d _build/doctrees -t emodpymalaria . _build/linkcheck
+        
