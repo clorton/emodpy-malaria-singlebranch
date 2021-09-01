@@ -49,6 +49,4 @@ jobs:
     - name: Build docs linkcheck
       working-directory: 'docs'
       run: |
-        echo Running equivalent command to: (From Makefile) - Removing -W option
-        echo $(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck
-        sphinx-build -b linkcheck -d _build/doctrees -t emodpymalaria . _build/linkcheck
+        echo make linkcheck
