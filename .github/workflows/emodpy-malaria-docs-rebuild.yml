@@ -12,16 +12,7 @@ on:
       - '**.py'
       - '**/*docs/**'
       - '**/requirements.txt'   
-  repository_dispatch:
-    types: 
-      - main
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch where to take the Tests from'
-        required: true
-        default: 'main'
+
 jobs:
   emodpy-malaria-docs-rebuild:
 
@@ -55,10 +46,11 @@ jobs:
       run: |
         make clean
         make htmlnobreak
-
-    - name: Build docs linkcheck
+        
+   # This check won't run until issue below is addressed:
+   # https://github.com/InstituteforDiseaseModeling/emodpy-malaria/issues/284
+    - name: Build docs linkcheck - disabled
       working-directory: 'docs'
       run: |
         echo make linkcheck
-        sphinx-build -b linkcheck -d _build/doctrees -t emodpymalaria . _build/linkcheck
         
