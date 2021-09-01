@@ -50,3 +50,5 @@ jobs:
       working-directory: 'docs'
       run: |
         echo make linkcheck
+        sphinx-build -b linkcheck -d _build/doctrees -t emodpymalaria . _build/linkcheck
+        
