@@ -23,8 +23,7 @@ import manifest
 
 """
     In this example we create migration for a multi-node simulation and add spatial output.
-    The important bits are: 
-    
+    We are getting demographics files from a server, which is only reachable when you're on VPN
 """
 
 
@@ -55,7 +54,7 @@ def set_config_parameters(config):
 
     # sets "default" malaria parameters as determined by the malaria team
     config = vector_config.set_team_defaults(config, manifest)
-
+    vector_config.add_species(config, manifest, ["funestus"])
     config.parameters.Enable_Migration_Heterogeneity = 0
     config.parameters.Enable_Vector_Species_Report = 1
     config.parameters.Custom_Individual_Events = ["Bednet_Got_New_One", "Bednet_Using", "Bednet_Discarded"]
@@ -71,6 +70,7 @@ def set_config_parameters(config):
 def build_demographics():
     import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
 
+    # YOU NEED TO BE ON VPN (IDM internal network) to be able to access this server
     input_file = malaria_config.get_file_from_http(
         "http://ipadvweb02.linux.idm.ctr:8000/" + manifest.population_input_path)
     demographics = Demographics.from_pop_csv(input_file, site='burkina')

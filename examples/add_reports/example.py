@@ -52,7 +52,7 @@ def set_config_parameters(config):
     # sets "default" malaria parameters as determined by the malaria team
     import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
-
+    malaria_config.add_species(config, manifest, ["gambiae", "arabiensis", "funestus"])
     config.parameters.Simulation_Duration = 80
 
     return config
@@ -86,7 +86,7 @@ def general_sim():
     global add_report_event_counter
     platform = Platform("Calculon", node_group="idm_48cores")
 
-    experiment_name = "all_reports example"
+    experiment_name = "all reports example"
 
     # create EMODTask
     print("Creating EMODTask (from files)...")
@@ -102,13 +102,11 @@ def general_sim():
 
     """THIS IS WHERE WE ADD THE REPORTS"""
 
-
     # ReportDrugStatus
     add_drug_status_report(task, manifest, start_day=5, end_day=43)
 
     # ReportHumanMigrationTracking
     add_human_migration_tracking(task, manifest)
-
 
     # ReportEventCounter
     add_report_event_counter(task, manifest, event_trigger_list=["HappyBirthday"], report_description="HappyBirthday")
@@ -121,7 +119,7 @@ def general_sim():
     add_malaria_patient_json_report(task, manifest)
 
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=56, duration=23, reporting_interval=7, age_bins=[3, 77, 115],
+    add_malaria_summary_report(task, manifest, start_day=56, duration_days=23, reporting_interval=7, age_bins=[3, 77, 115],
                                infectiousness_bins=[0.023, 0.1, 0.5], max_number_reports=3, parasitemia_bins=[12, 3423],
                                pretty_format=True, report_description="TestReport3")
 
@@ -131,11 +129,16 @@ def general_sim():
     # ReportVectorMigration
     add_report_vector_migration(task, manifest, start_day=56, end_day=64)
 
+    # ReportVectorStats
     add_report_vector_stats(task, manifest, species_list=["arabiensis", "gambiae"], stratify_by_species=1)
+
+    # ReportDrugStatus
     add_drug_status_report(task, manifest, start_day=25, end_day=37)
 
-
+    # SpatialReportMalariaFiltered
     add_spatial_report_malaria_filtered(task, manifest)
+
+    # VectorHabitatReport
     add_vector_habitat_report(task, manifest)
 
     # We are creating one-simulation experiment straight from task.
@@ -160,7 +163,7 @@ def general_sim():
 if __name__ == "__main__":
     # Getting the latest LINUX version of eradicaiton app
     plan = EradicationBambooBuilds.MALARIA_LINUX
-    print("Retrieving Eradication and schema.json from Bamboo...")
+    # print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files(plan, manifest)
-    print("...done.")
+    # print("...done.")
     general_sim()

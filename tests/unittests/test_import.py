@@ -59,7 +59,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import outdoorrestkill
 
         self.expected_items = [
-            "OutdoorRestKill"
+            "add_OutdoorRestKill"
         ]
         self.verify_expected_items_present(namespace=outdoorrestkill)
         return

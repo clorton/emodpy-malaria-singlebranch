@@ -113,7 +113,7 @@ def set_config_parameters(config):
     # sets "default" malaria parameters as determined by the malaria team
     import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
-    # you have to explicitly set larval habitats for the species currently
+    malaria_config.add_species(config, manifest, ["gambiae"])
 
     config.parameters.Simulation_Duration = 80
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import pathlib # for a join
-from functools import partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
+import pathlib  # for a join
+from functools import \
+    partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
 
 # idmtools ...
 from idmtools.assets import Asset, AssetCollection  #
@@ -15,13 +16,12 @@ from idmtools.entities.experiment import Experiment
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy.reporters.custom import *
 import emod_api.config.default_from_schema_no_validation as dfs
-
+from emodpy_malaria.reporters.builtin import *
 
 import params
-import set_config
 import manifest
+
 
 # ****************************************************************
 # Features to support:
@@ -36,8 +36,9 @@ import manifest
 # ****************************************************************
 
 def update_sim_bic(simulation, value):
-    simulation.task.config.parameters.Base_Infectivity_Constant  = value*0.1
+    simulation.task.config.parameters.Base_Infectivity_Constant = value * 0.1
     return {"Base_Infectivity": value}
+
 
 def update_sim_random_seed(simulation, value):
     simulation.task.config.parameters.Run_Number = value
@@ -54,29 +55,13 @@ def print_params():
     print("nSims: ", params.nSims)
 
 
-def set_param_fn(config): 
+def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     import emodpy_malaria.malaria_config as conf
-    import emodpy_malaria.vector_config as vector_config
-    conf.set_team_defaults(config, manifest)
-    set_config.set_config(config)
-    conf.set_species( config, [ "gambiae" ] )
-
-    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 2*112500000
-    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-    vector_config.get_species_params( config, "gambiae" ).Larval_Habitat_Types.append( lhm.parameters )
-
-    conf.get_drug_params( config, "Chloroquine" ).Drug_Cmax = 44 # THIS IS NOT SCHEMA ENFORCED. Needs design thought. 
-    config.parameters.Base_Rainfall = 150
-    config.parameters.Simulation_Duration = 365
-    config.parameters.Enable_Disease_Mortality = 0
-    #config.parameters.Serialization_Times = [ 365 ]
-    config.parameters.Enable_Vector_Species_Report = 1
-    #config["parameters"]["Insecticides"] = [] # emod_api gives a dict right now.
-    config.parameters.pop( "Serialized_Population_Filenames" ) 
+    config = conf.set_team_defaults(config, manifest)
+    conf.add_species(config, manifest, ["gambiae"])
 
     return config
 
@@ -87,16 +72,16 @@ def build_camp():
         Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     """
     import emod_api.campaign as camp
-    import emod_api.interventions.outbreak as ob
     import emodpy_malaria.interventions.bednet as bednet
     import emodpy_malaria.interventions.treatment_seeking as ts
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
-    
+
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." ) 
-    #camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
-    ts.add( camp, start_day=1, node_ids=[321] )
+    # camp.add( bednet.Bednet( camp, start_day=100, coverage=1.0, killing_eff=1.0,
+    # blocking_eff=1.0, usage_eff=1.0, node_ids=[321] ) )
+    ts.add_treatment_seeking(camp, start_day=1, node_ids=[321])
     return camp
 
 
@@ -110,9 +95,10 @@ def build_demog():
     TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
 
     """
-    import emodpy_malaria.demographics.MalariaDemographics as Demographics # OK to call into emod-api
+    import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
 
-    demog = Demographics.from_template_node( lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321, init_prev=0.005 )
+    demog = Demographics.from_template_node(lat=1, lon=2, pop=12345, name="Atlantic Base", forced_id=321,
+                                            init_prev=0.005)
     return demog
 
 
@@ -124,43 +110,37 @@ def run():
     print_params()
 
     # Set platform
-    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
+    platform = Platform("SLURMStage")   # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    # platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
-    #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+    # pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
     # create EMODTask 
     print("Creating EMODTask (from files)...")
-    
-    task = EMODTask.from_default2(
-            config_path="my_config.json",
-            eradication_path=manifest.eradication_path,
-            campaign_builder=build_camp,
-            schema_path=manifest.schema_file,
-            param_custom_cb=set_param_fn,
-            ep4_custom_cb=None,
-            demog_builder=build_demog,
-            plugin_report=None # report
-        )
 
+    task = EMODTask.from_default2(
+        config_path="my_config.json",
+        eradication_path=manifest.eradication_path,
+        campaign_builder=build_camp,
+        schema_path=manifest.schema_file,
+        param_custom_cb=set_param_fn,
+        ep4_custom_cb=None,
+        demog_builder=build_demog,
+        plugin_report=None  # report
+    )
 
     # Add event report
-    reporter = ReportEventCounter()  # Create the reporter
-    def rec_config_builder( params ): # not used yet
-        return params
-    task.reporters.add_reporter(reporter)
-
-
+    add_report_event_counter(task, manifest, event_trigger_list=["HappyBirthday"])
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()
-    builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
+    builder.add_sweep_definition(update_sim_random_seed, range(params.nSims))
 
     # create experiment from builder
-    print( f"Prompting for COMPS creds if necessary..." )
-    experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
+    print(f"Prompting for COMPS creds if necessary...")
+    experiment = Experiment.from_builder(builder, task, name=params.exp_name)
 
-    #other_assets = AssetCollection.from_id(pl.run())
-    #experiment.assets.add_assets(other_assets)
+    # other_assets = AssetCollection.from_id(pl.run())
+    # experiment.assets.add_assets(other_assets)
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
@@ -176,18 +156,17 @@ def run():
     with open("COMPS_ID", "w") as fd:
         fd.write(experiment.uid.hex)
     print()
-    print(experiment.uid.hex) 
-    
+    print(experiment.uid.hex)
+
 
 if __name__ == "__main__":
-    platform = Platform("CALCULON", node_group="idm_48cores", priority="highest" )
     import sys
-    if len(sys.argv)>1 and sys.argv[1] == "--bamboo": # yes, one can use ArgParse but seems unnecessary.
-        plan = EradicationBambooBuilds.MALARIA_LINUX 
+    if len(sys.argv) > 1 and sys.argv[1] == "--bamboo":  # yes, one can use ArgParse but seems unnecessary.
+        plan = EradicationBambooBuilds.MALARIA_LINUX
         print("Retrieving Eradication and schema.json from Bamboo...")
         get_model_files(plan, manifest)
         print("...done.")
     else:
         import emod_malaria.bootstrap as dtk
-        dtk.setup( pathlib.Path( manifest.eradication_path ).parent )
+        dtk.setup(pathlib.Path(manifest.eradication_path).parent)
     run()

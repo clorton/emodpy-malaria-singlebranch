@@ -29,6 +29,20 @@ def update_sim_random_seed(simulation, value):
     return {"Run_Number": value}
 
 
+def set_config_parameters(config):
+    """
+    This function is a callback that is passed to emod-api.config to set parameters The Right Way.
+    """
+    # sets "default" malaria parameters as determined by the malaria team
+    import emodpy_malaria.malaria_config as malaria_config
+    config = malaria_config.set_team_defaults(config, manifest)
+    malaria_config.add_species(config, manifest, ["funestus"])
+
+    config.parameters.Simulation_Duration = 80
+
+    return config
+
+
 def build_camp():
     """
     Build a campaign input file for the DTK using emod_api.
@@ -41,11 +55,10 @@ def build_camp():
     camp.schema_path = manifest.schema_file
 
     camp.add(ivermectin.Ivermectin(
-        schema_path_container=camp
-        , start_day=10
-        , target_coverage=0.34
-        , killing_effect=0.8
-        , killing_duration_box=3
+        schema_path_container=camp,
+        killing_initial_effect = 0.78, demographic_coverage = 0.63,
+        target_num_individuals = None, killing_box_duration = 20,
+        killing_exponential_decay_rate = 0.07
     ))
 
     return camp
@@ -69,15 +82,15 @@ def build_demog():
     return demog
 
 
-def general_sim(erad_path, ep4_scripts):
+def general_sim():
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
     """
 
     platform = Platform("SLURMStage")
-
-    # pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
@@ -87,7 +100,7 @@ def general_sim(erad_path, ep4_scripts):
         eradication_path=manifest.eradication_path,
         campaign_builder=build_camp,
         schema_path=manifest.schema_file,
-        param_custom_cb=set_param_fn,
+        param_custom_cb=set_config_parameters,
         ep4_custom_cb=None,
         demog_builder=build_demog,
         plugin_report=None  # report

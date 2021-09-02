@@ -15,9 +15,9 @@ import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 from emodpy_malaria.reporters.builtin import *
-import emodpy_malaria.malaria_config as malconf
+import emod_api.config.default_from_schema_no_validation as dfs
 
-
+from emodpy_malaria import malaria_config as malconf
 import manifest
 
 
@@ -33,7 +33,6 @@ import manifest
 #  Save experiment info to file
 # ****************************************************************
 
-# region sweep partials
 def update_sim_bic(simulation, value):
     simulation.task.config.parameters.Base_Infectivity_Constant = value * 0.1
     return {"Base_Infectivity": value}
@@ -53,14 +52,10 @@ def update_camp_start_day(simulation, value):
 
 def update_killing_config_effectiveness(simulation, value):
     # simulation.task.config.parameters.Run_Number = value
-    build_camp_partial = partial(build_camp, current_insecticide="only_kill_male_silly",
+    build_camp_partial = partial(build_camp, current_insecticide="only_kill_male_funestus",
                                  killing_effectiveness=value)
     simulation.task.create_campaign_from_callback(build_camp_partial)
     return {"killing_effectiveness": value}
-
-
-# endregion
-
 
 
 def set_param_fn(config):
@@ -68,38 +63,47 @@ def set_param_fn(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     config = malconf.set_team_defaults(config, manifest)
-    malconf.add_species(config, manifest,  ["gambiae", "SillySkeeter"])
-    config.parameters.Simulation_Duration = 365
+    malconf.add_species(config, manifest, ["gambiae", "funestus", "arabiensis"])
+    config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
+    config.parameters.Enable_Vector_Species_Report = 1
+    config.parameters.Simulation_Duration = 90
 
-    # Vector Genetics
+    # add sugar feeding
+    malconf.set_species_param(config, "gambiae", "Vector_Sugar_Feeding_Frequency",
+                              "VECTOR_SUGAR_FEEDING_EVERY_FEED")
+
+    malconf.set_species_param(config, "funestus", "Vector_Sugar_Feeding_Frequency",
+                              "VECTOR_SUGAR_FEEDING_EVERY_FEED")
+
+    malconf.set_species_param(config, "arabiensis", "Vector_Sugar_Feeding_Frequency",
+                              "VECTOR_SUGAR_FEEDING_EVERY_FEED")
+
+    # add insecticide resistance
     malconf.add_insecticide_resistance(config, manifest,
-                                       insecticide_name="only_kill_male_silly",
+                                       insecticide_name="only_kill_male_funestus",
                                        species="gambiae",
                                        allele_combo=[["X", "*"]],
-                                       killing=0.0)
+                                       killing=0.0)  # Makes gambiae unaffected
     malconf.add_insecticide_resistance(config, manifest,
-                                       insecticide_name="only_kill_male_silly",
-                                       species="SillySkeeter",
+                                       insecticide_name="only_kill_male_funestus",
+                                       species="funestus",
                                        allele_combo=[["X", "X"]],
-                                       killing=0.0)
+                                       killing=0.0)  # Makes female funestus unaffected
 
     return config
 
 
-def build_camp(actual_start_day=90, current_insecticide="kill_male_silly",
+def build_camp(actual_start_day=90, current_insecticide="only_kill_male_funestus",
                coverage=1.0, killing_effectiveness=0.5):
-    import emod_api.campaign as camp
-    import emodpy_malaria.interventions.spacespraying as spray
+    import emod_api.campaign as campaign
+    from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
+    campaign.schema_path = manifest.schema_file
+    campaign = add_OutdoorRestKill(campaign, start_day=actual_start_day, target_coverage=coverage,
+                                   # insecticide_name=current_insecticide,
+                                   killing_effect=killing_effectiveness,
+                                   killing_predecay_duration=10, killing_decay_rate=0.07)
 
-    # This isn't desirable. Need to think about right way to provide schema (once)
-    camp.schema_path = manifest.schema_file
-
-    # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add(spray.SpaceSpraying(camp, start_day=actual_start_day, spray_coverage=coverage,
-                                 killing_effect=killing_effectiveness, box_duration=730,
-                                 insecticide=current_insecticide),
-             first=True)
-    return camp
+    return campaign
 
 
 def build_demog():
@@ -127,10 +131,7 @@ def general_sim(erad_path, ep4_scripts):
     every time we run an emod experiment. 
     """
 
-    # Set platform
-    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
-
+    platform = Platform("Calculon", num_cores=1, node_group="idm_48cores", priority="Highest")
     # create EMODTask 
     print("Creating EMODTask (from files)...")
 
@@ -147,10 +148,7 @@ def general_sim(erad_path, ep4_scripts):
 
     # print("Adding asset dir...")
     # task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
-
-    add_report_vector_genetics(task, manifest, species="gambiae")
-    add_report_vector_genetics(task, manifest, species="SillySkeeter", gender="VECTOR_MALE")
-    add_report_vector_stats(task, manifest, species_list=["gambiae", "SillySkeeter"])
+    add_report_vector_stats(task, manifest, species_list=["gambiae", "funestus", "arabiensis"])
 
     # Set task.campaign to None to not send any campaign to comps since we are going to override it later with
     # dtk-pre-process.
@@ -164,7 +162,8 @@ def general_sim(erad_path, ep4_scripts):
 
     # create experiment from builder
     print(f"Prompting for COMPS creds if necessary...")
-    experiment = Experiment.from_builder(builder, task, name="Malaria SpaceSpraying kill male silly_skeeter")
+    experiment = Experiment.from_builder(builder, task,
+                                         name="Malaria OutdoorRestKill Male Vectors")
 
     # other_assets = AssetCollection.from_id(pl.run())
     # experiment.assets.add_assets(other_assets)
@@ -192,8 +191,8 @@ def run_test(erad_path):
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
-    plan = EradicationBambooBuilds.MALARIA_LINUX
-    print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files(plan, manifest)
-    print("...done.")
+    # plan = EradicationBambooBuilds.MALARIA_LINUX
+    # print("Retrieving Eradication and schema.json from Bamboo...")
+    # get_model_files(plan, manifest)
+    # print("...done.")
     run_test(manifest.eradication_path)

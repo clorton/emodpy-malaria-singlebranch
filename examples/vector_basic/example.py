@@ -29,7 +29,6 @@ def set_param_fn(config):
         completed config
     """
     vector_config.set_team_defaults(config, manifest)  # team defaults
-    config.parameters.Vector_Species_Params = [] # clearing species to add new ones
     vector_config.add_species(config, manifest, species_to_select=["gambiae"])
 
     config.parameters.Incubation_Period_Constant = 0

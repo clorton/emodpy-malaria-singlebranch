@@ -12,7 +12,7 @@ default_config = None  # is set in setUpClass()
 
 import schema_path_file
 
-from emodpy_malaria.malaria_config import set_team_defaults
+from emodpy_malaria.malaria_config import set_team_defaults, add_species
 
 from emodpy_malaria.vector_config import \
     add_alleles, \
@@ -69,12 +69,7 @@ class TestMalariaConfig(unittest.TestCase):
 
     def test_team_defaults(self):
 
-        found_species_names = []
-        for vsp in self.config.parameters.Vector_Species_Params:
-            found_species_names.append(vsp['Name'])
-        self.assertIn('gambiae', found_species_names)
-        self.assertIn('funestus', found_species_names)
-        self.assertIn('arabiensis', found_species_names)
+        self.assertEqual(self.config.parameters.Vector_Species_Params, [])
 
         found_drug_names = []
         for mdp in self.config.parameters.Malaria_Drug_Params:
@@ -135,6 +130,7 @@ class TestMalariaConfig(unittest.TestCase):
                 raise ValueError(f"We should not be here, shouldn't have insecticide with name {insecticide.Name}.\n")
 
     def test_add_alleles(self):
+        add_species(self.config, schema_path_file, ["funestus", "arabiensis"])
         add_alleles(self.config,
                     schema_path_file,
                     species="funestus",
@@ -162,6 +158,7 @@ class TestMalariaConfig(unittest.TestCase):
                             self.assertEqual(allele.Initial_Allele_Frequency, 0.66)
 
     def test_add_mutation(self):
+        add_species(self.config, schema_path_file, ["funestus", "arabiensis"])
         add_alleles(self.config,
                     schema_path_file,
                     species="funestus",

@@ -39,11 +39,11 @@ def add_report_vector_genetics(task, manifest, start_day: int = 0, duration_days
 
         allele_combinations_for_stratification: if stratifying by "ALLELE", then also add these allele name
             combos to the stratification, Example::
-            
+
                 [[ "a0", "b0" ], [ "a1", "b1" ]]
 
         alleles_for_stratification: For example::
-        
+
             [ "a0", "a1", "b0", "b1" ]
 
         report_description: adds the description to the filename of the report to differentiate it from others
@@ -57,6 +57,7 @@ def add_report_vector_genetics(task, manifest, start_day: int = 0, duration_days
                          f"use ReportVectorGenetics.\n")
 
     reporter = ReportVectorGenetics()  # Create the reporter
+
     def rec_config_builder(params):
         params.Start_Day = start_day
         params.Duration_Days = duration_days
@@ -366,7 +367,7 @@ def add_malaria_sql_report(task, manifest,
         params.End_Day = end_day
         params.Include_Infection_Data_Table = include_infection_table
         params.Include_Health_Table = include_health_table
-        #params.Include_Drug_Status_Table = include_drug_table
+        params.Include_Drug_Status_Table = include_drug_table
         return params
 
     reporter.config(rec_config_builder, manifest)
@@ -607,7 +608,7 @@ def add_report_node_demographics(task, manifest,
 def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   barcodes: list = None,
                                                   drug_resistant_strings: list = None,
-                                                  drug_resistant_stat_type: str = "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
+                                                  drug_resistant_statistic_type: str = "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
                                                   age_bins: list = None,
                                                   individual_property_to_collect: str = "",
                                                   stratify_by_gender: int = 1):
@@ -625,7 +626,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
         drug_resistant_strings: a list of strings representing the set of drug resistant markers.  A column will be
             created with the number of humans infetions with that barcode.  One can use '*' for a wild card.
             A 'BarcodeOther' column will be created for barcodes not define
-        drug_resistant_stat_type: indicates the statistic in the Drug Resistant columns:
+        drug_resistant_statistic_type: indicates the statistic in the Drug Resistant columns:
             NUM_PEOPLE_WITH_RESISTANT_INFECTION = A person is counted if they have one infection with that drug
             resistant marker;
             NUM_INFECTIONS = The total number of infections with that marker.
@@ -647,7 +648,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
         params.Stratify_By_Gender = stratify_by_gender
         params.Barcodes = barcodes if barcodes else []
         params.Drug_Resistant_Strings = drug_resistant_strings if drug_resistant_strings else []
-        params.Drug_Resistant_Stat_Type = drug_resistant_stat_type
+        params.Drug_Resistant_Statistic_Type = drug_resistant_statistic_type
         return params
 
     reporter.config(rec_config_builder, manifest)

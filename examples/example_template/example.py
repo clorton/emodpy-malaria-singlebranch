@@ -46,11 +46,10 @@ def set_config_parameters(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     # You have to set simulation type explicitly before you set other parameters for the simulation
-    config.parameters.Simulation_Type = "MALARIA_SIM"
     # sets "default" malaria parameters as determined by the malaria team
     import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
-
+    malaria_config.add_species(config, manifest, ["gambiae"])
     config.parameters.Simulation_Duration = 80
 
     return config

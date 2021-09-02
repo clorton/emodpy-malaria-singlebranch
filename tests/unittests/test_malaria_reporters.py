@@ -472,14 +472,14 @@ class TestMalariaReport(unittest.TestCase):
     def test_report_node_demographics_malaria_genetics_custom(self):
         barcodes = ["AGT", "GGG"]
         drug_resistant_strings = ["G"]
-        drug_resistant_stat_type = "NUM_INFECTIONS"
+        drug_resistant_statistic_type = "NUM_INFECTIONS"
         age_bins = [5, 45, 90]
         individual_property_to_collect = "Risk"
         stratify_by_gender = 0
         self.tmp_reporter = add_report_node_demographics_malaria_genetics(None, schema_path_file,
                                                                           barcodes=barcodes,
                                                                           drug_resistant_strings=drug_resistant_strings,
-                                                                          drug_resistant_stat_type=drug_resistant_stat_type,
+                                                                          drug_resistant_statistic_type=drug_resistant_statistic_type,
                                                                           age_bins=age_bins,
                                                                           individual_property_to_collect=individual_property_to_collect,
                                                                           stratify_by_gender=stratify_by_gender)
@@ -490,12 +490,12 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
         self.assertEqual(self.p_dict['Barcodes'], barcodes)
         self.assertEqual(self.p_dict['Drug_Resistant_Strings'], drug_resistant_strings)
-        self.assertEqual(self.p_dict['Drug_Resistant_Stat_Type'], drug_resistant_stat_type)
+        self.assertEqual(self.p_dict['Drug_Resistant_Statistic_Type'], drug_resistant_statistic_type)
 
     def test_report_node_demographics_malaria_genetics_default(self):
         barcodes = []
         drug_resistant_strings = []
-        drug_resistant_stat_type = "NUM_PEOPLE_WITH_RESISTANT_INFECTION"
+        drug_resistant_statistic_type = "NUM_PEOPLE_WITH_RESISTANT_INFECTION"
         age_bins = []
         individual_property_to_collect = ""
         stratify_by_gender = 1
@@ -507,7 +507,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
         self.assertEqual(self.p_dict['Barcodes'], barcodes)
         self.assertEqual(self.p_dict['Drug_Resistant_Strings'], drug_resistant_strings)
-        self.assertEqual(self.p_dict['Drug_Resistant_Stat_Type'], drug_resistant_stat_type)
+        self.assertEqual(self.p_dict['Drug_Resistant_Statistic_Type'], drug_resistant_statistic_type)
 
     # end region
 

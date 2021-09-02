@@ -37,7 +37,6 @@ def set_param_fn(config):
     """
     config.parameters.Simulation_Type = "VECTOR_SIM"
     vector_config.set_team_defaults(config, manifest)  # team defaults
-    config.parameters.Vector_Species_Params = []  # clear the automatically-set species
     vector_config.add_species(config, manifest, ["gambiae", "funestus"])
 
     # the following lines define alleles, mutations and traits and they need "set_genetics" to actually be added

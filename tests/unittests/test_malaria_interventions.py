@@ -5,10 +5,11 @@ import os, sys
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 import schema_path_file
+import random
 
 from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet
-from emodpy_malaria.interventions.outdoorrestkill import OutdoorRestKill
+from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
 from emodpy_malaria.interventions import drug_campaign
 from emodpy_malaria.interventions import diag_survey
@@ -16,28 +17,30 @@ from emodpy_malaria.interventions import common
 from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
 from emodpy_malaria.interventions.inputeir import InputEIR
 
-
 import emod_api.campaign as camp
 
+drug_codes = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+
 class WaningEffects:
-    B = "WaningEffectBox"
-    C = "WaningEffectConstant"
-    X = "WaningEffectExponential"
-    BEX = "WaningEffectBoxExponential"
+    Box = "WaningEffectBox"
+    Constant = "WaningEffectConstant"
+    Exp = "WaningEffectExponential"
+    BoxExp = "WaningEffectBoxExponential"
 
 
 class WaningParams:
-    BD = "Box_Duration"
-    DTC = "Decay_Time_Constant"
-    IE = "Initial_Effect"
-    C = "class"
+    Box_Duration = "Box_Duration"
+    Decay_Time = "Decay_Time_Constant"
+    Initial = "Initial_Effect"
+    Class = "class"
 
 
 class NodesetParams:
-    C = "class"
-    CNSA = "NodeSetAll"
-    CNSNL ="NodeSetNodeList"
-    NL = "Node_List"
+    Class = "class"
+    SetAll = "NodeSetAll"
+    SetList = "NodeSetNodeList"
+    Node_List = "Node_List"
+
 
 # Uncomment below to also run through tests with 10 Jan schema (default is latest)
 # class schema_17Dec20:
@@ -57,7 +60,10 @@ class TestMalariaInterventions(unittest.TestCase):
         self.start_day = None
         self.event_coordinator = None
         self.intervention_config = None
-        self.killing_config = None # Used in ivermectin
+        self.killing_config = None
+        self.blocking_config = None
+        self.repelling_config = None
+        self.usage_config = None
         self.schema_file = schema_path_file
         camp.schema_path = schema_path_file.schema_path
         return
@@ -72,11 +78,23 @@ class TestMalariaInterventions(unittest.TestCase):
         self.start_day = self.tmp_intervention['Start_Day']
         self.event_coordinator = self.tmp_intervention['Event_Coordinator_Config']
         self.intervention_config = self.event_coordinator['Intervention_Config']
+        if "Intervention_List" in self.intervention_config:
+            self.intervention_config = self.intervention_config["Intervention_List"][0]
+        if "Killing_Config" in self.intervention_config:
+            self.killing_config = self.intervention_config["Killing_Config"]
+        if "Blocking_Config" in self.intervention_config:
+            self.blocking_config = self.intervention_config["Blocking_Config"]
+        if "Repelling_Config" in self.intervention_config:
+            self.repelling_config = self.intervention_config["Repelling_Config"]
+        if "Usage_Config" in self.intervention_config:
+            self.usage_config = self.intervention_config["Usage_Config"]
+
 
     def tearDown(self) -> None:
         if self.is_debugging:
             self.write_debug_files()
         return
+
     # endregion
 
     # region Ivermectin
@@ -116,20 +134,20 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.start_day, 0)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'],
                          1.0)
-        self.assertEqual(self.killing_config[WaningParams.IE], 1.0)
-        self.assertIn(WaningParams.DTC, self.killing_config)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 0)
-        self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
+        self.assertEqual(self.killing_config[WaningParams.Initial], 1.0)
+        self.assertIn(WaningParams.Decay_Time, self.killing_config)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
         return
 
     def test_ivermectin_exponential_default(self):
         self.is_debugging = False
         self.ivermectin_build(killing_exponential_rate=0.1)
-        self.assertEqual(self.killing_config[WaningParams.IE], 1.0)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 10)
+        self.assertEqual(self.killing_config[WaningParams.Initial], 1.0)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 10)
         self.assertIn('Box_Duration', self.killing_config)
-        self.assertEqual(self.killing_config[WaningParams.BD], 0)
-        self.assertEqual(self.killing_config['class'], WaningEffects.BEX)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], 0)
+        self.assertEqual(self.killing_config['class'], WaningEffects.BoxExp)
         pass
 
     def test_ivermectin_boxexponential_default(self):
@@ -137,10 +155,10 @@ class TestMalariaInterventions(unittest.TestCase):
         self.ivermectin_build(killing_exponential_rate=0.25,
                               killing_duration_box=3,
                               killing_effect=0.8)
-        self.assertEqual(self.killing_config[WaningParams.IE], 0.8)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 4)
-        self.assertEqual(self.killing_config[WaningParams.BD], 3)
-        self.assertEqual(self.killing_config['class'], WaningEffects.BEX)
+        self.assertEqual(self.killing_config[WaningParams.Initial], 0.8)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 4)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], 3)
+        self.assertEqual(self.killing_config['class'], WaningEffects.BoxExp)
         self.assertEqual(self.killing_config['Initial_Effect'], 0.8)
         self.assertEqual(self.killing_config['Decay_Time_Constant'], 4)
         self.assertEqual(self.killing_config['Box_Duration'], 3)
@@ -157,10 +175,10 @@ class TestMalariaInterventions(unittest.TestCase):
         )
         self.assertEqual(self.start_day, 123)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 0.87)
-        self.assertEqual(self.killing_config[WaningParams.IE], 0.76)
-        self.assertEqual(self.killing_config[WaningParams.BD], 12)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 5)
-        self.assertEqual(self.killing_config['class'], WaningEffects.BEX)
+        self.assertEqual(self.killing_config[WaningParams.Initial], 0.76)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], 12)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 5)
+        self.assertEqual(self.killing_config['class'], WaningEffects.BoxExp)
         pass
 
     def test_ivermectin_num_individuals(self):
@@ -177,119 +195,136 @@ class TestMalariaInterventions(unittest.TestCase):
     # endregion
 
     # region drug_campaign
-  
-    def parse_drug_campaign_event(self, event):
-        # name and coverage
-        coord_config = event['Event_Coordinator_Config']
-        self.coverage = coord_config['Demographic_Coverage']
-        intervention_config = coord_config['Intervention_Config']
-        if "Intervention_List" in intervention_config:
-            intervention = intervention_config["Intervention_List"][0]
-        else:
-            intervention = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
-        
-        self.vacc_type = intervention['class']
-
-    def validate_drug_campaign(self, campaign_type, coverage=1, sensitivity=1, specificity=1, diagnostic="BLOOD_SMEAR_PARASITES", vacc_type=["AntimalarialDrug", "MalariaDiagnostic", "BroadcastEventToOtherNodes", "DelayedIntervention"]):
-        self.assertEqual(self.coverage, coverage, msg=f"Coverage not equal to {coverage} with campaign type {campaign_type}")
-        self.assertTrue(self.vacc_type in vacc_type, msg=f"Vaccine type not equal to {vacc_type} instead was {self.vacc_type} with campaign type {campaign_type}")
 
     def test_drug_campaign_MDA(self):
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        camp.campaign_dict["Events"] = []
         campaign_type = "MDA"
-        for config in configs:
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
-
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.load(file)
-
-        for event in campaign['Events']:  
-            self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type) # want to add config details later
-        os.remove("campaign.json")
+        coverage = 0.78
+        # self.test_drug_campaign(campaign_type)
+        drug_codes = ["AL"]
+        for drug_code in drug_codes:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type=campaign_type,
+                                            drug_code=drug_code, repetitions=3, tsteps_btwn_repetitions=100,
+                                            coverage=coverage)
+        # camp.save("campaign_mda.json") # can be used for debugging, writes out a file
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Number_Repetitions'], 3)
+        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Timesteps_Between_Repetitions'], 100)
+        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Demographic_Coverage'], coverage)
+        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]['Intervention_Name'],
+                         "AntimalarialDrug")
 
     def test_drug_campaign_MSAT(self):
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        camp.campaign_dict["Events"] = []
         campaign_type = "MSAT"
-        for config in configs:
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+        # self.test_drug_campaign(campaign_type)
+        coverage = 0.89
+        drug_codes = ["AL"]
+        for drug_code in drug_codes:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type=campaign_type,
+                                            drug_code=drug_code, repetitions=3, tsteps_btwn_repetitions=100,
+                                            coverage=coverage)
 
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.load(file)
+        # camp.save("campaign_msat.json") # can be used for debugging, writes out a file
+        self.assertEqual(len(camp.campaign_dict['Events']), 2)
+        for event in camp.campaign_dict['Events']:
+            if event['Event_Coordinator_Config']['Intervention_Config']['Intervention_Name'] == "MalariaDiagnostic":
+                self.assertEqual(event['Event_Coordinator_Config']['Number_Repetitions'], 3)
+                self.assertEqual(event['Event_Coordinator_Config']['Timesteps_Between_Repetitions'], 100)
+                self.assertEqual(event['Event_Coordinator_Config']['Demographic_Coverage'], coverage)
+            elif event['Event_Coordinator_Config']['Intervention_Config']['Intervention_Name'] == "NodeLevelHealthTriggeredIV":
+                self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_Name'],  "AntimalarialDrug")
+            else:
+                self.assertTrue(False, "Unexpected intervention in campaign.")
 
-        for event in campaign['Events']:  
-            self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type) # want to add config details later
-        os.remove("campaign.json")
 
     def test_drug_campaign_fMDA(self):
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        camp.campaign_dict["Events"] = []
         campaign_type = "fMDA"
-        for config in configs:
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+        coverage = 0.89
+        drug_codes = ["AL"]
+        for drug_code in drug_codes:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type=campaign_type,
+                                            drug_code=drug_code,
+                                            coverage=coverage)
 
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.load(file)
-
-        for event in campaign['Events']:  
-            self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type) # want to add config details later
-        os.remove("campaign.json")
+        # camp.save("campaign_fmda.json")  # can be used for debugging, writes out a file
+        self.assertEqual(len(camp.campaign_dict['Events']), 3)
+        for event in camp.campaign_dict['Events']:
+            if event['Event_Coordinator_Config']['Intervention_Config']['Intervention_Name'] == "MalariaDiagnostic":
+                self.assertEqual(len(event['Event_Coordinator_Config']['Intervention_Config']['Intervention_List']), 2)
+            elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_Name'] == "BroadcastEventToOtherNodes":
+                self.assertEqual(len(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_List']), 2)
+            elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_Name'] == "AntimalarialDrug":
+                self.assertEqual(len(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_List']), 3)
+            else:
+                self.assertTrue(False, "Unexpected intervention in campaign.")
 
     def test_drug_campaign_rfMDA(self):
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        camp.campaign_dict["Events"] = []
         campaign_type = "rfMDA"
-        for config in configs:
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+        coverage = 0.89
+        drug_codes = ["AL"]
+        for drug_code in drug_codes:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type=campaign_type,
+                                            drug_code=drug_code, fmda_radius=6,
+                                            coverage=coverage)
 
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.load(file)
-
-        for event in campaign['Events']:  
-            self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type) # want to add config details later
-        os.remove("campaign.json")
+        camp.save("campaign_rfmda.json")  # can be used for debugging, writes out a file
+        self.assertEqual(len(camp.campaign_dict['Events']), 2)
+        for event in camp.campaign_dict['Events']:
+            if 'Actual_IndividualIntervention_Configs' in event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']:
+                self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]['class'], "BroadcastEventToOtherNodes")
+                self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]['Max_Distance_To_Other_Nodes_Km'], 6)
+            elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_Name'] == "AntimalarialDrug":
+                self.assertEqual(len(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_List']), 3)
+            else:
+                self.assertTrue(False, "Unexpected intervention in campaign.")
 
     def test_drug_campaign_rfMSAT(self):
-        configs = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
+        camp.campaign_dict["Events"] = []
         campaign_type = "rfMSAT"
-        for config in configs:
-            drug_campaign.add_drug_campaign(camp=camp, campaign_type = campaign_type, adherent_drug_configs=drug_campaign.drug_configs_from_code(camp, config))
+        coverage = 0.89
+        drug_codes = ["AL"]
+        for drug_code in drug_codes:
+            drug_campaign.add_drug_campaign(camp=camp, campaign_type=campaign_type,
+                                            drug_code=drug_code, fmda_radius=6,
+                                            coverage=coverage)
 
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.load(file)
-
-        for event in campaign['Events']:  
-            self.parse_drug_campaign_event(event)
-            self.validate_drug_campaign(campaign_type) # want to add config details later
-        os.remove("campaign.json")
+        camp.save("campaign_rfmsat.json")  # can be used for debugging, writes out a file
+        self.assertEqual(len(camp.campaign_dict['Events']), 3)
+        for event in camp.campaign_dict['Events']:
+            if 'Actual_IndividualIntervention_Configs' in event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']:
+                self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]['class'], "BroadcastEventToOtherNodes")
+                self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]['Max_Distance_To_Other_Nodes_Km'], 6)
+            elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_Name'] == "AntimalarialDrug":
+                self.assertEqual(len(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_List']), 3)
+            elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_Name'] == "MalariaDiagnostic":
+                self.assertEqual(len(event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']['Intervention_List']), 2)
+            else:
+                self.assertTrue(False, "Unexpected intervention in campaign.")
 
     # end region
 
     # region bednet
     def bednet_build(self
-                      , start_day=1
-                      , coverage=1.0
-                      , blocking_eff=1.0
-                      , killing_eff=1.0
-                      , repelling_eff=1.0
-                      , usage_eff=1.0
-                      , blocking_decay_rate=0.0
-                      , blocking_predecay_duration=365
-                      , killing_decay_rate=0.0
-                      , killing_predecay_duration=365
-                      , repelling_decay_rate=0.0
-                      , repelling_predecay_duration=365
-                      , usage_decay_rate=0.0
-                      , usage_predecay_duration=365
-                      , node_ids=None
-                      , insecticide=None
-                      ):
+                     , start_day=1
+                     , coverage=1.0
+                     , blocking_eff=1.0
+                     , killing_eff=1.0
+                     , repelling_eff=1.0
+                     , usage_eff=1.0
+                     , blocking_decay_rate=0.0
+                     , blocking_predecay_duration=365
+                     , killing_decay_rate=0.0
+                     , killing_predecay_duration=365
+                     , repelling_decay_rate=0.0
+                     , repelling_predecay_duration=365
+                     , usage_decay_rate=0.0
+                     , usage_predecay_duration=365
+                     , node_ids=None
+                     , insecticide=None
+                     ):
         if not self.tmp_intervention:
             self.tmp_intervention = Bednet(
                 campaign=self.schema_file
@@ -337,20 +372,20 @@ class TestMalariaInterventions(unittest.TestCase):
         self.tmp_intervention = Bednet(campaign=schema_path_file,
                                        start_day=specific_day)
 
-        self.bednet_build() # tmp_intervention already set
+        self.bednet_build()  # tmp_intervention already set
         # self.bednet_build(start_day=specific_day)
 
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 1.0)
         self.assertEqual(self.start_day, specific_day)
         for wc in self.all_configs:
-            self.assertEqual(wc[WaningParams.IE], 1)
-            self.assertEqual(wc[WaningParams.BD], 365)
-            self.assertEqual(wc[WaningParams.DTC], 0)
-            self.assertEqual(wc[WaningParams.C], WaningEffects.BEX)
+            self.assertEqual(wc[WaningParams.Initial], 1)
+            self.assertEqual(wc[WaningParams.Box_Duration], 365)
+            self.assertEqual(wc[WaningParams.Decay_Time], 0)
+            self.assertEqual(wc[WaningParams.Class], WaningEffects.BoxExp)
 
         self.assertEqual(self.event_coordinator['Individual_Selection_Type']
                          , "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(self.nodeset[NodesetParams.C],NodesetParams.CNSA)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
         return
 
     def test_bednet_all_constant_waning(self):
@@ -362,8 +397,8 @@ class TestMalariaInterventions(unittest.TestCase):
                           , usage_predecay_duration=-1)
         for wc in self.all_configs:
             self.assertEqual(
-                wc[WaningParams.C]
-                , WaningEffects.C) # class is WaningEffectConstant
+                wc[WaningParams.Class]
+                , WaningEffects.Constant)  # class is WaningEffectConstant
         return
 
     def test_bednet_all_waning_effectiveness(self):
@@ -378,10 +413,10 @@ class TestMalariaInterventions(unittest.TestCase):
                           , repelling_eff=repell_effect
                           , usage_eff=usage_effect)
 
-        self.assertEqual(self.killing_config[WaningParams.IE], kill_effect)
-        self.assertEqual(self.blocking_config[WaningParams.IE], block_effect)
-        self.assertEqual(self.repelling_config[WaningParams.IE], repell_effect)
-        self.assertEqual(self.usage_config[WaningParams.IE], usage_effect)
+        self.assertEqual(self.killing_config[WaningParams.Initial], kill_effect)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], block_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], repell_effect)
+        self.assertEqual(self.usage_config[WaningParams.Initial], usage_effect)
         return
 
     def test_bednet_all_exponential_waning(self):
@@ -397,14 +432,14 @@ class TestMalariaInterventions(unittest.TestCase):
         # All of these should have no box duration
         # All of these should be box exponential
         for wc in self.all_configs:
-            self.assertEqual(wc[WaningParams.BD], 0)
-            self.assertEqual(wc[WaningParams.C], WaningEffects.BEX)
+            self.assertEqual(wc[WaningParams.Box_Duration], 0)
+            self.assertEqual(wc[WaningParams.Class], WaningEffects.BoxExp)
 
         # Each of the Delay_Time_Constants is the reciprocal of the decay rate
-        self.assertEqual(self.blocking_config[WaningParams.DTC], 5.0)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 10.0)
-        self.assertEqual(self.usage_config[WaningParams.DTC], 100.0)
-        self.assertEqual(self.repelling_config[WaningParams.DTC], 2.0)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], 5.0)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 10.0)
+        self.assertEqual(self.usage_config[WaningParams.Decay_Time], 100.0)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], 2.0)
         return
 
     def test_bednet_nodeset_custom(self):
@@ -418,20 +453,20 @@ class TestMalariaInterventions(unittest.TestCase):
                           , usage_predecay_duration=50
                           )
 
-        self.assertEqual(self.nodeset[NodesetParams.C],
-                         NodesetParams.CNSNL)
-        self.assertEqual(self.nodeset[NodesetParams.NL],
+        self.assertEqual(self.nodeset[NodesetParams.Class],
+                         NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List],
                          specific_ids)
-        self.assertEqual(self.blocking_config[WaningParams.IE], 0.3)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], 0.3)
 
-        self.assertEqual(self.killing_config[WaningParams.BD], 730)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 0)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], 730)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
 
-        self.assertEqual(self.repelling_config[WaningParams.BD], 0)
-        self.assertEqual(self.repelling_config[WaningParams.DTC], 50)
+        self.assertEqual(self.repelling_config[WaningParams.Box_Duration], 0)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], 50)
 
-        self.assertEqual(self.usage_config[WaningParams.DTC], 100)
-        self.assertEqual(self.usage_config[WaningParams.BD], 50)
+        self.assertEqual(self.usage_config[WaningParams.Decay_Time], 100)
+        self.assertEqual(self.usage_config[WaningParams.Box_Duration], 50)
         return
 
     def test_bednet_coverage_custom(self):
@@ -449,95 +484,63 @@ class TestMalariaInterventions(unittest.TestCase):
                           , blocking_predecay_duration=50
                           )
 
-        self.assertEqual(self.nodeset[NodesetParams.C],
-                         NodesetParams.CNSA)
+        self.assertEqual(self.nodeset[NodesetParams.Class],
+                         NodesetParams.SetAll)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'],
                          specific_coverage)
-        self.assertEqual(self.killing_config[WaningParams.IE], 0.3)
+        self.assertEqual(self.killing_config[WaningParams.Initial], 0.3)
 
-        self.assertEqual(self.repelling_config[WaningParams.BD], 730)
-        self.assertEqual(self.repelling_config[WaningParams.DTC], 0)
+        self.assertEqual(self.repelling_config[WaningParams.Box_Duration], 730)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], 0)
 
-        self.assertEqual(self.usage_config[WaningParams.BD], 0)
-        self.assertEqual(self.usage_config[WaningParams.DTC], 50)
+        self.assertEqual(self.usage_config[WaningParams.Box_Duration], 0)
+        self.assertEqual(self.usage_config[WaningParams.Decay_Time], 50)
 
-        self.assertEqual(self.blocking_config[WaningParams.DTC], 100)
-        self.assertEqual(self.blocking_config[WaningParams.BD], 50)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], 100)
+        self.assertEqual(self.blocking_config[WaningParams.Box_Duration], 50)
         return
 
     # endregion
 
     # region OutdoorRestKill
-    def outdoorrestkill_build(self
-                              , killing_effect=0.02
-                              , start_day=1
-                              , coverage=1.0
-                              , insecticide_name=None
-                              , killing_predecay_duration=0
-                              , killing_decay_rate=0.0
-                              , node_ids=None):
-        if not self.tmp_intervention:
-            self.tmp_intervention = OutdoorRestKill(
-                schema_path_container=self.schema_file
-                , killing_effect=killing_effect
-                , insecticide_name=insecticide_name
-                , start_day=start_day
-                , target_coverage=coverage
-                , killing_predecay_duration=killing_predecay_duration
-                , killing_decay_rate=killing_decay_rate
-                , node_ids=node_ids
-            )
+    def test_outdoorrestkill_default(self):
+        # correct setting for WaningParams are tested elsewhere here
+        camp.campaign_dict["Events"] = []  # resetting
+        add_OutdoorRestKill(camp)
+        self.tmp_intervention = camp.campaign_dict['Events'][0]
         self.parse_intervention_parts()
-        self.killing_config = self.intervention_config['Killing_Config']
-        return
-
-    def test_outdoorrestkill_default_throws_exception(self):
-        with self.assertRaises(TypeError) as context:
-            OutdoorRestKill(schema_path_container=self.schema_file)
-        self.assertIn("killing_effect", str(context.exception))
+        self.assertEqual(self.event_coordinator["Demographic_Coverage"], 1)
+        self.assertEqual(self.start_day, 1)
+        self.assertEqual(self.intervention_config["class"], "OutdoorRestKill")
+        self.assertEqual(self.killing_config["class"], WaningEffects.BoxExp)
         return
 
 
-    def test_outdoorrestkill_only_needs_killing_effect(self):
-        specific_effect=0.311
-        self.tmp_intervention = OutdoorRestKill(
-            schema_path_container=self.schema_file
-        , killing_effect=specific_effect
-        )
-
-        self.outdoorrestkill_build() # tmp_intervention already built
-        self.assertEqual(self.killing_config[WaningParams.IE], specific_effect)
-        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
-        return
 
     def test_outdoorrestkill_all_custom(self):
+        camp.campaign_dict["Events"] = []  # resetting
         specific_start_day = 123
         specific_insecticide_name = "Vinegar"
-        specific_coverage = 0.63
         specific_killing_effect = 0.15
         specific_box_duration = 100
         specific_decay_rate = 0.05
         specific_nodes = [1, 2, 3, 5, 8, 13, 21, 34]
-
-        self.outdoorrestkill_build(
-            killing_effect=specific_killing_effect
-            , start_day=specific_start_day
-            , insecticide_name = specific_insecticide_name 
-            , coverage=specific_coverage
-            , killing_predecay_duration=specific_box_duration
-            , killing_decay_rate=specific_decay_rate
-            , node_ids=specific_nodes
-        )
-
-        self.assertEqual(self.start_day, specific_start_day)
-        self.assertEqual(self.event_coordinator['Demographic_Coverage'], specific_coverage)
+        add_OutdoorRestKill(camp,
+                            start_day=specific_start_day,
+                            insecticide_name=specific_insecticide_name,
+                            killing_initial_effect=specific_killing_effect,
+                            killing_box_duration=specific_box_duration,
+                            killing_exponential_decay_rate=specific_decay_rate,
+                            node_ids=specific_nodes)
+        self.tmp_intervention = camp.campaign_dict['Events'][0]
+        self.parse_intervention_parts()
         self.assertEqual(self.intervention_config['Insecticide_Name'], specific_insecticide_name)
-        self.assertEqual(self.killing_config[WaningParams.DTC], 1/specific_decay_rate)
-        self.assertEqual(self.killing_config[WaningParams.BD], specific_box_duration)
-        self.assertEqual(self.killing_config[WaningParams.IE], specific_killing_effect)
-        self.assertEqual(self.killing_config[WaningParams.C], WaningEffects.BEX)
-        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSNL)
-        self.assertEqual(self.nodeset[NodesetParams.NL], specific_nodes)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / specific_decay_rate)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], specific_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], specific_killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], specific_nodes)
         return
 
     # endregion
@@ -558,14 +561,14 @@ class TestMalariaInterventions(unittest.TestCase):
                           , repelling_decay_rate=0.0
                           , repelling_predecay_duration=365
                           , intervention_name=None
-                          , age_dependence:dict=None
-                          , seasonal_dependence:dict=None
-                          , insecticide:str=None
-                          , node_ids:list=None
-                          , triggered_campaign_delay:dict=None
-                          , triggers:list=None
-                          , duration:int=-1
-                          , check_eligibility_at_trigger:bool=False
+                          , age_dependence: dict = None
+                          , seasonal_dependence: dict = None
+                          , insecticide: str = None
+                          , node_ids: list = None
+                          , triggered_campaign_delay: dict = None
+                          , triggers: list = None
+                          , duration: int = -1
+                          , check_eligibility_at_trigger: bool = False
                           ):
         if not self.tmp_intervention:
             if intervention_name is None:
@@ -614,12 +617,12 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def test_usagebednet_only_needs_start_day(self):
-        specific_start_day=131415
+        specific_start_day = 131415
         self.tmp_intervention = UDBednet(camp=self.schema_file,
-                                          start_day=specific_start_day)
+                                         start_day=specific_start_day)
         self.usagebednet_build()
         self.assertEqual(self.start_day, specific_start_day)
-        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
         self.assertEqual(self.event_coordinator['Individual_Selection_Type'],
                          "DEMOGRAPHIC_COVERAGE")
         self.assertEqual(self.event_coordinator['Demographic_Coverage'],
@@ -634,14 +637,14 @@ class TestMalariaInterventions(unittest.TestCase):
         camp.save("test_campaign.json")
         with open('test_campaign.json') as file:
             campaign = json.load(file)
-        self.assertTrue('schema' not in campaign, msg = "UDBednet contains bits of schema in it")
+        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
         os.remove("test_campaign.json")
 
         return
 
     def test_usagebednet_trigger_distribution(self):
         self.is_debugging = False
-        specific_triggers = ["ColdOutside","HeavyMosquitoPresence"]
+        specific_triggers = ["ColdOutside", "HeavyMosquitoPresence"]
         self.usagebednet_build(triggers=specific_triggers)
         nlhtiv_config = self.event_coordinator['Intervention_Config']
 
@@ -650,7 +653,7 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def test_usagebednet_trigger_delay_constant(self):
-        specific_triggers = ["WetOutside","ReceivesBednet"]
+        specific_triggers = ["WetOutside", "ReceivesBednet"]
         specific_delay_param = 'Delay_Period_Constant'
         specific_delay_value = 9
         specific_delay_dict = {specific_delay_param: specific_delay_value}
@@ -689,7 +692,7 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_usagebednet_seasonal_dependence_minmax_coverage(self):
         self.is_debugging = False
         specific_min_val = 0.1
-        specific_max_day = 73 # March 14 in non leap years
+        specific_max_day = 73  # March 14 in non leap years
         specific_seasonality = {
             'min_cov': specific_min_val,
             'max_day': specific_max_day
@@ -706,11 +709,11 @@ class TestMalariaInterventions(unittest.TestCase):
                 self.assertLessEqual(actual_min_diff, 0.02)
 
                 target_index = -1
-                next_index = target_index + 1 # Find out the index that contains the max_day
-                while map['Times'][next_index] < specific_max_day: # So until the next index is too high...
+                next_index = target_index + 1  # Find out the index that contains the max_day
+                while map['Times'][next_index] < specific_max_day:  # So until the next index is too high...
                     target_index += 1
                     next_index += 1
-                actual_max_index = map['Values'].index(max(map['Values'])) # Get the index of the actually highest day
+                actual_max_index = map['Values'].index(max(map['Values']))  # Get the index of the actually highest day
                 self.assertEqual(target_index, actual_max_index,
                                  msg=f"Expected value in bucket {target_index}"
                                      f": {map['Values'][target_index]} to be max, "
@@ -724,7 +727,7 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_usagebednet_seasonal_dependence_minzero_coverage(self):
         specific_seasonality = {
             'min_cov': 0.0,
-            'max_day': 185 # July 4 in non leap years
+            'max_day': 185  # July 4 in non leap years
         }
         self.usagebednet_build(seasonal_dependence=specific_seasonality)
         pass
@@ -742,7 +745,7 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     # endregion
-    
+
     def test_diagnostic_survey(self):
         self.is_debugging = False
         diag_survey.add_diagnostic_survey(camp)
@@ -761,7 +764,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.is_debugging = False
         malaria_diagnostic = common.MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
         measures = [malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
-        
+
         self.assertFalse(any(item != 1 for item in measures), msg="Not all values are 1 when set to 1")
         self.assertEqual("BLOOD_SMEAR_PARASITES", malaria_diagnostic.Diagnostic_Type)
 
@@ -770,14 +773,14 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(AntimalarialDrug.Cost_To_Consumer, 1.0)
 
     def mosquitorelease_build(self
-                            , start_day=1
-                            , number=10_000
-                            , fraction=None
-                            , infectious=0.0
-                            , species='arabiensis'
-                            , genome = None
-                            , node_ids=None):
-        camp.schema_path = os.path.join(file_dir , "./old_schemas/latest_schema.json")
+                              , start_day=1
+                              , number=10_000
+                              , fraction=None
+                              , infectious=0.0
+                              , species='arabiensis'
+                              , genome=None
+                              , node_ids=None):
+        camp.schema_path = os.path.join(file_dir, "./old_schemas/latest_schema.json")
         if not genome:
             genome = [['X', 'X']]
         if not self.tmp_intervention:
@@ -811,18 +814,18 @@ class TestMalariaInterventions(unittest.TestCase):
         self.mosquitorelease_build()
 
         self.assertEqual(self.start_day, 1)
-        self.assertEqual(self.nodeset[NodesetParams.C]
-                        , NodesetParams.CNSA) # default is nodesetall
+        self.assertEqual(self.nodeset[NodesetParams.Class]
+                         , NodesetParams.SetAll)  # default is nodesetall
         self.assertEqual(self.intervention_config['Released_Type'],
-                        'FIXED_NUMBER')
+                         'FIXED_NUMBER')
         self.assertEqual(self.intervention_config['Released_Number'],
-                        10_000)
+                         10_000)
         self.assertEqual(self.intervention_config['Released_Infectious'],
-                        0)
+                         0)
         self.assertEqual(self.intervention_config['Released_Species'],
-                        'arabiensis')
+                         'arabiensis')
         self.assertEqual(self.intervention_config['Released_Genome'],
-                        [['X', 'X']])
+                         [['X', 'X']])
         return
 
     def test_mosquitorelease_custom(self):
@@ -840,28 +843,45 @@ class TestMalariaInterventions(unittest.TestCase):
         )
 
     def test_inputeir_default(self):
-        eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        self.tmp_intervention = InputEIR(camp, eir[:])
+        eir = [random.randint(0, 50) for x in range(12)]
+        self.tmp_intervention = InputEIR(camp, eir)
         self.parse_intervention_parts()
 
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)
         self.assertEqual(self.intervention_config.Age_Dependence, "OFF")
         self.assertEqual(self.start_day, 1)
-        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSA)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
         pass
 
     def test_inputeir(self):
-        eir = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        self.tmp_intervention = InputEIR(camp, eir[:], start_day=2, node_ids=[2, 3], age_dependence='LINEAR')
+        eir = [random.randint(0, 50) for x in range(12)]
+        self.tmp_intervention = InputEIR(camp, monthly_eir=eir, start_day=2, node_ids=[2, 3], age_dependence='LINEAR')
         self.parse_intervention_parts()
 
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)
         self.assertEqual(self.intervention_config.Age_Dependence, "LINEAR")
         self.assertEqual(self.start_day, 2)
-        self.assertEqual(self.nodeset[NodesetParams.C], NodesetParams.CNSNL)
-        self.assertEqual(self.nodeset[NodesetParams.NL], [2, 3])
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], [2, 3])
 
         pass
+
+    def test_daily_inputeir(self):
+        daily_eir = [random.randint(0, 50) for x in range(365)]
+        self.tmp_intervention = InputEIR(camp, daily_eir=daily_eir, start_day=2, node_ids=[2, 3],
+                                         age_dependence='SURFACE_AREA_DEPENDENT')
+        self.parse_intervention_parts()
+
+        self.assertEqual(self.intervention_config.Daily_EIR, daily_eir)
+        self.assertEqual(self.intervention_config.EIR_Type, "DAILY")
+        self.assertEqual(self.intervention_config.Age_Dependence, "SURFACE_AREA_DEPENDENT")
+        self.assertEqual(self.start_day, 2)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], [2, 3])
+
+        pass
+
+
 
 # Uncomment below if you would like to run test suite with different schema
 # class TestMalariaInterventions_17Dec20(TestMalariaInterventions):

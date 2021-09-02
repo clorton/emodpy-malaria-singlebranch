@@ -74,7 +74,6 @@ def set_team_defaults(config, manifest):
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
     config.parameters.Inset_Chart_Reporting_Include_30Day_Avg_Infection_Duration = 0
     config.parameters.Simulation_Duration = 365
-    config = add_species(config, manifest, ["gambiae", "funestus", "arabiensis"])
 
     return config
 
@@ -88,12 +87,12 @@ def get_species_params(config, species: str = None):
         species: Species to look up
 
     Returns:
-        Dictionary of species paramteres with the matching name
+        Dictionary of species parameters with the matching name
     """
-    for idx, vector_species in enumerate(config.parameters.Vector_Species_Params):
+    for vector_species in config.parameters.Vector_Species_Params:
         if vector_species.Name == species:
-            return config.parameters.Vector_Species_Params[idx]
-    raise ValueError(f"{species} not found.")
+            return vector_species
+    raise ValueError(f"Species {species} not found.")
 
 
 def set_species_param(config, species, parameter, value, overwrite=False):
@@ -111,15 +110,15 @@ def set_species_param(config, species, parameter, value, overwrite=False):
     Returns:
         Nothing
     """
-    for vector_species in config.parameters.Vector_Species_Params:
-        if vector_species.Name == species:
-            if parameter in vector_species and isinstance(vector_species[parameter], list) and not overwrite:
-                if isinstance(value, list):
-                    for val in value:
-                        vector_species[parameter].append(val)
-            else:
-                vector_species[parameter] = value
-            return
+
+    vector_species = get_species_params(config, species)
+    if parameter in vector_species and isinstance(vector_species[parameter], list) and not overwrite:
+        if isinstance(value, list):
+            for val in value:
+                vector_species[parameter].append(val)
+    else:
+        vector_species[parameter] = value
+        return
     raise ValueError(f"Species {species} not found.\n")
 
 
@@ -170,12 +169,12 @@ def add_species(config, manifest, species_to_select):
                     vsp.parameters.Male_Life_Expectancy = float(row[header.index("Male_Life_Expectancy")])
                     vsp.parameters.Transmission_Rate = float(row[header.index("Transmission_Rate")])
                     vsp.parameters.Vector_Sugar_Feeding_Frequency = row[header.index("Vector_Sugar_Feeding_Frequency")]
-                    vsp.parameters.Larval_Habitat_Types = [{"Vector_Habitat_Type": row[header.index("LHT1_Key")],
+                    vsp.parameters.Habitats = [{"Habitat_Type": row[header.index("LHT1_Key")],
                                                             "Max_Larval_Capacity": float(
                                                                 row[header.index("LHT1_Value")])}]
                     if row[header.index("LHT2_Key")]:
-                        vsp.parameters.Larval_Habitat_Types.append(
-                            {"Vector_Habitat_Type": row[header.index("LHT2_Key")],
+                        vsp.parameters.Habitats.append(
+                            {"Habitat_Type": row[header.index("LHT2_Key")],
                              "Max_Larval_Capacity": float(
                                  row[header.index("LHT2_Value")])})
 

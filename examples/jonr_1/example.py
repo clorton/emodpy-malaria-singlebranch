@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import pathlib # for a join
-from functools import partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
+import pathlib  # for a join
+from functools import \
+    partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
 
 # idmtools ...
 from idmtools.assets import Asset, AssetCollection  #
@@ -15,13 +16,12 @@ from idmtools.entities.experiment import Experiment
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-from emodpy_malaria.reporters.builtin import ReportVectorGenetics
 import emod_api.config.default_from_schema_no_validation as dfs
-
+from emodpy_malaria.reporters.builtin import *
 
 import params
-import set_config
 import manifest
+
 
 # ****************************************************************
 # Features to support:
@@ -36,8 +36,9 @@ import manifest
 # ****************************************************************
 
 def update_sim_bic(simulation, value):
-    simulation.task.config.parameters.Base_Infectivity_Constant  = value*0.1
+    simulation.task.config.parameters.Base_Infectivity_Constant = value * 0.1
     return {"Base_Infectivity": value}
+
 
 def update_sim_random_seed(simulation, value):
     simulation.task.config.parameters.Run_Number = value
@@ -54,25 +55,18 @@ def print_params():
     print("nSims: ", params.nSims)
 
 
-def set_param_fn(config): 
+def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
 
     import emodpy_malaria.malaria_config as conf
-    config = conf.set_team_defaults( config, manifest )
-    conf.set_species( config, [ "gambiae" ] )
-    config = set_config.set_config( config )
-
-    lhm = dfs.schema_to_config_subnode( manifest.schema_file, ["idmTypes","idmType:VectorHabitat"] )
-    lhm.parameters.Max_Larval_Capacity = 225000000
-    lhm.parameters.Vector_Habitat_Type = "TEMPORARY_RAINFALL"
-
-    conf.set_species( config, "gambiae" )
-    config.parameters.Simulation_Duration = 365*5
     config.parameters.Malaria_Model = "MALARIA_MECHANISTIC_MODEL_WITH_CO_TRANSMISSION"
     config.parameters.Enable_Vector_Species_Report = 1
-    config.parameters.pop( "Serialized_Population_Filenames" ) 
+    config.parameters.Enable_Migration_Heterogeneity = 0
+    config = conf.set_team_defaults(config, manifest)
+    config.parameters.Vector_Species_Params = []
+    conf.add_species(config, manifest, ["gambiae"])
 
     return config
 
@@ -83,17 +77,16 @@ def build_camp():
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     """
     import emod_api.campaign as camp
-    import emod_api.interventions.outbreak as ob
     import emodpy_malaria.interventions.bednet as bednet
     import emodpy_malaria.interventions.irs as irs
     import emodpy_malaria.interventions.drug as drug
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
-    
+
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add( irs.IRSHousingModification( camp, start_day=100, coverage=0.5, killing_eff=0.5, repelling_eff=0.5 ) )
-    camp.add( drug.AntimalarialDrug( camp, start_day=300, coverage=0.5 ) )
+    camp.add(irs.IRSHousingModification(camp, start_day=100, coverage=0.5, killing_eff=0.5, repelling_eff=0.5))
+    camp.add(drug.AntimalarialDrug(camp, start_day=300, coverage=0.5))
     """
     add_IRS(cb, start=start,
             coverage_by_ages=[{'coverage': coverage}],
@@ -122,61 +115,28 @@ def build_demog():
     import emodpy_malaria.demographics.MalariaDemographics as Demographics
     import emod_api.migration as mig
 
-    demog = Demographics.from_params( tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria" )
-    mig = mig.from_params( pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria", migration_type=mig.Migration.REGIONAL ) 
+    demog = Demographics.from_params(tot_pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria")
+    mig = mig.from_params(pop=2e4, num_nodes=2, frac_rural=0.5, id_ref="jonr_dual_node_malaria",
+                          migration_type=mig.Migration.REGIONAL)
 
     return demog, mig
 
 
-def add_reports( task, manifest ):
+def add_reports(task, manifest):
     """
     Inbox:
     """
 
-    from emodpy_malaria.reporters.builtin import MalariaSummaryReport
-    from emodpy_malaria.reporters.builtin import ReportSimpleMalariaTransmissionJSON as MTR
-    from emodpy.reporters.builtin import ReportHumanMigrationTracking
-    reporter = MalariaSummaryReport()  # Create the reporter
-    def msr_config_builder( params ):
-        params.Report_Description = "Annual Report"
-        params.Start_Day = 2*365
-        params.Reporting_Interval = 365
-        params.Max_Number_Reports = 1
-        params.Age_Bins = [2, 10, 125]
-        params.Parasitemia_Bins = [0, 50, 200, 500, 2000000] 
-        #params.Event_Trigger_List.append("NewInfectionEvent")
+    add_malaria_summary_report(task, manifest, report_description="Annual Report",
+                               start_day=2*365, reporting_interval=365, max_number_reports=1,
+                               age_bins=[2, 10, 125], parasitemia_bins=[0, 50, 200, 500, 2000000])
+    add_human_migration_tracking(task, manifest)
 
-        return params
-
-    reporter.config( msr_config_builder, manifest )
-    task.reporters.add_reporter(reporter)
+    add_malaria_transmission_report(task, manifest, start_day=1, duration_days=1*365,
+                                    report_description="Jon's Transmission Report")
 
 
-    reporter = MTR()  # Create the reporter
-    def mtr_config_builder( params ):
-        report_start = 1
-        years = 1
-        params.Duration_Days = (years-report_start)*365
-        params.Start_Day = (report_start)*365
-        params.Report_Description = "Jon's Transmission Report"
-        #params.Event_Trigger_List.append("NewInfectionEvent")
-        # 'class', '', 'Event_Trigger_List', 'Nodeset_Config', 'Pretty_Format'
-
-        return params
-
-    reporter.config( mtr_config_builder, manifest )
-    task.reporters.add_reporter(reporter)
-
-
-    reporter = ReportHumanMigrationTracking()  # Create the reporter
-    def hmr_config_builder( params ):
-        return params
-
-    reporter.config( hmr_config_builder, manifest )
-    task.reporters.add_reporter(reporter)
-
-
-def general_sim( erad_path, ep4_scripts ):
+def general_sim(erad_path, ep4_scripts):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
@@ -187,44 +147,38 @@ def general_sim( erad_path, ep4_scripts ):
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
     platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
-    #pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
+    # pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
 
     # create EMODTask 
     print("Creating EMODTask (from files)...")
-    
+
     task = EMODTask.from_default2(
-            config_path="my_config.json",
-            eradication_path=manifest.eradication_path,
-            campaign_builder=build_camp,
-            schema_path=manifest.schema_file,
-            param_custom_cb=set_param_fn,
-            ep4_custom_cb=None,
-            demog_builder=build_demog,
-            plugin_report=None # report
-        )
+        config_path="my_config.json",
+        eradication_path=manifest.eradication_path,
+        campaign_builder=build_camp,
+        schema_path=manifest.schema_file,
+        param_custom_cb=set_param_fn,
+        ep4_custom_cb=None,
+        demog_builder=build_demog,
+        plugin_report=None  # report
+    )
 
-    add_reports( task, manifest )
+    add_reports(task, manifest)
 
-
-    #print("Adding asset dir...")
-    #task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
+    # print("Adding asset dir...")
+    # task.common_assets.add_directory(assets_directory=manifest.assets_input_dir)
     print("Adding local assets (py scripts mainly)...")
-
-    if ep4_scripts is not None:
-        for asset in ep4_scripts:
-            pathed_asset = Asset(pathlib.PurePath.joinpath(manifest.ep4_path, asset), relative_path="python")
-            task.common_assets.add_asset(pathed_asset)
 
     # Create simulation sweep with builder
     builder = SimulationBuilder()
-    builder.add_sweep_definition( update_sim_random_seed, range(params.nSims) )
+    builder.add_sweep_definition(update_sim_random_seed, range(params.nSims))
 
     # create experiment from builder
-    print( f"Prompting for COMPS creds if necessary..." )
-    experiment  = Experiment.from_builder(builder, task, name=params.exp_name) 
+    print(f"Prompting for COMPS creds if necessary...")
+    experiment = Experiment.from_builder(builder, task, name=params.exp_name)
 
-    #other_assets = AssetCollection.from_id(pl.run())
-    #experiment.assets.add_assets(other_assets)
+    # other_assets = AssetCollection.from_id(pl.run())
+    # experiment.assets.add_assets(other_assets)
 
     # The last step is to call run() on the ExperimentManager to run the simulations.
     experiment.run(wait_until_done=True, platform=platform)
@@ -240,11 +194,11 @@ def general_sim( erad_path, ep4_scripts ):
     with open("COMPS_ID", "w") as fd:
         fd.write(experiment.uid.hex)
     print()
-    print(experiment.uid.hex) 
-    
+    print(experiment.uid.hex)
 
-def run_test( erad_path ):
-    general_sim( erad_path, manifest.my_ep4_assets )
+
+def run_test(erad_path):
+    general_sim(erad_path, manifest.my_ep4_assets)
 
 
 if __name__ == "__main__":

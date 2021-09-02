@@ -8,12 +8,13 @@ from functools import \
 
 from idmtools.core.platform_factory import Platform
 from idmtools.entities.experiment import Experiment
+from idmtools.builders import SimulationBuilder
 
 # emodpy
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
-
+from emodpy_malaria.reporters.builtin import *
 
 import manifest
 
@@ -24,6 +25,25 @@ The important bits are in set_param_fn function and general_sim function
 """
 
 
+def get_serialization_paths(platform, serialization_exp_id):
+    exp = Experiment.from_id(serialization_exp_id, children=False)
+    exp.simulations = platform.get_children(exp.id, exp.item_type,
+                                            children=["tags", "configuration", "files", "hpc_jobs"])
+
+    sim_dict = {'Larval_Capacity': [], 'Outpath': []}
+    for simulation in exp.simulations:
+        # if simulation.tags['Run_Number'] == 0:
+        string = simulation.get_platform_object().hpc_jobs[0].working_directory.replace('internal.idm.ctr', 'mnt')
+        string = string.replace('\\', '/')
+        string = string.replace('IDM2', 'idm2')
+
+        sim_dict['Larval_Capacity'] += [float(simulation.tags['Larval_Capacity'])]
+        sim_dict['Outpath'] += [string]
+
+    df = pd.DataFrame(sim_dict)
+    return df
+
+
 def set_param_fn(config):
     """
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
@@ -32,7 +52,7 @@ def set_param_fn(config):
 
     import emodpy_malaria.malaria_config as conf
     config = conf.set_team_defaults(config, manifest)
-
+    conf.add_species(config, manifest, ["gambiae", "funestus", "arabiensis"])
     config.parameters.Serialized_Population_Reading_Type = "READ"
     config.parameters.Serialization_Mask_Node_Read = 0
     config.parameters.Serialized_Population_Path = manifest.assets_input_dir # <--we uploaded files to here
@@ -75,7 +95,7 @@ def build_demog():
     return demog
 
 
-def general_sim(erad_path, ep4_scripts):
+def general_sim(erad_path, serialized_exp_id):
     """
     This function is designed to be a parameterized version of the sequence of things we do 
     every time we run an emod experiment. 
@@ -85,27 +105,6 @@ def general_sim(erad_path, ep4_scripts):
     platform = Platform("Calculon", num_cores=2, node_group="idm_48cores", priority="Highest")
     experiment_name = "Create simulation from serialized files"
 
-    # important bit
-    # WE ARE GOING TO USE SERIALIZATION FILES GENERATED IN burnin_create
-    from idmtools_platform_comps.utils.download.download import DownloadWorkItem, CompressType
-    # navigating to the experiment.id file to retrieve experiment id
-    with open("../burnin_create/experiment.id") as f:
-        experiment_id = f.readline()
-
-    dl_wi = DownloadWorkItem(
-                             related_experiments=[experiment_id],
-                             file_patterns=["output/*.dtk"],
-                             simulation_prefix_format_str='serialization_files',
-                             verbose=True,
-                             output_path="",
-                             delete_after_download=False,
-                             include_assets=True,
-                             compress_type=CompressType.deflate)
-
-    dl_wi.run(wait_on_done=True, platform=platform)
-    print("SHOULD BE DOWNLOADED")
-    # create EMODTask 
-    print("Creating EMODTask (from files)...")
 
     task = EMODTask.from_default2(
         config_path="my_config.json",
@@ -118,7 +117,22 @@ def general_sim(erad_path, ep4_scripts):
         plugin_report=None  # report
     )
 
-    print("Adding local assets (py scripts mainly)...")
+    # Create simulation sweep with builder
+    builder = SimulationBuilder()
+
+    serialized_population_path_df = get_serialization_paths(platform=platform, serialization_exp_id=serialized_exp_id)
+
+    func = partial(update_serialize, serialization=serialization, sim_duration=10 * 365,
+                   serialized_population_path_df=serialized_population_path_df)
+    builder.add_sweep_definition(func, [7.0, 7.25, 7.5, 7.75, 8.0])
+
+    builder.add_sweep_definition(update_sim_random_seed, range(params.nSims))
+    func = partial(update_camp_type, serialize=serialization, sim_duration=10 * 365)
+    builder.add_sweep_definition(func, [True, False])
+    exp_name = params.exp_name
+
+    # Add reporter
+    add_report_vector_genetics(task, manifest, species="gambiae")
 
 
     # We are creating one-simulation experiment straight from task.
@@ -145,9 +159,6 @@ def general_sim(erad_path, ep4_scripts):
     print(experiment.uid.hex)
 
 
-def run_test(erad_path):
-    general_sim(erad_path, manifest.my_ep4_assets)
-
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
@@ -155,4 +166,6 @@ if __name__ == "__main__":
     print("Retrieving Eradication and schema.json from Bamboo...")
     get_model_files(plan, manifest)
     print("...done.")
-    run_test(manifest.eradication_path)
+    serialization = 0
+    serialized_exp_id = 0
+    general_sim(serialization, serialized_exp_id)
