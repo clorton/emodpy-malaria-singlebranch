@@ -68,6 +68,7 @@ def _get_age_times_and_values(schema_path, age_dependence):
     return waning
 
 
+# UDBednet is short for Usage Dependent Bednet
 def UDBednet(
     camp,
     start_day: int = 1,
@@ -220,6 +221,7 @@ def UDBednet(
     "Expiration_Period_Mean_2": 365 * 40, or halflife2
     "Expiration_Period_Proportion_1": 1 or 'fraction1'}
 
+    #fixme This is dtk-tools commenting, needs an update for emodpy
     Example::
 
             discard_config = {"Expiration_Period_Exponential": 10 * 365}
