@@ -29,21 +29,9 @@ if sys.platform in ["linux", "darwin"]:
 else:
     subprocess.check_output(["make.bat", "generate-api"], cwd=os.path.dirname(os.path.abspath(__file__)))
 
-# -- Copy the dependent package documentation for reuse -------------------
-
-urlretrieve(
-   "https://docs.idmod.org/projects/idmtools/en/latest/_sources/faq.rst.txt",
-   "external/idmtools-faq.rst")
-
-urlretrieve(
-   "https://docs.idmod.org/projects/emod-api/en/latest/_sources/faq.rst.txt",
-   "external/emod-api-faq.rst")
-
-urlretrieve(
-   "https://docs.idmod.org/projects/emodpy/en/latest/_sources/faq.rst.txt",
-   "external/emodpy-faq.rst")
-
 # -- General configuration ------------------------------------------------
+
+tags.add('emodpymalaria')
 
 # If your docs needs a minimal Sphinx version, state it here.
 #
@@ -60,6 +48,7 @@ extensions = [
     'sphinx.ext.todo',
     'plantweb.directive',
     'sphinxcontrib.programoutput',
+    'sphinx_copybutton',
     'sphinx.ext.intersphinx',
     'sphinxext.remoteliteralinclude'
 ]

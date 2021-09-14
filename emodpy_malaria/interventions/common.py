@@ -50,7 +50,7 @@ def MalariaDiagnostic(
     return intervention
 
 
-def AntiMalarialDrug( camp, Drug_Type, ctc=1.0 ):
+def AntimalarialDrug( camp, Drug_Type, ctc=1.0 ):
     """
     Add an antimalarial drug intervention to your campaign. This is equivalent to
     :doc:`emod-malaria:parameter-campaign-individual-antimalarialdrug`.

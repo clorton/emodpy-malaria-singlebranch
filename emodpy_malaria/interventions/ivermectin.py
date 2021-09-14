@@ -1,13 +1,14 @@
 from emod_api import schema_to_class as s2c
 
-def ivermectin(schema_path_container,
+
+def Ivermectin(schema_path_container,
                start_day=1,
                killing_initial_effect: float = 1,
                demographic_coverage: float = 1.0,
                target_num_individuals: int = None,
                killing_box_duration: int = 0,
                killing_exponential_decay_rate: float = 0
-       ):
+               ):
     """
         Create a scheduled Ivermectin CampaignEvent which can then be added to a campaign.
 

@@ -1,0 +1,4 @@
+Name,Aquatic_Arrhenius_1,Aquatic_Arrhenius_2,Aquatic_Mortality_Rate,Immature_Duration,Male_Life_Expectancy,Adult_Life_Expectancy,Days_Between_Feeds,Anthropophily,Indoor_Feeding_Fraction,Egg_Batch_Size,Vector_Sugar_Feeding_Frequency,Acquire_Modifier,Infected_Arrhenius_1,Infected_Arrhenius_2,Infected_Egg_Batch_Factor,Infectious_Human_Feed_Mortality_Factor,Nighttime_Feeding_Fraction,Transmission_Rate,LHT1_Key,LHT1_Value,LHT2_Key,LHT2_Value
+arabiensis,84200000000,8328,0.1,2,10,20,3,0.65,0.5,100,VECTOR_SUGAR_FEEDING_NONE,0.2,117000000000,8336,0.8,1.5,1,0.9,TEMPORARY_RAINFALL,8.00E+08,CONSTANT,8.00E+07
+funestus,84200000000,8328,0.1,2,10,20,3,0.65,0.95,100,VECTOR_SUGAR_FEEDING_NONE,0.2,117000000000,8336,0.8,1.5,1,0.9,TEMPORARY_RAINFALL,8.00E+08,CONSTANT,8.00E+07
+gambiae,84200000000,8328,0.1,2,10,20,3,0.65,0.95,100,VECTOR_SUGAR_FEEDING_NONE,0.2,117000000000,8336,0.8,1.5,1,0.9,WATER_VEGETATION,2.00E+07,,

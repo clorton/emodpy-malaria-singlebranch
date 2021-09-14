@@ -1,52 +1,42 @@
-from emod_api import schema_to_class as s2c
-from emod_api.interventions import utils
+from emod_api.interventions.common import *
+from emodpy_malaria.interventions.common import *
 
-iv_name = "OutdoorRestKill"
-schema_path = None
 
-def OutdoorRestKill(
-        schema_path_container
-        , killing_effect
-        , insecticide_name = None
-        , start_day=1
-        , target_coverage=1.0
-        , killing_predecay_duration=0
-        , killing_decay_rate=0
-        , node_ids=None
-):
+def add_OutdoorRestKill(campaign,
+                        start_day: int = 1,
+                        insecticide_name: str = None,
+                        killing_initial_effect: float = 1,
+                        killing_box_duration: int = 365,
+                        killing_exponential_decay_rate: float = 0,
+                        node_ids: list = None):
     """
-    Create a new scheduled OutdoorRestKill campaign event.
+        Adds an OutdoorRestKill intervention to the campaign
 
     Args:
-        schema_path_container:
-        killing_effect:
-        insecticide_name:
-        start_day:
-        target_coverage:
-        killing_predcay_duration:
-        killing_decay_rate:
+        campaign: campaign object to which the intervention will be added, and schema_path container
+        start_day: the day on which to distribute the intervention
+        insecticide_name: Name of the insecticide
+        killing_initial_effect: **Initial_Effect** in the *Killing_Config**
+        killing_box_duration: Length in days before the **Initial_Effect** starts to decay
+        killing_exponential_decay_rate: The rate of decay of the *Initial_Effect**
+        node_ids: List of nodes to which to distribute the intervention. None or empty list implies "all nodes".
 
     Returns:
-
+        configured campaign object
     """
-
-    schema_path = schema_path_container.schema_path
-    event = s2c.get_class_with_defaults("CampaignEvent", schema_path)
-    coordinator = s2c.get_class_with_defaults( "StandardEventCoordinator", schema_path )
-    coordinator.Demographic_Coverage = target_coverage
-
+    schema_path = campaign.schema_path
     intervention = s2c.get_class_with_defaults("OutdoorRestKill", schema_path)
-    intervention.Insecticide_Name = insecticide_name
-    killing = utils.get_waning_from_params(schema_path, killing_effect,
-                                           killing_predecay_duration,
-                                           killing_decay_rate)
+    intervention.Insecticide_Name = insecticide_name if insecticide_name else ""
+    intervention.Killing_Config = utils.get_waning_from_params(schema_path, killing_initial_effect,
+                                                               killing_box_duration,
+                                                               killing_exponential_decay_rate)
+    event = ScheduledCampaignEvent(
+        camp=campaign,
+        Start_Day=start_day,
+        Event_Name="",
+        Nodeset_Config=utils.do_nodes(schema_path, node_ids),
+        Intervention_List=[intervention])
 
-    # Second, hook them up
-    event.Event_Coordinator_Config = coordinator
-    coordinator.Intervention_Config = intervention
-    intervention.Killing_Config = killing
-    event.Start_Day = float(start_day)
-    event.Nodeset_Config = utils.do_nodes( schema_path, node_ids )
+    campaign.add(event)
 
-    return event
-
+    return campaign

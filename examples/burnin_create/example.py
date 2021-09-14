@@ -33,7 +33,7 @@ def set_param_fn(config):
         completed configuration
     """
 
-    import emodpy_malaria.config as malaria_config
+    import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
 
     config.parameters.Simulation_Duration = 21
@@ -122,8 +122,8 @@ def general_sim():
 
 if __name__ == "__main__":
     # TBD: user should be allowed to specify (override default) erad_path and input_path from command line 
-    # plan = EradicationBambooBuilds.MALARIA_LINUX
-    # print("Retrieving Eradication and schema.json from Bamboo...")
-    # get_model_files(plan, manifest)
+    plan = EradicationBambooBuilds.MALARIA_LINUX
+    print("Retrieving Eradication and schema.json from Bamboo...")
+    get_model_files(plan, manifest)
     print("...done.")
     general_sim()

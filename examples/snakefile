@@ -33,7 +33,7 @@ rule burnin_use:
         shell("pushd burnin_use && ./example.py")
 rule drug_campaign:
     input: 
-    output: "drug_campaign/COMPS_ID"
+    output: "drug_campaign/experiment.id"
     run:
         shell("pushd drug_campaign && ./example.py")
 rule ivermectin:
@@ -66,21 +66,16 @@ rule simple_sim_template_emodpy:
     output: "simple-sim-template-emodpy/COMPS_ID"
     run:
         shell("pushd simple-sim-template-emodpy && ./example.py")
-rule spatial:
-    input: 
-    output: "spatial/COMPS_ID"
-    run:
-        shell("pushd spatial && ./example.py")
 rule campaign_sweep:
     input: 
     output: "campaign_sweep/COMPS_ID"
     run:
         shell("pushd campaign_sweep && ./example.py")
-rule demog_sweep:
+rule demographics_sweep:
     input: 
-    output: "demog_sweep/COMPS_ID"
+    output: "demographics_sweep/COMPS_ID"
     run:
-        shell("pushd demog_sweep && ./example.py")
+        shell("pushd demographics_sweep && ./example.py")
 rule input_eir:
     input: 
     output: "inputEIR/experiment.id"
@@ -91,11 +86,36 @@ rule vector_basic:
     output: "vector_basic/experiment.id"
     run:
         shell("pushd vector_basic && ./example.py")
+rule vector_genetics_vector_sim:
+    input: 
+    output: "vector_genetics_vector_sim/experiment.id"
+    run:
+        shell("pushd vector_genetics_vector_sim && ./example.py")
 rule vgir:
     input: 
-    output: "vector_genetics_insecticide_resistance/COMPS_ID"
+    output: "vector_genetics_insecticide_resistance/experiment.id"
     run:
         shell("pushd vector_genetics_insecticide_resistance && ./example.py")
+rule diagnostic_survey:
+    input: 
+    output: "diagnostic_survey/experiment.id"
+    run:
+        shell("pushd diagnostic_survey && ./example.py")
+rule migration_spatial_vector_sim:
+    input: 
+    output: "migration_spatial_vector_sim/experiment.id"
+    run:
+        shell("pushd migration_spatial_vector_sim && ./example.py")
+rule migration_spatial_malaria_sim:
+    input: 
+    output: "migration_spatial_malaria_sim/experiment.id"
+    run:
+        shell("pushd migration_spatial_malaria_sim && ./example.py")
+rule add_reports:
+    input: 
+    output: "add_reports/experiment.id"
+    run:
+        shell("pushd add_reports && ./example.py")
 
 
 rule clean:

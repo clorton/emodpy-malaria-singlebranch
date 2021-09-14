@@ -8,7 +8,7 @@ from idmtools.entities.experiment import Experiment
 # emodpy
 from emodpy.emod_task import EMODTask
 from emodpy.utils import EradicationBambooBuilds
-from emodpy_malaria.reporters.builtin import ReportVectorGenetics
+from emodpy_malaria.reporters.builtin import *
 
 from emodpy_malaria import vector_config as vector_config
 import manifest
@@ -32,32 +32,28 @@ def set_param_fn(config):
     """
     config.parameters.Simulation_Type = "VECTOR_SIM"
     vector_config.set_team_defaults(config, manifest)  # team defaults
-
-    vector_config.set_species(config, species_to_select=["gambiae"])
+    vector_config.add_species(config, manifest, ["gambiae"])
 
     # the following lines define alleles, mutations and traits and they need "set_genetics" to actually be added
     # Vector Genetics, the main purpose of this example.
-    vector_config.add_alleles(["a", "b", "c"], [0.5, 0.5, 0])
-    vector_config.add_mutation(from_allele="a", to_allele="b", rate=0.05)
-    vector_config.add_mutation(from_allele="b", to_allele="c", rate=0.1)
-    vector_config.add_mutation(from_allele="c", to_allele="a", rate=0.1)
-    vector_config.add_mutation(from_allele="a", to_allele="c", rate=0.03)
+    vector_config.add_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
+    vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="b", probability=0.05)
+    vector_config.add_mutation(config, manifest, "gambiae", mutate_from="b", mutate_to="c", probability=0.1)
+    vector_config.add_mutation(config, manifest, "gambiae", mutate_from="c", mutate_to="a", probability=0.1)
+    vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="c", probability=0.03)
 
     # another set of alleles
-    vector_config.add_alleles(["one", "two", "three"], [0.9, 0.05, 0.05])
-    vector_config.add_mutation(from_allele="one", to_allele="three", rate=0.04)
+    vector_config.add_alleles(config, manifest, "gambiae", [("one", 0.9), ("two", 0.05), ("three", 0.05)])
+    vector_config.add_mutation(config, manifest, "gambiae", mutate_from="one", mutate_to="three", probability=0.04)
 
     # these are the traits/benefits based on the alleles
     # protects vectors from infection
-    vector_config.add_trait(manifest, [["X", "X"], ["a", "*"]], "INFECTED_BY_HUMAN", 0)
+    vector_config.add_trait(config, manifest, "gambiae", [["X", "X"], ["a", "*"]], [("INFECTED_BY_HUMAN", 0)])
     # vectors make more eggs
-    vector_config.add_trait(manifest, [["b", "b"], ["one", "two"]], "FECUNDITY", 10)
-
-    # this actually sets all the parameters defined above to gambiae species
-    vector_config.set_genetics(vector_config.get_species_params(config, "gambiae"), manifest)
-
+    vector_config.add_trait(config, manifest, "gambiae", [["b", "b"], ["one", "two"]], [("FECUNDITY", 10),
+                                                                                        ("INFECTED_BY_HUMAN", 0.37)])
+ 
     config.parameters.Simulation_Duration = 10
-    # config.parameters.Number_Substrains = 1
 
     return config
 
@@ -74,8 +70,9 @@ def build_campaign():
     campaign.schema_path = manifest.schema_file
 
     campaign.add(
-        mr.MosquitoRelease(campaign, start_day=1, by_number=True, number=20000, infectious=0.2, species="gambiae",
-                           genome=[["X", "X"], ["a", "b"], ["three", "three"]]))
+        mr.MosquitoRelease(campaign, start_day=1, released_number=20000, released_infectious=0.2,
+                            released_species="gambiae",
+                            released_genome=[["X", "X"], ["a", "b"], ["three", "three"]]))
 
     return campaign
 
@@ -117,35 +114,8 @@ def general_sim():
         plugin_report=None  # report
     )
 
-    def rvg_config_builder(params):
-        params.Include_Vector_State_Columns = False
-        params.Allele_Combinations_For_Stratification = [
-            ["a"],
-            ["b"]
-        ]
-
-        """
-        E.g.,
-        [
-            {
-                "Allele_Combination": [
-                    ["X", "X"],
-                    ["a1", "*"]
-                ]
-            },
-            {
-                "Allele_Combination": [
-                    ["X", "X"],
-                    ["a0", "a0"]
-                ]
-            }
-        ]
-        """
-        return params
-
-    reporter = ReportVectorGenetics()  # Create the reporter
-    reporter.config(rvg_config_builder, manifest)  # Config the reporter
-    task.reporters.add_reporter(reporter)  # Add the reporter
+    add_report_vector_genetics(task, manifest, species="gambiae", include_vector_state=False,
+                               allele_combinations_for_stratification=[["a"], ["b"]])
 
     # We are creating one-simulation experiment straight from task.
     # If you are doing a sweep, please see sweep_* examples.
@@ -162,7 +132,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open(manifest.experiment_id, "w") as fd:
         fd.write(experiment.uid.hex)
     print()
     print(experiment.uid.hex)
@@ -171,6 +141,7 @@ def general_sim():
 if __name__ == "__main__":
     plan = EradicationBambooBuilds.MALARIA_LINUX
     print("Retrieving Eradication and schema.json from Bamboo...")
-    #get_model_files(plan, manifest)
+    from emodpy.bamboo import get_model_files
+    get_model_files(plan, manifest)
     print("...done.")
     general_sim()

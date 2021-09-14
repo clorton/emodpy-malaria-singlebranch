@@ -213,10 +213,10 @@ def add_diagnostic_survey(
         # at pre-determined intervals
         if repetitions > 1 or triggered_campaign_delay > 0:
             # create a trigger for each of the delays.
-            trigger_node_property_restrictions = []
+            #trigger_node_property_restrictions = []
             trigger_ind_property_restrictions = []
             if check_eligibility_at_trigger:
-                trigger_node_property_restrictions = NP_restrictions
+                #trigger_node_property_restrictions = NP_restrictions
                 trigger_ind_property_restrictions = IP_restrictions
                 NP_restrictions = []
                 IP_restrictions = []
@@ -230,7 +230,6 @@ def add_diagnostic_survey(
                         Triggers=trigger_condition_list,
                         Duration=listening_duration,
                         Intervention_List=[BroadcastEvent( camp, broadcast_event )],
-                        Node_Property_Restrictions=trigger_node_property_restrictions,
                         Property_Restrictions=trigger_ind_property_restrictions,
                         Delay=triggered_campaign_delay + (x * tsteps_btwn_repetitions))
                 camp.add(tcde)
@@ -245,12 +244,10 @@ def add_diagnostic_survey(
             Target_Residents_Only=1,
             Duration=listening_duration,
             Demographic_Coverage=coverage,
-            Target_Demographic=target,
             Target_Age_Min=age_min,
             Target_Age_Max=age_max,
             Target_Gender=gender,
             Property_Restrictions=IP_restrictions,
-            Node_Property_Restrictions=NP_restrictions,
             Disqualifying_Properties=disqualifying_properties,
             Intervention_List=interventions )
 
@@ -263,11 +260,9 @@ def add_diagnostic_survey(
             Start_Day=start_day,
             Event_Name=event_name,
             Nodeset_Config=nodeset_config, 
-            Node_Property_Restrictions=NP_restrictions,
             Property_Restrictions=IP_restrictions,
             Number_Repetitions=repetitions,
             Timesteps_Between_Repetitions=tsteps_btwn_repetitions,
-            Target_Demographic=target,
             Demographic_Coverage=coverage,
             Target_Age_Min=age_min,
             Target_Age_Max=age_max,

@@ -41,7 +41,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import drug
 
         self.expected_items = [
-            "AntiMalarialDrug", "utils"
+            "AntimalarialDrug", "utils"
         ]
         self.verify_expected_items_present(namespace=drug)
         return
@@ -59,7 +59,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import outdoorrestkill
 
         self.expected_items = [
-            "OutdoorRestKill"
+            "add_OutdoorRestKill"
         ]
         self.verify_expected_items_present(namespace=outdoorrestkill)
         return
@@ -101,7 +101,7 @@ class MalariaTestImports(unittest.TestCase):
     def test_ivermectin(self):
         from emodpy_malaria.interventions import ivermectin
         self.expected_items = [
-            "ivermectin"
+            "Ivermectin"
         ]
         self.verify_expected_items_present(namespace=ivermectin)
 
@@ -115,7 +115,7 @@ class MalariaTestImports(unittest.TestCase):
     def test_common_imports(self):
         from emodpy_malaria.interventions import common
         self.expected_items = [
-            "AntiMalarialDrug", "MalariaDiagnostic"
+            "AntimalarialDrug", "MalariaDiagnostic"
         ]
 
         self.verify_expected_items_present(namespace=common)
@@ -135,11 +135,13 @@ class MalariaTestImports(unittest.TestCase):
 
     # region config
     def test_config_imports(self):
-        import emodpy_malaria.config as conf
+        import emodpy_malaria.malaria_config as conf
 
         self.expected_items = [
             "get_file_from_http", "set_team_defaults",
-            "set_team_drug_params", "get_drug_params"
+            "set_team_drug_params", "set_parasite_genetics_params",
+            "get_drug_params", "set_drug_param", "add_drug_resistance",
+            "set_species_param", "add_insecticide_resistance"
         ]
 
         self.verify_expected_items_present(namespace=conf)
@@ -148,11 +150,10 @@ class MalariaTestImports(unittest.TestCase):
         import emodpy_malaria.vector_config as conf
 
         self.expected_items = [
-            "alleles", "mutations", "traits", "insecticides",
             "set_team_defaults",
-            "set_team_vs_params", "get_species_params",
-            "set_species", "set_resistances", "add_alleles",
-            "add_mutation", "add_trait", "add_resistance"
+            "get_species_params", "set_species_param",
+            "add_species", "add_alleles", "add_mutation",
+            "add_trait", "add_insecticide_resistance", "add_species_drivers"
         ]
 
         self.verify_expected_items_present(namespace=conf)

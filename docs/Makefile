@@ -2,7 +2,7 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -W
+SPHINXOPTS    = -t emodpymalaria -W
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
@@ -235,3 +235,9 @@ dummy:
 	$(SPHINXBUILD) -b dummy $(ALLSPHINXOPTS) $(BUILDDIR)/dummy
 	@echo
 	@echo "Build finished. Dummy builder generates no files."
+
+.PHONY: htmlnobreak
+htmlnobreak:
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html --keep-going
+	@echo
+	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

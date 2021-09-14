@@ -7,4 +7,4 @@ Documentation available at https://docs.idmod.org/projects/emodpy-malaria/en/lat
 
 ## FAQ
 
-Frequently asked questions are answered in https://docs.idmod.org/projects/emodpy-malaria/en/latest/faq.
+Frequently asked questions are answered in https://docs.idmod.org/projects/emodpy-malaria/en/latest/faq.html.

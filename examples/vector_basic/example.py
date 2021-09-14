@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
 
-import pathlib  # for a join
-from functools import \
-    partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
-
 # idmtools ...
-from idmtools.assets import Asset, AssetCollection  #
-from idmtools.builders import SimulationBuilder
+
 from idmtools.core.platform_factory import Platform
 from idmtools.entities.experiment import Experiment
-from idmtools_platform_comps.utils.python_requirements_ac.requirements_to_asset_collection import \
-    RequirementsToAssetCollection
-from idmtools_models.templated_script_task import get_script_wrapper_unix_task
 
 # emodpy
 from emodpy.emod_task import EMODTask
-import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
-from emodpy.bamboo import get_model_files
-from emodpy_malaria.reporters.builtin import ReportVectorGenetics
-import emod_api.config.default_from_schema_no_validation as dfs
 
-from emodpy_malaria import config as malaria_config
 from emodpy_malaria import vector_config as vector_config
 import manifest
 
@@ -42,7 +29,7 @@ def set_param_fn(config):
         completed config
     """
     vector_config.set_team_defaults(config, manifest)  # team defaults
-    vector_config.set_species(config, species_to_select=["gambiae"])
+    vector_config.add_species(config, manifest, species_to_select=["gambiae"])
 
     config.parameters.Incubation_Period_Constant = 0
     config.parameters.Infectious_Period_Constant = 100

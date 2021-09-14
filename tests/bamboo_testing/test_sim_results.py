@@ -16,7 +16,7 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import emodpy_malaria.interventions.spacespraying as spray
 import emodpy_malaria.interventions.outdoorrestkill as rest_kill
 import emodpy_malaria.interventions.bednet as bednet
-from emodpy_malaria import config as malconf
+from emodpy_malaria import malaria_config as malconf
 
 import vector_report_support as vrs
 import os
@@ -75,7 +75,7 @@ class TestSimResults(unittest.TestCase):
         This function is a callback that is passed to emod-api.config to set parameters The Right Way.
         """
         config.parameters.Simulation_Type = "MALARIA_SIM"
-        import emodpy_malaria.config as conf
+        import emodpy_malaria.malaria_config as conf
         config = conf.set_team_defaults( config, self.manifest )
         conf.set_species( config, [ "gambiae" ] )
         config = self.set_config( config )

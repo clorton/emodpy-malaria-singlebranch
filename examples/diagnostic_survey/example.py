@@ -66,8 +66,9 @@ def set_config_parameters(config):
     # You have to set simulation type explicitly before you set other parameters for the simulation
     config.parameters.Simulation_Type = "MALARIA_SIM"
     # sets "default" malaria parameters as determined by the malaria team
-    import emodpy_malaria.config as malaria_config
+    import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
+    malaria_config.add_species(config, manifest, ["gambiae"])
 
     config.parameters.Simulation_Duration = 80
 
@@ -142,7 +143,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open(manifest.experiment_id, "w") as fd:
         fd.write(experiment.uid.hex)
 
 

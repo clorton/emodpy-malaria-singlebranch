@@ -38,7 +38,7 @@ def build_campaign():
     # passing in schema file to verify that everything is correct.
     campaign.schema_path = manifest.schema_file
     # creating an Ivermectin intervention inside the ivermectin, and adding it to campaign
-    campaign.add(ivermectin.ivermectin(schema_path_container=campaign,
+    campaign.add(ivermectin.Ivermectin(schema_path_container=campaign,
                                        start_day=20,
                                        target_num_individuals=43,
                                        demographic_coverage=0.95, # this will be ignored because we have target_num_idividuals set
@@ -46,7 +46,7 @@ def build_campaign():
                                        killing_box_duration=2,
                                        killing_exponential_decay_rate=0.25))
     # same intervention but now targeting only a portion of the demographic
-    campaign.add(ivermectin.ivermectin(schema_path_container=campaign,
+    campaign.add(ivermectin.Ivermectin(schema_path_container=campaign,
                                        start_day=20,
                                        demographic_coverage=0.57,
                                        killing_initial_effect=0.65,
@@ -67,9 +67,9 @@ def set_config_parameters(config):
 
     # You have to set simulation type explicitly before you set other parameters for the simulation
     # sets "default" malaria parameters as determined by the malaria team
-    import emodpy_malaria.config as malaria_config
+    import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
-
+    malaria_config.add_species(config, manifest, ["gambiae"])
     config.parameters.Simulation_Duration = 80
 
     return config
