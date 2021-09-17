@@ -128,14 +128,14 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open("experiment_id", "w") as fd:
         fd.write(experiment.uid.hex)
 
     # THIS IS WHERE WE DOWNLOAD THE FILE
 
     from idmtools_platform_comps.utils.download.download import DownloadWorkItem, CompressType
 
-    # navigating to the experiment.id file to retrieve experiment id
+    # navigating to the experiment_id file to retrieve experiment id
     dl_wi = DownloadWorkItem(
         related_experiments=[experiment.uid],
         file_patterns=["output/*.json"],
@@ -156,7 +156,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open("experiment_id", "w") as fd:
         fd.write(experiment.uid.hex)
     print()
     print(experiment.uid.hex)

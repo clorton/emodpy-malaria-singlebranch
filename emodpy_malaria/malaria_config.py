@@ -342,7 +342,7 @@ def set_parasite_genetics_params(config, manifest, var_gene_randomness_type: str
     vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_DAY"
     # adding habitats
     lht = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorHabitat"])
-    lht.parameters.Vector_Habitat_Type = "LINEAR_SPLINE"
+    lht.parameters.Habitat_Type = "LINEAR_SPLINE"
     lht.parameters.Max_Larval_Capacity = 316227766.01683795
     lht.parameters.Capacity_Distribution_Number_Of_Years = 1
     # adding larval capacity
@@ -352,7 +352,7 @@ def set_parasite_genetics_params(config, manifest, var_gene_randomness_type: str
     cdot.parameters.Values = [3, 0.8, 1.25, 0.1, 2.7, 8, 4, 35, 6.8, 6.5, 2.6, 2.1]
     lht.parameters.Capacity_Distribution_Over_Time = cdot.parameters
     # end adding larval capacity
-    vsp.parameters.Larval_Habitat_Types = [lht.parameters]
+    vsp.parameters.Habitats = [lht.parameters]
     # end adding habitats
     config.parameters.Vector_Species_Params = [vsp.parameters]
     # end vector species
@@ -453,3 +453,11 @@ def add_insecticide_resistance(config, manifest, insecticide_name: str = "", spe
     vector_config.add_insecticide_resistance(config, manifest, insecticide_name, species,
                                              allele_combo, blocking, killing,
                                              repelling, larval_killing)
+
+
+def get_species_params(config, species: str = None):
+    """
+        Pass through for vector version of function.
+    """
+    vector_config.get_species_params(config, species)
+

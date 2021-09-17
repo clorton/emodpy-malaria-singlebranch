@@ -22,7 +22,7 @@ import manifest
 # This is an example template with the most basic functions
 # which create config and demographics from pre-set defaults
 # and adds one intervention to campaign file. Runs the simulation
-# and writes experiment id into experiment.id
+# and writes experiment id into experiment_id
 #
 # ****************************************************************
 
@@ -111,7 +111,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open("experiment_id", "w") as fd:
         fd.write(experiment.uid.hex)
 
 

@@ -12,4 +12,4 @@ assets_input_dir="Assets"
 plugins_folder = "download/reporter_plugins"
 
 ep4_path="python_scripts"
-experiment_id="COMPS_ID"
+experiment_id="experiment_id"
