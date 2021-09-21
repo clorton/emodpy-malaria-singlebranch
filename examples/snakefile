@@ -15,129 +15,129 @@ rule start_here:
     input: 
     output: "start_here/experiment_id"
     run:
-        shell("pushd start_here && example.py")
+        shell("pushd start_here && python ./example.py")
 rule filtered_report:
     input: 
     output: "filtered_report/experiment_id"
     run:
-        shell("pushd filtered_report && ./example.py")
+        shell("pushd filtered_report && python ./example.py")
 rule burnin_create:
     input: 
     output: "burnin_create/experiment_id"
     run:
-        shell("pushd burnin_create && ./example.py")
+        shell("pushd burnin_create && python ./example.py")
 rule burnin_use:
     input: 
     output: "burnin_use/experiment_id"
     run:
-        shell("pushd burnin_use && ./example.py")
+        shell("pushd burnin_use && python ./example.py")
 rule drug_campaign:
     input: 
     output: "drug_campaign/experiment_id"
     run:
-        shell("pushd drug_campaign && ./example.py")
+        shell("pushd drug_campaign && python ./example.py")
 rule ivermectin:
     input: 
     output: "ivermectin/experiment_id"
     run:
-        shell("pushd ivermectin && ./example.py")
+        shell("pushd ivermectin && python ./example.py")
 rule jonr_1:
     input: 
     output: "jonr_1/experiment_id"
     run:
-        shell("pushd jonr_1 && ./example.py")
+        shell("pushd jonr_1 && python ./example.py")
 rule kill_only_males_camp_sweep:
     input: 
     output: "kill_only_males_camp_sweep/experiment_id"
     run:
-        shell("pushd kill_only_males_camp_sweep && ./example.py")
+        shell("pushd kill_only_males_camp_sweep && python ./example.py")
 rule male_vector_fertility_test:
     input: 
     output: "male_vector_fertility_test/experiment_id"
     run:
-        shell("pushd male_vector_fertility_test && ./example.py")
+        shell("pushd male_vector_fertility_test && python ./example.py")
 rule outdoor_rest_kill_male_mosquitoes:
     input: 
     output: "outdoor_rest_kill_male_mosquitoes/experiment_id"
     run:
-        shell("pushd outdoor_rest_kill_male_mosquitoes && ./example.py")
+        shell("pushd outdoor_rest_kill_male_mosquitoes && python ./example.py")
 rule simple_sim_template_emodpy:
     input: 
     output: "simple-sim-template-emodpy/experiment_id"
     run:
-        shell("pushd simple-sim-template-emodpy && ./example.py")
+        shell("pushd simple-sim-template-emodpy && python ./example.py")
 rule campaign_sweep:
     input: 
     output: "campaign_sweep/experiment_id"
     run:
-        shell("pushd campaign_sweep && ./example.py")
+        shell("pushd campaign_sweep && python ./example.py")
 rule demographics_sweep:
     input: 
     output: "demographics_sweep/experiment_id"
     run:
-        shell("pushd demographics_sweep && ./example.py")
+        shell("pushd demographics_sweep && python ./example.py")
 rule input_eir:
     input: 
     output: "inputEIR/experiment_id"
     run:
-        shell("pushd inputEIR && ./example.py")
+        shell("pushd inputEIR && python ./example.py")
 rule vector_basic:
     input: 
     output: "vector_basic/experiment_id"
     run:
-        shell("pushd vector_basic && ./example.py")
+        shell("pushd vector_basic && python ./example.py")
 rule vector_genetics_vector_sim:
     input: 
     output: "vector_genetics_vector_sim/experiment_id"
     run:
-        shell("pushd vector_genetics_vector_sim && ./example.py")
+        shell("pushd vector_genetics_vector_sim && python ./example.py")
 rule vgir:
     input: 
     output: "vector_genetics_insecticide_resistance/experiment_id"
     run:
-        shell("pushd vector_genetics_insecticide_resistance && ./example.py")
+        shell("pushd vector_genetics_insecticide_resistance && python ./example.py")
 rule diagnostic_survey:
     input: 
     output: "diagnostic_survey/experiment_id"
     run:
-        shell("pushd diagnostic_survey && ./example.py")
+        shell("pushd diagnostic_survey && python ./example.py")
 rule migration_spatial_vector_sim:
     input: 
     output: "migration_spatial_vector_sim/experiment_id"
     run:
-        shell("pushd migration_spatial_vector_sim && ./example.py")
+        shell("pushd migration_spatial_vector_sim && python ./example.py")
 rule migration_spatial_malaria_sim:
     input: 
     output: "migration_spatial_malaria_sim/experiment_id"
     run:
-        shell("pushd migration_spatial_malaria_sim && ./example.py")
+        shell("pushd migration_spatial_malaria_sim && python ./example.py")
 rule add_reports:
     input: 
     output: "add_reports/experiment_id"
     run:
-        shell("pushd add_reports && example.py")
+        shell("pushd add_reports && python ./example.py")
 
 rule run_with_unobserved_importation:
     input:
     output: "run_with_unobserved_importation/experiment_id"
     run:
-        shell("pushd run_with_unobserved_importation && example.py")
+        shell("pushd run_with_unobserved_importation && python ./example.py")
 
 rule example_template:
     input:
     output: "example_template/experiment_id"
     run:
-        shell("pushd example_template && example.py")
+        shell("pushd example_template && python ./example.py")
 rule fpg_example:
     input:
     output: "fpg_example/experiment_id"
     run:
-        shell("pushd fpg_example && example.py")
+        shell("pushd fpg_example && python ./example.py")
 rule download_files:
     input:
     output: "download_files/experiment_id"
     run:
-        shell("pushd download_files && example.py")
+        shell("pushd download_files && python ./example.py")
 
 
 
@@ -146,4 +146,6 @@ rule clean:
     input: 
     output: 
     run:
-        shell("rm */experiment_id" )
+        for input_file in input_files:
+            if os.path.exists( input_file ):
+                os.remove(input_file)
