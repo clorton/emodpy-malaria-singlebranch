@@ -37,3 +37,4 @@ __pycache__/
 docs/_build/
 docs/emodpy_malaria*
 docs/external/*.rst
+emodpy_malaria.egg-info/
