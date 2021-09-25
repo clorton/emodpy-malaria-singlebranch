@@ -13,7 +13,6 @@ iv_name = "SugarTrap"
 def SugarTrap(
         campaign,
         start_day: int = 0,
-        spray_coverage: float = 1.0,
         killing_effect: float = 1,
         insecticide: str = None,
         box_duration: int = 100,
@@ -31,7 +30,6 @@ def SugarTrap(
     Args:
         campaign: campaign builder.
         start_day: the day to distribute the SpaceSpraying intervention
-        spray_coverage: how much of each node to cover (total portion killed = killing effect * coverage)
         killing_effect: portion of vectors killed by the intervention (Initial_Effect in WaningEffect)
         insecticide: insecticide, if used
         box_duration: Box_Duration of the WaningEffect

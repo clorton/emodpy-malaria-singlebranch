@@ -12,5 +12,5 @@ assets_input_dir="Assets"
 plugins_folder = "download/reporter_plugins"
 
 my_ep4_assets=None
-experiment_id="experiment.id"
+experiment_id="experiment_id"
 #requirements = "./requirements.txt"

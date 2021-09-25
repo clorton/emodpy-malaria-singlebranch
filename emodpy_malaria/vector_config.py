@@ -33,11 +33,9 @@ def set_team_defaults(config, manifest):
     config.parameters.Enable_Vector_Migration = 0
     config.parameters.Enable_Vector_Migration_Local = 0
     config.parameters.Enable_Vector_Migration_Regional = 0
-
-    # placeholder param values
-    config.parameters.Vector_Migration_Habitat_Modifier = 6.5
+    config.parameters.Vector_Migration_Habitat_Modifier = 0
     config.parameters.Vector_Migration_Food_Modifier = 0
-    config.parameters.Vector_Migration_Stay_Put_Modifier = 0.3
+    config.parameters.Vector_Migration_Stay_Put_Modifier = 0
 
     config.parameters.Age_Dependent_Biting_Risk_Type = "SURFACE_AREA_DEPENDENT"
     config.parameters.Human_Feeding_Mortality = 0.1
@@ -72,7 +70,10 @@ def set_team_defaults(config, manifest):
     config.parameters.Base_Land_Temperature = 27
     config.parameters.Base_Relative_Humidity = 0.75
     config.parameters.Climate_Model = "CLIMATE_CONSTANT"
+    config.parameters.Climate_Update_Resolution = "CLIMATE_UPDATE_DAY"  # not used with "CLIMATE_CONSTANT", nice to have
     config.parameters.Inset_Chart_Reporting_Include_30Day_Avg_Infection_Duration = 0
+    config.parameters.Enable_Climate_Stochasticity = 0
+
     config.parameters.Simulation_Duration = 365
 
     return config
@@ -112,10 +113,12 @@ def set_species_param(config, species, parameter, value, overwrite=False):
     """
 
     vector_species = get_species_params(config, species)
+
     if parameter in vector_species and isinstance(vector_species[parameter], list) and not overwrite:
         if isinstance(value, list):
             for val in value:
                 vector_species[parameter].append(val)
+            return
     else:
         vector_species[parameter] = value
         return

@@ -28,8 +28,7 @@ def build_campaign():
     """
 
     import emod_api.campaign as campaign
-    import emodpy_malaria.interventions.outbreakindividualmalariagenetics as outbreak_genetics
-    # import emodpy_malaria.interventions.outbreakindividualmalariavargenes as outbreak_vargenes
+    from emodpy_malaria.interventions.outbreak import add_outbreak_malaria_genetics
     import emodpy_malaria.interventions.drug_campaign as drug_campaign
     import emodpy_malaria.interventions.spacespraying as space_spray
 
@@ -46,12 +45,12 @@ def build_campaign():
                           [0.10, 0.20, 0.30, 0.40], [0.40, 0.30, 0.20, 0.10], [1.00, 0.00, 0.00, 0.00],
                           [0.10, 0.20, 0.30, 0.40], [0.40, 0.30, 0.20, 0.10], [1.00, 0.00, 0.00, 0.00]
                           ]
-    campaign.add(outbreak_genetics.outbreakindividualmalariagenetics(campaign, start_day=4,
-                                                                     target_num_individuals=25,
-                                                                     create_nucleotide_sequence_from="ALLELE_FREQUENCIES",
-                                                                     barcode_allele_frequencies_per_genome_location=allele_frequencies,
-                                                                     drug_resistant_allele_frequencies_per_genome_location=[
-                                                                         [0.7, 0.3, 0, 0]]))
+    add_outbreak_malaria_genetics(campaign, start_day=4,
+                                  target_num_individuals=25,
+                                  create_nucleotide_sequence_from="ALLELE_FREQUENCIES",
+                                  barcode_allele_frequencies_per_genome_location=allele_frequencies,
+                                  drug_resistant_allele_frequencies_per_genome_location=[
+                                      [0.7, 0.3, 0, 0]])
 
     campaign.add(space_spray.SpaceSpraying(campaign, start_day=20, spray_coverage=0.34,
                                            killing_effect=0.88, box_duration=12, decay_rate=0.1))
@@ -75,9 +74,9 @@ def update_larval_habitats(simulation, scale_factor):
                          'constant_capacity': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
                          }
     for species_params in simulation.task.config.parameters.Vector_Species_Params:
-        habitats = species_params.Larval_Habitat_Types
+        habitats = species_params.Habitats
         for habitat in habitats:
-            if habitat.Vector_Habitat_Type == "LINEAR_SPLINE":
+            if habitat.Habitat_Type == "LINEAR_SPLINE":
                 habitat.Max_Larval_Capacity = habitat.Max_Larval_Capacity * scale_factor
                 habitat.Capacity_Distribution_Over_Time.Values = seasonality_types[seasonality_type]
     return {"scale_factor": scale_factor}
@@ -103,7 +102,6 @@ def set_config_parameters(config, habitat_scale_factor=1, seasonality_type='seas
     config.parameters.x_Base_Population = population_scale_factor
     config.parameters.Simulation_Duration = (years * 365) + 1
 
-
     # -------SERIALIZATION-----
 
     config.parameters.Serialization_Time_Steps = [serialize_year * 365]
@@ -124,8 +122,6 @@ def set_config_parameters(config, habitat_scale_factor=1, seasonality_type='seas
                                        pkpd_c50_modifier=122, max_irbc_kill_modifier=0.09)
     malaria_config.add_drug_resistance(config, manifest, drugname='Lumefantrine', drug_resistant_string="G",
                                        pkpd_c50_modifier=827, max_irbc_kill_modifier=0.73)
-
-
 
     return config
 
@@ -157,7 +153,7 @@ def general_sim():
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
     platform = Platform("Calculon", node_group="idm_48cores")
     report_year = 0.5
-    years_to_report= 1
+    years_to_report = 1
 
     experiment_name = "Malaria Parasite Genetics example"
 
@@ -183,8 +179,6 @@ def general_sim():
     add_malaria_sql_report(task, manifest, start_day=3, end_day=82, include_infection_table=1, include_health_table=1,
                            include_drug_table=1)
 
-
-
     # We are creating one-simulation experiment straight from task.
     # If you are doing a sweep, please see sweep_* examples.
     # create experiment from builder
@@ -200,7 +194,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("experiment.id", "w") as fd:
+    with open("experiment_id", "w") as fd:
         fd.write(experiment.uid.hex)
 
 
@@ -208,6 +202,6 @@ if __name__ == "__main__":
     # Getting the latest LINUX version of eradicaiton app
     plan = EradicationBambooBuilds.MALARIA_LINUX
     print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files(plan, manifest)
+    # get_model_files(plan, manifest)
     print("...done.")
     general_sim()

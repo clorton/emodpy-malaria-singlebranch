@@ -190,7 +190,7 @@ def general_sim():
     print(f"Experiment {experiment.uid} succeeded.")
 
     # Save experiment id to file
-    with open("COMPS_ID", "w") as fd:
+    with open("experiment_id", "w") as fd:
         fd.write(experiment.uid.hex)
     print()
     print(experiment.uid.hex)
