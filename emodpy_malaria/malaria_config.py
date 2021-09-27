@@ -127,7 +127,6 @@ def set_team_defaults(config, manifest):
     config.parameters.Report_Gametocyte_Smear_Sensitivity = 0.1
     config.parameters.Report_Parasite_Smear_Sensitivity = 0.1  # 10/uL
 
-    config.parameters.PKPD_Model = 'CONCENTRATION_VERSUS_TIME'
     config = set_team_drug_params(config, manifest)
 
     return config
@@ -173,7 +172,7 @@ def set_team_drug_params(config, manifest):
             mdp.parameters.Drug_GametocyteM_Killrate = float(row[drug_gamM_idx])
             mdp.parameters.Drug_Hepatocyte_Killrate = float(row[drug_hep_idx])
             mdp.parameters.Max_Drug_IRBC_Kill = float(row[drug_maxirbc_idx])
-            # mdp.parameters.PKPD_Model = row[drug_pkpd_model_idx] #fixme Wrong part of the config JSON
+            mdp.parameters.PKPD_Model = row[drug_pkpd_model_idx]
             mdp.parameters.Name = row[drug_name_idx]
             # mdp.parameters.Drug_Adherence_Rate = float(row[ drug_adher_idx ])
             mdp.parameters.Bodyweight_Exponent = float(row[drug_bwexp_idx])
