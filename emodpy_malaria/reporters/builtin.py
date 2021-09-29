@@ -245,6 +245,58 @@ def add_malaria_transmission_report(task, manifest,
         return reporter
 
 
+def add_report_malaria_filtered(task, manifest,
+                                start_day: int = 0,
+                                end_day: int = 365000,
+                                nodes: list = None,
+                                report_filename: str = "ReportMalariaFiltered.json",
+                                min_age_years: float = 0,
+                                max_age_years: float = 125,
+                                has_interventions: list = None,
+                                include_30day_avd_infection_duration: bool = True):
+    """
+    Adds ReportMalariaFiltered report to the simulation.
+    See class definition for description of the report.
+
+    Args:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
+        start_day:  the day of the simulation to start collecting data
+        end_day: the day of simulation to stop collecting data
+        nodes: list of nodes for which to collect the data, None or [] collects all the nodes
+        report_filename: name of the file to be written
+        min_age_years: Minimum age in years of people to collect data on
+        max_age_years: Maximum age in years of people to collect data on
+        has_interventions: A channel is added to the report for each InterventionName provided.  The channel name
+            will be Has_<InterventionName> and will be the fraction of the population that has that intervention.
+            The **Intervention_Name** in the campaign should be the values in this parameter
+        include_30day_avd_infection_duration: If set to True (1), the 30-Day Avg Infection channel is included in the
+            report
+
+    Returns:
+        Nothing
+    """
+
+    reporter = ReportMalariaFiltered()  # Create the reporter
+
+    def rec_config_builder(params):  # not used yet
+        params.Start_Day = start_day
+        params.End_Day = end_day
+        params.Node_IDs_Of_Interest = nodes if nodes else []
+        params.Report_File_Name = report_filename
+        params.Has_Interventions = has_interventions if has_interventions else []
+        params.Include_30Day_Avg_Infection_Duration = 1 if include_30day_avd_infection_duration else 0
+        params.Max_Age_Years = max_age_years
+        params.Min_Age_Years = min_age_years
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
 def add_spatial_report_malaria_filtered(task, manifest,
                                         start_day: int = 0,
                                         end_day: int = 365000,
@@ -816,6 +868,23 @@ class ReportSimpleMalariaTransmissionJSON(BuiltInReporter):
     def config(self, config_builder, manifest):
         self.class_name = "ReportSimpleMalariaTransmissionJSON"
         report_params = s2c.get_class_with_defaults("ReportSimpleMalariaTransmissionJSON", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")  # maybe that should be in finalize
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class ReportMalariaFiltered(BuiltInReporter):
+    """
+        The malaria filtered report (ReportMalariaFiltered.json) is the same as the default InsetChart report, but
+        provides filtering options to enable the user to select the data to be displayed for each time step or for
+        each node. See InsetChart for more information about InsetChart.json.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportMalariaFiltered"
+        report_params = s2c.get_class_with_defaults("ReportMalariaFiltered", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")  # maybe that should be in finalize
