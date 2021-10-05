@@ -81,7 +81,7 @@ def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", s
         site: A string to identify the country, village, or trial site.
 
     Returns:
-        A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance.com
+        A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance
     """
     generic_demog = Demog.from_pop_csv( pop_filename_in, pop_filename_out, site )
     nodes = generic_demog.nodes

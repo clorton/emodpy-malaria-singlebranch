@@ -182,7 +182,6 @@ def set_team_drug_params(config, manifest):
                 values = [float(x) for x in row[drug_fracdos_val_idx].strip('[]').split(",")]
             except Exception as ex:
                 print("For drug {}, {}".format(row[0], str(ex)))
-                # print(str(ex))
                 ages = []
                 values = []
             for idx in range(len(ages)):
