@@ -28,12 +28,13 @@ class MalariaDemographics(Demog.Demographics):
     Returns: 
         None 
      """
-    def __init__(self, nodes, idref="Gridded world grump2.5arcmin", base_file=None, init_prev=0.2): 
+    def __init__(self, nodes, idref="Gridded world grump2.5arcmin", base_file=None, init_prev=0.2, include_biting_heterogeneity=True):
         super().__init__( nodes, idref, base_file )
         #super().SetDefaultProperties()
         super().SetDefaultNodeAttributes(birth=True)
         # DT.InitPrevUniform( self, init_prev ) # removing because otherwise Enable_Initial_Prevalence is turned on
-        self.set_risk_lowmedium() # lognormal, default=1.6
+        if include_biting_heterogeneity:
+            self.set_risk_lowmedium() # lognormal, default=1.6
 
     def set_risk_lowmedium( self ):
         """
@@ -49,7 +50,7 @@ class MalariaDemographics(Demog.Demographics):
         """
         super().SetHeteroRiskExponDist( mean=1.0 ) # 1.0 is placeholder
 
-def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2):
+def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2, include_biting_heterogeneity=True):
     """
     Create a single-node :py:class:`~emodpy_malaria.demographics.MalariaDemographics`
     instance from the parameters you supply.
@@ -67,7 +68,7 @@ def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2
         A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance.
     """
     new_nodes = [Demog.Node(lat=lat, lon=lon, pop=pop, name=name, forced_id=forced_id) ]
-    return MalariaDemographics(nodes=new_nodes, init_prev=init_prev)
+    return MalariaDemographics(nodes=new_nodes, init_prev=init_prev, include_biting_heterogeneity=include_biting_heterogeneity)
 
 def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", site="No_Site" ):
     """
@@ -80,7 +81,7 @@ def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", s
         site: A string to identify the country, village, or trial site.
 
     Returns:
-        A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance.
+        A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance
     """
     generic_demog = Demog.from_pop_csv( pop_filename_in, pop_filename_out, site )
     nodes = generic_demog.nodes

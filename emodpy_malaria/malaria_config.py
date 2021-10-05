@@ -181,7 +181,7 @@ def set_team_drug_params(config, manifest):
                 ages = [float(x) for x in row[drug_fracdos_key_idx].strip('[]').split(",")]
                 values = [float(x) for x in row[drug_fracdos_val_idx].strip('[]').split(",")]
             except Exception as ex:
-                print(str(ex))
+                print("For drug {}, {}".format(row[0], str(ex)))
                 ages = []
                 values = []
             for idx in range(len(ages)):
@@ -430,11 +430,11 @@ def add_drug_resistance(config, manifest, drugname: str = None, drug_resistant_s
     raise ValueError(f"Drug name {drugname} not found.\n")
 
 
-def set_species_param(cb, species, parameter, value):
+def set_species_param(config, species, parameter, value, overwrite=False):
     """
         Pass through for vector version of function.
     """
-    return vector_config.set_species_param(cb, species, parameter, value)
+    return vector_config.set_species_param(config, species, parameter, value, overwrite=overwrite)
 
 
 def add_species(config, manifest, species_to_select):
@@ -459,5 +459,4 @@ def get_species_params(config, species: str = None):
     """
         Pass through for vector version of function.
     """
-    vector_config.get_species_params(config, species)
-
+    return vector_config.get_species_params(config, species)
