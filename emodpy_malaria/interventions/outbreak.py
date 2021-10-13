@@ -1,5 +1,5 @@
 from emod_api import schema_to_class as s2c
-from emod_api.interventions.common import utils
+from emod_api.interventions.common import utils, BroadcastEvent, MultiInterventionDistributor
 
 
 def add_outbreak_individual(campaign,
@@ -17,7 +17,8 @@ def add_outbreak_individual(campaign,
                             ignore_immunity: bool = True,
                             incubation_period_override: int = -1,
                             antigen: int = 0,
-                            genome: int = 0):
+                            genome: int = 0,
+                            broadcast_event: str = None):
     """
     Adds a scheduled OutbreakIndividual intervention. This is set up to be used with Malaria-Ongoing branch.
 
@@ -50,6 +51,7 @@ def add_outbreak_individual(campaign,
             Set to -1 to honor the configuration parameter settings
         antigen: The antigenic base strain ID of the outbreak infection
         genome: The genetic substrain ID of the outbreak infection
+        broadcast_event: Optional event that will be sent out at the same time as outbreak is distributed
 
     Returns:
         Nothing
@@ -62,6 +64,9 @@ def add_outbreak_individual(campaign,
     intervention.Genome = genome
     intervention.Ignore_Immunity = 1 if ignore_immunity else 0
     intervention.Incubation_Period_Override = incubation_period_override
+
+    if broadcast_event:
+        intervention = MultiInterventionDistributor(campaign, [intervention, BroadcastEvent(campaign)])
 
     add_campaign_event(campaign, start_day=start_day, demographic_coverage=demographic_coverage,
                        repetitions=repetitions,
