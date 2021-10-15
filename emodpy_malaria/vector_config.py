@@ -196,35 +196,35 @@ def add_species(config, manifest, species_to_select):
 def add_alleles(config, manifest, species: str = None, alleles: list = None, is_gender_gene: bool = False):
     """
     Adds alleles to a species
-    **Example** of final json:
-                "Genes": [
-                    {
-                        "Alleles": [
-                            {
-                                "Initial_Allele_Frequency": 0.5,
-                                "Is_Y_Chromosome": 0,
-                                "Name": "X1"
-                            },
-                            {
-                                "Initial_Allele_Frequency": 0.25,
-                                "Is_Y_Chromosome": 0,
-                                "Name": "X2"
-                            },
-                            {
-                                "Initial_Allele_Frequency": 0.15,
-                                "Is_Y_Chromosome": 1,
-                                "Name": "Y1"
-                            },
-                            {
-                                "Initial_Allele_Frequency": 0.1,
-                                "Is_Y_Chromosome": 1,
-                                "Name": "Y2"
-                            }
-                        ],
-                        "Is_Gender_Gene": 1,
-                        "Mutations": []
-                    }
-                ],
+        **Example** of final json:
+            "Genes": [
+                {
+                    "Alleles": [
+                        {
+                            "Initial_Allele_Frequency": 0.5,
+                            "Is_Y_Chromosome": 0,
+                            "Name": "X1"
+                        },
+                        {
+                            "Initial_Allele_Frequency": 0.25,
+                            "Is_Y_Chromosome": 0,
+                            "Name": "X2"
+                        },
+                        {
+                            "Initial_Allele_Frequency": 0.15,
+                            "Is_Y_Chromosome": 1,
+                            "Name": "Y1"
+                        },
+                        {
+                            "Initial_Allele_Frequency": 0.1,
+                            "Is_Y_Chromosome": 1,
+                            "Name": "Y2"
+                        }
+                    ],
+                    "Is_Gender_Gene": 1,
+                    "Mutations": []
+                }
+            ]
 
     Args:
         config:
