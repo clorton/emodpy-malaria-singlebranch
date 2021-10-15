@@ -195,8 +195,9 @@ def add_species(config, manifest, species_to_select):
 
 def add_alleles(config, manifest, species: str = None, alleles: list = None, is_gender_gene: bool = False):
     """
-    Adds alleles to a species
-        **Example** of final json:
+        Adds alleles to a species
+
+        **Example**::
             "Genes": [
                 {
                     "Alleles": [
@@ -234,6 +235,7 @@ def add_alleles(config, manifest, species: str = None, alleles: list = None, is_
             or (**Name**, **Initial_Allele_Frequency**), 1/0 or True/False can be used for Is_Y_Chromosome
             **Example**::
 
+            [("X1", 0.25), ("X2", 0.35), ("Y1", 0.15), ("Y2", 0.25)] third parameter is assumed 0
             [("X1", 0.25, 0), ("X2", 0.35, 0), ("Y1", 0.15, 1), ("Y2", 0.25, 1)]
         is_gender_gene: True implies that the alleles of this gene are for gender.  If defining the gender gene,
             X & Y must be defined.  One can have 4 alleles of a particular gender type
