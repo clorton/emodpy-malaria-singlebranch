@@ -657,6 +657,42 @@ def add_report_node_demographics(task, manifest,
         return reporter
 
 
+def add_report_node_demographics_malaria(task, manifest,
+                                         age_bins: list = None,
+                                         individual_property_to_collect: str = "",
+                                         stratify_by_gender: int = 1):
+    """
+    Adds ReportNodeDemographicsMalaria report to the simulation.
+    See class definition for description of the report.
+
+    Args:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
+        age_bins: the age bins (in years) to aggregate within and report. An empty array does not stratify by age. You
+            must sort your input data from low to high.
+        individual_property_to_collect: The name of theIndividualProperties key by which to stratify the report.
+            An empty string does not stratify by Individual Properties
+        stratify_by_gender: if 1(true), to stratify by gender. Set to false (0) to not stratify by gender.
+
+    Returns:
+        Nothing
+    """
+
+    reporter = ReportNodeDemographicsMalaria()  # Create the reporter
+
+    def rec_config_builder(params):  # not used yet
+        params.IP_Key_To_Collect = individual_property_to_collect
+        params.Age_Bins = age_bins if age_bins else []
+        params.Stratify_By_Gender = stratify_by_gender
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
 def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   barcodes: list = None,
                                                   drug_resistant_strings: list = None,
@@ -1037,6 +1073,27 @@ class ReportNodeDemographics(BuiltInReporter):
     def config(self, config_builder, manifest):
         self.class_name = "ReportNodeDemographics"
         report_params = s2c.get_class_with_defaults("ReportNodeDemographics", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class ReportNodeDemographicsMalaria(BuiltInReporter):
+    """
+    This report extends the data collected in the ReportNodeDemographics by adding data about the number of
+    infections with specific barcodes. The malaria node demographics genetics report does not include columns for
+    Genome_Markers because this report assumes that the simulation setup parameter Malaria_Model is set to
+    MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS.
+
+    Note: If you need detailed data on the infections with different barcodes, use the MalariaSqlReport. That report
+    contains data on all barcodes, without specifying what they are.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportNodeDemographicsMalaria"
+        report_params = s2c.get_class_with_defaults("ReportNodeDemographicsMalaria", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")

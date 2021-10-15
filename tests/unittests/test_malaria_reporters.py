@@ -468,6 +468,35 @@ class TestMalariaReport(unittest.TestCase):
 
     # end region
 
+    # ReportNodeDemographicsMalaria
+    def test_report_node_demographics_malaria_custom(self):
+        age_bins = [3, 17, 25, 120]
+        individual_property_to_collect = "Risk"
+        stratify_by_gender = 0
+        self.tmp_reporter = add_report_node_demographics_malaria(None, schema_path_file,
+                                                         age_bins=age_bins,
+                                                         individual_property_to_collect=individual_property_to_collect,
+                                                         stratify_by_gender=stratify_by_gender)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Age_Bins'], age_bins)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+
+    def test_report_node_demographics_malaria_default(self):
+        age_bins = []
+        individual_property_to_collect = ""
+        stratify_by_gender = 1
+        self.tmp_reporter = add_report_node_demographics_malaria(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Age_Bins'], age_bins)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+
+    # end region
+
+
     # ReportNodeDemographicsMalariaGenetics
     def test_report_node_demographics_malaria_genetics_custom(self):
         barcodes = ["AGT", "GGG"]
