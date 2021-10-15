@@ -198,6 +198,7 @@ def add_alleles(config, manifest, species: str = None, alleles: list = None, is_
         Adds alleles to a species
 
         **Example**::
+
             "Genes": [
                 {
                     "Alleles": [
