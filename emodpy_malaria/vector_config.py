@@ -232,11 +232,12 @@ def add_alleles(config, manifest, species: str = None, alleles: list = None, is_
         manifest:
         species: species to which to assign the alleles
         alleles: List of tuples of (**Name**, **Initial_Allele_Frequency**, **Is_Y_Chromosome**) for a set of alleles
-            or (**Name**, **Initial_Allele_Frequency**), 1/0 or True/False can be used for Is_Y_Chromosome
+            or (**Name**, **Initial_Allele_Frequency**), 1/0 or True/False can be used for Is_Y_Chromosome,
+            third parameter is assumed 0
             **Example**::
 
-            [("X1", 0.25), ("X2", 0.35), ("Y1", 0.15), ("Y2", 0.25)] third parameter is assumed 0
-            [("X1", 0.25, 0), ("X2", 0.35, 0), ("Y1", 0.15, 1), ("Y2", 0.25, 1)]
+                [("X1", 0.25), ("X2", 0.35), ("Y1", 0.15), ("Y2", 0.25)]
+                [("X1", 0.25, 0), ("X2", 0.35, 0), ("Y1", 0.15, 1), ("Y2", 0.25, 1)]
         is_gender_gene: True implies that the alleles of this gene are for gender.  If defining the gender gene,
             X & Y must be defined.  One can have 4 alleles of a particular gender type
 
