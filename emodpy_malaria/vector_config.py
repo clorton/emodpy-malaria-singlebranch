@@ -193,7 +193,7 @@ def add_species(config, manifest, species_to_select):
     return config
 
 
-def add_genes_and_alleles(config, manifest, species: str = None, alleles: list = None, is_gender_gene: bool = False):
+def add_genes_and_alleles(config, manifest, species: str = None, alleles: list = None):
     """
         Adds alleles to a species
 
@@ -203,24 +203,24 @@ def add_genes_and_alleles(config, manifest, species: str = None, alleles: list =
                 {
                     "Alleles": [
                         {
+                            "Name": "X1",
                             "Initial_Allele_Frequency": 0.5,
-                            "Is_Y_Chromosome": 0,
-                            "Name": "X1"
+                            "Is_Y_Chromosome": 0
                         },
                         {
+                            "Name": "X2",
                             "Initial_Allele_Frequency": 0.25,
-                            "Is_Y_Chromosome": 0,
-                            "Name": "X2"
+                            "Is_Y_Chromosome": 0
                         },
                         {
+                            "Name": "Y1",
                             "Initial_Allele_Frequency": 0.15,
-                            "Is_Y_Chromosome": 1,
-                            "Name": "Y1"
+                            "Is_Y_Chromosome": 1
                         },
                         {
+                            "Name": "Y2",
                             "Initial_Allele_Frequency": 0.1,
-                            "Is_Y_Chromosome": 1,
-                            "Name": "Y2"
+                            "Is_Y_Chromosome": 1
                         }
                     ],
                     "Is_Gender_Gene": 1,
@@ -234,14 +234,12 @@ def add_genes_and_alleles(config, manifest, species: str = None, alleles: list =
         species: species to which to assign the alleles
         alleles: List of tuples of (**Name**, **Initial_Allele_Frequency**, **Is_Y_Chromosome**) for a set of alleles
             or (**Name**, **Initial_Allele_Frequency**), 1/0 or True/False can be used for Is_Y_Chromosome,
-            third parameter is assumed False (0)
+            third parameter is assumed False (0). If the third parameter is set to 1 in any of the tuples,
+            we assume, this is a gender gene.
             **Example**::
 
                 [("X1", 0.25), ("X2", 0.35), ("Y1", 0.15), ("Y2", 0.25)]
                 [("X1", 0.25, 0), ("X2", 0.35, 0), ("Y1", 0.15, 1), ("Y2", 0.25, 1)]
-        is_gender_gene: True implies that the alleles of this gene are for gender.  If defining the gender gene,
-            X & Y must be defined.  One can have 4 alleles of a particular gender type. You are required to have
-            at least one of Y chromosome and one NOT Y. You can have most of either.
 
     Returns:
         configured config
@@ -251,16 +249,14 @@ def add_genes_and_alleles(config, manifest, species: str = None, alleles: list =
         raise ValueError("Please set all parameters, 'alleles' needs to be a list of tuples.\n")
 
     gene = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorGene"])
-    gene.parameters.Is_Gender_Gene = 1 if is_gender_gene else 0
-
-    for index, allele in enumerate(alleles):
+    for allele in alleles:
         vector_allele = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorAllele"])
         vector_allele.parameters.Name = allele[0]
         vector_allele.parameters.Initial_Allele_Frequency = allele[1]
-        if len(allele) == 3:
+        if len(allele) == 3 :
             if allele[2]:
                 gene.parameters.Is_Gender_Gene = 1
-            vector_allele.parameters.Is_Y_Chromosome = 1 if allele[2] else 0
+                vector_allele.parameters.Is_Y_Chromosome = 1
         gene.parameters.Alleles.append(vector_allele.parameters)
 
     species_params = get_species_params(config, species)
@@ -456,8 +452,10 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
                         allele_to_shred_to: str = None, allele_shredding_fraction: float = None,
                         allele_to_shred_to_surviving_fraction: float = None):
     """
-        Adds one **Alleles_Driven** item to the Alleles_Driven list, using **Driving_Allele** as key if matching one
+        Add a gene drive that propagates a particular set of alleles.
+        Adds one **Alleles_Driven** item to the **Alleles_Driven** list, using 'driving_allele' as key if matching one
         already exists.
+
         **Example**::
 
             {
