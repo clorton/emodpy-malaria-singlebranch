@@ -152,7 +152,7 @@ class MalariaTestImports(unittest.TestCase):
         self.expected_items = [
             "set_team_defaults",
             "get_species_params", "set_species_param",
-            "add_species", "add_alleles", "add_mutation",
+            "add_species", "add_genes_and_alleles", "add_mutation",
             "add_trait", "add_insecticide_resistance", "add_species_drivers"
         ]
 
