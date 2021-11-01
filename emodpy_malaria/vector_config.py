@@ -193,7 +193,7 @@ def add_species(config, manifest, species_to_select):
     return config
 
 
-def add_alleles(config, manifest, species: str = None, alleles: list = None, is_gender_gene: bool = False):
+def add_genes_and_alleles(config, manifest, species: str = None, alleles: list = None, is_gender_gene: bool = False):
     """
         Adds alleles to a species
 
@@ -234,13 +234,14 @@ def add_alleles(config, manifest, species: str = None, alleles: list = None, is_
         species: species to which to assign the alleles
         alleles: List of tuples of (**Name**, **Initial_Allele_Frequency**, **Is_Y_Chromosome**) for a set of alleles
             or (**Name**, **Initial_Allele_Frequency**), 1/0 or True/False can be used for Is_Y_Chromosome,
-            third parameter is assumed 0
+            third parameter is assumed False (0)
             **Example**::
 
                 [("X1", 0.25), ("X2", 0.35), ("Y1", 0.15), ("Y2", 0.25)]
                 [("X1", 0.25, 0), ("X2", 0.35, 0), ("Y1", 0.15, 1), ("Y2", 0.25, 1)]
         is_gender_gene: True implies that the alleles of this gene are for gender.  If defining the gender gene,
-            X & Y must be defined.  One can have 4 alleles of a particular gender type
+            X & Y must be defined.  One can have 4 alleles of a particular gender type. You are required to have
+            at least one of Y chromosome and one NOT Y. You can have most of either.
 
     Returns:
         configured config
@@ -452,8 +453,8 @@ def add_insecticide_resistance(config, manifest, insecticide_name: str = "", spe
 def add_species_drivers(config, manifest, species: str = None, driving_allele: str = None, driver_type: str = "CLASSIC",
                         to_copy: str = None, to_replace: str = None, likelihood_list: list = None,
                         shredding_allele_required: str = None, allele_to_shred: str = None,
-                        allele_to_shred_to: str = None, allele_shredding_fraction: float = 1,
-                        allele_to_shred_to_surviving_fraction: float = 1):
+                        allele_to_shred_to: str = None, allele_shredding_fraction: float = None,
+                        allele_to_shred_to_surviving_fraction: float = None):
     """
         Adds one **Alleles_Driven** item to the Alleles_Driven list, using **Driving_Allele** as key if matching one
         already exists.
@@ -514,11 +515,14 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
         species: Name of the species for which we're setting the drivers
         driving_allele: This is the allele that is known as the driver
         driver_type: This indicates the type of driver.
-            CLASSIC-The driver can only drive if the one gamete has the driving allele and the other has a specific
+            CLASSIC - The driver can only drive if the one gamete has the driving allele and the other has a specific
             allele to be replaced
-            INTEGRAL_AUTONOMOUS-At least one of the gametes must have the driver.  Alleles can still be driven if the
+            INTEGRAL_AUTONOMOUS - At least one of the gametes must have the driver.  Alleles can still be driven if the
             driving allele is in both gametes or even if the driving allele cannot replace the allele in the
             other gamete
+            X_SHRED, Y_SHRED -  cannot be used in the same species during one simulation/realization. The driving_allele
+            must exist at least once in the genome for shredding to occur. If there is only one, it can exist in either
+            half of the genome.
         to_copy: The main allele to be copied **Allele_To_Copy**
         to_replace: The allele that must exist and will be replaced by the copy **Allele_To_Replace**
         likelihood_list: A list of tuples in format: [(**Copy_To_Allele**, **Likelihood**),(),()] to assign to
@@ -529,25 +533,27 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
         allele_to_shred: The genome must have this gender allele in order for shredding to occur. If the driver is
             X_SHRED, then the allele must NOT be designated as a Y chromosome. If the driver is Y_SHRED, then the allele
             must be designated as a Y chromosome
-        allele_to_shred_to: This is a gender allele that the 'shredding' will change the Allele_To_Shred into. It can
+        allele_to_shred_to: This is a gender allele that the 'shredding' will change the allele_to_shred into. It can
             be a temporary allele that never exists in the output or could be something that appears due to
             resistance/failures
-        allele_shredding_fraction: This is the fraction of the Alleles_To_Shred that will be converted to
-            Allele_To_Shred_To.  If this value is less than one, then some of the Allele_To_Shred will remain and
-            be part of the gametes
+        allele_shredding_fraction: This is the fraction of the alleles_to_Shred that will be converted to
+            allele_to_shred_to. Values 0 to 1.  If this value is less than 1, then some of the allele_to_shred will
+            remain and be part of the gametes.
         allele_to_shred_to_surviving_fraction: A trait modifier will automatically generated for
-            [ Allele_To_Shred_To, * ], the trait ADJUST_FERTILE_EGGS, and this value as its modifier. A value of 0
-            implies perfect shredding such that no Allele_To_Shred_To survive in the eggs. A value of 1 means all of
-            the 'shredded' alleles survive
+            [ Allele_To_Shred_To, * ], the trait ADJUST_FERTILE_EGGS, and this value as its modifier.  Values 0 to 1.
+            A value of 0 implies perfect shredding such that no allele_to_Shred_To survive in the eggs. A value of 1
+            means all of the 'shredded' alleles survive.
 
     Returns:
         configured config
     """
-
     if not config or not manifest or not species or not driving_allele or not to_copy or not to_replace or not likelihood_list:
         raise ValueError(f"Please define all the parameters for this function (except shredding,"
                          f"unless you're using them).\n")
-
+    if (driver_type != "X_SHRED" and driver_type != "Y_SHRED") and (shredding_allele_required or allele_to_shred
+        or allele_to_shred_to or allele_shredding_fraction or allele_to_shred_to_surviving_fraction):
+        raise ValueError(f"Please do not define any shredding parameters if you're not using 'driver_type' = X_SHRED or"
+                         f"Y_SHRED.\n")
     species_params = get_species_params(config, species)
     gender_allele_required = False
     gender_allele_to_shred = False
@@ -558,22 +564,22 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
 
     if driver_type == "X_SHRED" or driver_type == "Y_SHRED":
         if not allele_to_shred or not allele_to_shred_to or not shredding_allele_required:
-            raise ValueError(f"Please define all the shredding parameters.\n")
+            raise ValueError(f"For 'driver_type'= X_SHRED or Y_SHRED, please define all the shredding parameters.\n")
         for gene in species_params.Genes:
             if gene["Is_Gender_Gene"] == 1:
                 for allele in gene["Alleles"]:
                     if allele["Name"] == shredding_allele_required:
                         gender_allele_required = True
                         if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 0:
-                            raise ValueError(f"For driver_type X_SHRED, shredding allele required should be the Y chromosome.\n")
+                            raise ValueError(f"For 'driver_type' = X_SHRED, 'allele_to_shred' should be the Y chromosome.\n")
                         elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 1:
-                            raise ValueError(f"For driver_type Y_SHRED, shredding allele required should be the X chromosome.\n")
+                            raise ValueError(f"For 'driver_type' = Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
                     elif allele["Name"] == allele_to_shred:
                         gender_allele_to_shred = True
                         if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 1:
-                            raise ValueError(f"For driver_type X_SHRED, allele_to_shred should not be Y chromosome.\n")
+                            raise ValueError(f"For 'driver_type'= X_SHRED, 'allele_to_shred' should not be Y chromosome.\n")
                         elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 0:
-                            raise ValueError(f"For driver_type Y_SHRED, allele_to_shred should be the Y chromosome.\n")
+                            raise ValueError(f"For 'driver_type'= Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
 
         if not (gender_allele_required and gender_allele_to_shred):
             raise ValueError(f"Looks like shredding allele required or allele to shred are not on a gender gene, "
@@ -603,10 +609,19 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
     if "Drivers" in species_params:
         for driver in species_params.Drivers:
             if driving_allele == driver["Driving_Allele"]:
-                driver["Alleles_Driven"].append(allele_driven.parameters)
-                return config
+                if driver_type == driver["Driver_Type"]:
+                    driver["Alleles_Driven"].append(allele_driven.parameters)
+                    return config
+                else:
+                    raise ValueError(f"The gene driver with 'driving_allele'={driving_allele} must have exactly one "
+                                     f"entry in 'Alleles_Driven' for this allele and therefore cannot be used for"
+                                     f"multiple 'driver_type's.\n")
 
-    gene_driver.parameters.Driving_Allele_Params = allele_driven.parameters
-    gene_driver.parameters.Driver_Type = driver_type
+    if driver_type == "X_SHRED" or driver_type == "Y_SHRED":
+        gene_driver.parameters.Driving_Allele_Params = allele_driven.parameters
+    else:
+        gene_driver.parameters.Alleles_Driven = [allele_driven.parameters]
+
+    gene_driver.parameters.Driver_Type = driver_type #to circumvent the implicit settings
     species_params.Drivers.append(gene_driver.parameters)
     return config

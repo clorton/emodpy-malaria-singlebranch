@@ -41,14 +41,14 @@ def set_param_fn(config):
 
     # the following lines define alleles, mutations and traits and they need "set_genetics" to actually be added
     # Vector Genetics, the main purpose of this example.
-    vector_config.add_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
+    vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="b", probability=0.05)
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="b", mutate_to="c", probability=0.1)
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="c", mutate_to="a", probability=0.1)
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="c", probability=0.03)
 
     # another set of alleles
-    vector_config.add_alleles(config, manifest, "gambiae", [("one", 0.9), ("two", 0.05), ("three", 0.05)])
+    vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("one", 0.9), ("two", 0.05), ("three", 0.05)])
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="one", mutate_to="three", probability=0.04)
 
     # these are the traits/benefits based on the alleles

@@ -35,12 +35,11 @@ def set_param_fn(config):
     vector_config.add_species(config, manifest, ["gambiae"])
 
     # add gender alleles; they need to be first, per #4576
-    #
-    vector_config.add_alleles(config, manifest, "gambiae",
+    vector_config.add_genes_and_alleles(config, manifest, "gambiae",
                               [("X1", 0.25), ("X2", 0.25), ("Y1", 0.15, 1), ("Y2", 0.35, 1)])
 
     # Vector Genetics, the main purpose of this example.
-    vector_config.add_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
+    vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("a", 0.5), ("b", 0.5), ("c", 0)])
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="a", mutate_to="b", probability=0.05)
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="b", mutate_to="c", probability=0.1)
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="c", mutate_to="a", probability=0.1)
@@ -48,7 +47,7 @@ def set_param_fn(config):
 
 
     # another set of alleles
-    vector_config.add_alleles(config, manifest, "gambiae", [("one", 0.9), ("two", 0.05), ("three", 0.05)])
+    vector_config.add_genes_and_alleles(config, manifest, "gambiae", [("one", 0.9), ("two", 0.05), ("three", 0.05)])
     vector_config.add_mutation(config, manifest, "gambiae", mutate_from="one", mutate_to="three", probability=0.04)
 
     # these are the traits/benefits based on the alleles
@@ -60,7 +59,7 @@ def set_param_fn(config):
     vector_config.add_species_drivers(config, manifest, species="gambiae", driver_type="X_SHRED", driving_allele="one",
                                       to_copy="one",
                                       to_replace="two", likelihood_list=[("one", 0.9), ("two", 0.1)],
-                                      shredding_allele_required="Y2", allele_to_shred="X2", allele_to_shred_to="X2",
+                                      shredding_allele_required="Y2", allele_to_shred="X2", allele_to_shred_to="X1",
                                       allele_shredding_fraction=0.7, allele_to_shred_to_surviving_fraction=0.03)
 
     config.parameters.Simulation_Duration = 10
@@ -96,6 +95,7 @@ def build_demog():
 
     import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
     demog = Demographics.from_params(tot_pop=20, num_nodes=1)
+    demog.SetBirthRate(0)
 
     return demog
 
@@ -107,8 +107,8 @@ def general_sim():
     """
 
     # Set platform
-    platform = Platform("SLURMStage") # to run on comps2.idmod.org for testing/dev work
-    # platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
+    # platform = Platform("SLURMStage") # to run on comps2.idmod.org for testing/dev work
+    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
     experiment_name = "Vector Genetics VECTOR_SIM example"
 
     # create EMODTask 
