@@ -245,6 +245,58 @@ def add_malaria_transmission_report(task, manifest,
         return reporter
 
 
+def add_report_malaria_filtered(task, manifest,
+                                start_day: int = 0,
+                                end_day: int = 365000,
+                                nodes: list = None,
+                                report_filename: str = "ReportMalariaFiltered.json",
+                                min_age_years: float = 0,
+                                max_age_years: float = 125,
+                                has_interventions: list = None,
+                                include_30day_avd_infection_duration: bool = True):
+    """
+    Adds ReportMalariaFiltered report to the simulation.
+    See class definition for description of the report.
+
+    Args:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
+        start_day:  the day of the simulation to start collecting data
+        end_day: the day of simulation to stop collecting data
+        nodes: list of nodes for which to collect the data, None or [] collects all the nodes
+        report_filename: name of the file to be written
+        min_age_years: Minimum age in years of people to collect data on
+        max_age_years: Maximum age in years of people to collect data on
+        has_interventions: A channel is added to the report for each InterventionName provided.  The channel name
+            will be Has_<InterventionName> and will be the fraction of the population that has that intervention.
+            The **Intervention_Name** in the campaign should be the values in this parameter
+        include_30day_avd_infection_duration: If set to True (1), the 30-Day Avg Infection channel is included in the
+            report
+
+    Returns:
+        Nothing
+    """
+
+    reporter = ReportMalariaFiltered()  # Create the reporter
+
+    def rec_config_builder(params):  # not used yet
+        params.Start_Day = start_day
+        params.End_Day = end_day
+        params.Node_IDs_Of_Interest = nodes if nodes else []
+        params.Report_File_Name = report_filename
+        params.Has_Interventions = has_interventions if has_interventions else []
+        params.Include_30Day_Avg_Infection_Duration = 1 if include_30day_avd_infection_duration else 0
+        params.Max_Age_Years = max_age_years
+        params.Min_Age_Years = min_age_years
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
 def add_spatial_report_malaria_filtered(task, manifest,
                                         start_day: int = 0,
                                         end_day: int = 365000,
@@ -605,6 +657,42 @@ def add_report_node_demographics(task, manifest,
         return reporter
 
 
+def add_report_node_demographics_malaria(task, manifest,
+                                         age_bins: list = None,
+                                         individual_property_to_collect: str = "",
+                                         stratify_by_gender: int = 1):
+    """
+    Adds ReportNodeDemographicsMalaria report to the simulation.
+    See class definition for description of the report.
+
+    Args:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
+        age_bins: the age bins (in years) to aggregate within and report. An empty array does not stratify by age. You
+            must sort your input data from low to high.
+        individual_property_to_collect: The name of theIndividualProperties key by which to stratify the report.
+            An empty string does not stratify by Individual Properties
+        stratify_by_gender: if 1(true), to stratify by gender. Set to false (0) to not stratify by gender.
+
+    Returns:
+        Nothing
+    """
+
+    reporter = ReportNodeDemographicsMalaria()  # Create the reporter
+
+    def rec_config_builder(params):  # not used yet
+        params.IP_Key_To_Collect = individual_property_to_collect
+        params.Age_Bins = age_bins if age_bins else []
+        params.Stratify_By_Gender = stratify_by_gender
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
 def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   barcodes: list = None,
                                                   drug_resistant_strings: list = None,
@@ -823,6 +911,23 @@ class ReportSimpleMalariaTransmissionJSON(BuiltInReporter):
 
 
 @dataclass
+class ReportMalariaFiltered(BuiltInReporter):
+    """
+        The malaria filtered report (ReportMalariaFiltered.json) is the same as the default InsetChart report, but
+        provides filtering options to enable the user to select the data to be displayed for each time step or for
+        each node. See InsetChart for more information about InsetChart.json.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportMalariaFiltered"
+        report_params = s2c.get_class_with_defaults("ReportMalariaFiltered", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")  # maybe that should be in finalize
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
 class SpatialReportMalariaFiltered(BuiltInReporter):
     """
         The filtered malaria spatial report (SpatialReportMalariaFiltered.bin) provides spatial information on malaria
@@ -968,6 +1073,27 @@ class ReportNodeDemographics(BuiltInReporter):
     def config(self, config_builder, manifest):
         self.class_name = "ReportNodeDemographics"
         report_params = s2c.get_class_with_defaults("ReportNodeDemographics", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class ReportNodeDemographicsMalaria(BuiltInReporter):
+    """
+    This report extends the data collected in the ReportNodeDemographics by adding data about the number of
+    infections with specific barcodes. The malaria node demographics genetics report does not include columns for
+    Genome_Markers because this report assumes that the simulation setup parameter Malaria_Model is set to
+    MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS.
+
+    Note: If you need detailed data on the infections with different barcodes, use the MalariaSqlReport. That report
+    contains data on all barcodes, without specifying what they are.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportNodeDemographicsMalaria"
+        report_params = s2c.get_class_with_defaults("ReportNodeDemographicsMalaria", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")

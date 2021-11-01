@@ -468,6 +468,35 @@ class TestMalariaReport(unittest.TestCase):
 
     # end region
 
+    # ReportNodeDemographicsMalaria
+    def test_report_node_demographics_malaria_custom(self):
+        age_bins = [3, 17, 25, 120]
+        individual_property_to_collect = "Risk"
+        stratify_by_gender = 0
+        self.tmp_reporter = add_report_node_demographics_malaria(None, schema_path_file,
+                                                         age_bins=age_bins,
+                                                         individual_property_to_collect=individual_property_to_collect,
+                                                         stratify_by_gender=stratify_by_gender)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Age_Bins'], age_bins)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+
+    def test_report_node_demographics_malaria_default(self):
+        age_bins = []
+        individual_property_to_collect = ""
+        stratify_by_gender = 1
+        self.tmp_reporter = add_report_node_demographics_malaria(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Age_Bins'], age_bins)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+
+    # end region
+
+
     # ReportNodeDemographicsMalariaGenetics
     def test_report_node_demographics_malaria_genetics_custom(self):
         barcodes = ["AGT", "GGG"]
@@ -615,6 +644,60 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Report_File_Name'], report_filename)
         self.assertEqual(self.p_dict['Spatial_Output_Channels'], spatial_output_channels)
     # endregion
+
+    # region ReportMalariaFiltered
+    def test_report_malaria_filtered_custom(self):
+        start_day = 30
+        end_day = 452
+        nodes = [34, 2, 1]
+        report_filename = "MyTestReport.json"
+        max_age = 12
+        min_age = 3
+        has_interventions = ["Bednet", "SpaceSpray"]
+        include_average = False
+        self.tmp_reporter = add_report_malaria_filtered(None, schema_path_file,
+                                                        start_day=start_day,
+                                                        end_day=end_day,
+                                                        nodes=nodes,
+                                                        report_filename=report_filename,
+                                                        min_age_years=min_age,
+                                                        max_age_years=max_age,
+                                                        has_interventions=has_interventions,
+                                                        include_30day_avd_infection_duration=include_average)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['End_Day'], end_day)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], nodes)
+        self.assertEqual(self.p_dict['Report_File_Name'], report_filename)
+        self.assertEqual(self.p_dict['Max_Age_Years'], max_age)
+        self.assertEqual(self.p_dict['Min_Age_Years'], min_age)
+        self.assertEqual(self.p_dict['Has_Interventions'], has_interventions)
+        self.assertEqual(self.p_dict['Include_30Day_Avg_Infection_Duration'], 1 if include_average else 0)
+
+    def test_report_malaria_filtered_default(self):
+        start_day = 0
+        end_day = 365000
+        nodes = []
+        report_filename = "ReportMalariaFiltered.json"
+        max_age = 125
+        min_age = 0
+        has_interventions = []
+        include_average = 1
+        self.tmp_reporter = add_report_malaria_filtered(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['End_Day'], end_day)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], nodes)
+        self.assertEqual(self.p_dict['Report_File_Name'], report_filename)
+        self.assertEqual(self.p_dict['Max_Age_Years'], max_age)
+        self.assertEqual(self.p_dict['Min_Age_Years'], min_age)
+        self.assertEqual(self.p_dict['Has_Interventions'], has_interventions)
+        self.assertEqual(self.p_dict['Include_30Day_Avg_Infection_Duration'], 1 if include_average else 0)
+
+    # endregion
+
 
     # region ReportHumanMigrationTracking
     def test_human_migration_tracking_default(self):

@@ -90,6 +90,18 @@ Is there a campaign sweep example?
 
       * examples/campaign_sweep
 
+Is there an example of creating a demographics file from scratch with the API?
+    The best examples are currently in emodpy-measles and emodpy-hiv. We are working to add some to emod_api.demographics. The basic idea is you use one of 3 node creators, and then use the Setter API to set up the node defaults for fertility, mortality, age structure, initial immunity, individual 'risk', and initial prevalance. The first node creator, from_template_node, is very basic and usually for quickstarts or toy models. It lets you create a single node demographics file with a given population. The second creator, from_csv, lets you create a multinode demographics using a csv file with population data as an input. The third creator, from_params, lets you create a multinode demographics without specific node data but instead with a few parameters that represent the overall population and the population heterogeneity.
+
+    This is what it could look like to use option 2::
+
+        from emod_api.demographics import Demographics
+        demog = Demographics.from_csv( input_csv_file )
+        demog.SetConstantRisk()
+        demog.SetInitialAgeLikeSubSaharanAfrica() 
+        demog.generate_file(out_filename)
+        return demog
+
 Is there a demographics sweep example? 
    Yes. See:
 
@@ -107,3 +119,10 @@ Is there a reporter configuration example?
       * examples/add_reports
       * examples/filtered_report
 
+What are some of the key differences for people used to using dtk-tools?
+    1. Schema-Based. The creation of config and campaign files is entirely schema-based now. This means that you can only set parameters that the binary you are using recognizes. And parameter types and ranges are enforced at runtime.
+    2. Inter-File Dependencies Now Automatic. Before there were lots of parameters in the config that you had to set to correspond to settings in campaign or demographics files. That is no longer the case. We call these 'implicits'. For example, if you add a BirthRate to the demographics, the corresponding parameters in the config.json (Enable_Births) will get set automatically for you. As another example, when you create a campaign and specify various 'events' to be broadcast/published and/or listened/subscribed to, you no longer have to figure out which ones are built-in and which are ad-hoc. It does that for you and populates the Custom_Events param on your behalf.
+    3. Hierarchical Dependencies Now Automatic. If a parameter depends on another parameter, previously you had to set all the Enables in the dependency tree. Now they get set automatically for you. For example, if Enable_Birth is set (see above), Enable_Vital_Dynamics will be set for you.
+    4. No JSON manipulation. dtk-tools worked primarily through manipulation of JSON that made up the configuration files. You no longer need to have any knowledge of the internal representation of data in the DTK input files. All configuration should be done via Python functions.
+    5. Released and Installed Modules. We want users mostly using versioned released modules that have been pip installed, not git cloned, dev-installed code, except during development. The process of getting new code reviewed, tested, and getting the module versioned and released is intended to be smooth and efficient when everyone does their defined role. "Trust The Process and Do Your Job", as someone once said.
+    6. Blessed Binaries. In dtk-tools you would often BYOB -- Bring Your Own Binary -- but in emodpy, the idea is that the system pulls down the latest CI (Continuous Integration) build for your disease that passed all the tests. We very much want to noramlize the idea of doing research with versioned software that has come through our professional BVT processes.
