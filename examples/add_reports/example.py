@@ -141,6 +141,9 @@ def general_sim():
     # VectorHabitatReport
     add_vector_habitat_report(task, manifest)
 
+    # ReportNodeDemographicsMalaria
+    add_report_node_demographics_malaria(task, manifest, age_bins=[3, 25, 50, 100] )
+
     # We are creating one-simulation experiment straight from task.
     # If you are doing a sweep, please see sweep_* examples.
     experiment = Experiment.from_task(task=task, name=experiment_name)
