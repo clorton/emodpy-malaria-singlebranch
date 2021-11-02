@@ -15,7 +15,7 @@ import schema_path_file
 from emodpy_malaria.malaria_config import set_team_defaults, add_species
 
 from emodpy_malaria.vector_config import \
-    add_alleles, \
+    add_genes_and_alleles, \
     add_mutation, \
     add_insecticide_resistance
 
@@ -129,17 +129,17 @@ class TestMalariaConfig(unittest.TestCase):
             else:
                 raise ValueError(f"We should not be here, shouldn't have insecticide with name {insecticide.Name}.\n")
 
-    def test_add_alleles(self):
+    def test_add_genes_and_alleles(self):
         add_species(self.config, schema_path_file, ["funestus", "arabiensis"])
-        add_alleles(self.config,
+        add_genes_and_alleles(self.config,
                     schema_path_file,
                     species="funestus",
                     alleles=[("a0", 0.5), ("a1", 0.35), ("a2", 0.15)])
-        add_alleles(self.config,
+        add_genes_and_alleles(self.config,
                     schema_path_file,
                     species="funestus",
                     alleles=[("b0", 0.90), ("b1", 0.1)])
-        add_alleles(self.config,
+        add_genes_and_alleles(self.config,
                     schema_path_file,
                     species="arabiensis",
                     alleles=[("c0", 0.66), ("c1", 0.1), ("c2", 0.24)])
@@ -157,17 +157,47 @@ class TestMalariaConfig(unittest.TestCase):
                         if allele.Name == "c0":
                             self.assertEqual(allele.Initial_Allele_Frequency, 0.66)
 
-    def test_add_mutation(self):
+    def test_add_genes_and_alleles_gender_gene(self):
         add_species(self.config, schema_path_file, ["funestus", "arabiensis"])
-        add_alleles(self.config,
+        add_genes_and_alleles(self.config,
                     schema_path_file,
                     species="funestus",
-                    alleles=[("a0", 0.5), ("a1", 0.35), ("a2", 0.15)])
-        add_alleles(self.config,
+                    alleles=[("a0", 0.5, 1), ("a1", 0.35, 1), ("a2", 0.15)])
+        add_genes_and_alleles(self.config,
                     schema_path_file,
                     species="funestus",
                     alleles=[("b0", 0.90), ("b1", 0.1)])
-        add_alleles(self.config,
+        add_genes_and_alleles(self.config,
+                    schema_path_file,
+                    species="arabiensis",
+                    alleles=[("c0", 0.66), ("c1", 0.1), ("c2", 0.24)])
+        for species in self.config.parameters.Vector_Species_Params:
+            if species.Name == "funestus":
+                self.assertEqual(len(species.Genes), 2)
+                for gene in species.Genes:
+                    for allele in gene.Alleles:
+                        if allele.Name == "a2":
+                            self.assertEqual(gene.Is_Gender_Gene, 1)
+                            self.assertEqual(allele.Initial_Allele_Frequency, 0.15)
+            elif species.Name == "arabiensis":
+                self.assertEqual(len(species.Genes), 1)
+                for gene in species.Genes:
+                    for allele in gene.Alleles:
+                        if allele.Name == "c0":
+                            self.assertEqual(gene.Is_Gender_Gene, 0)
+                            self.assertEqual(allele.Initial_Allele_Frequency, 0.66)
+
+    def test_add_mutation(self):
+        add_species(self.config, schema_path_file, ["funestus", "arabiensis"])
+        add_genes_and_alleles(self.config,
+                    schema_path_file,
+                    species="funestus",
+                    alleles=[("a0", 0.5), ("a1", 0.35), ("a2", 0.15)])
+        add_genes_and_alleles(self.config,
+                    schema_path_file,
+                    species="funestus",
+                    alleles=[("b0", 0.90), ("b1", 0.1)])
+        add_genes_and_alleles(self.config,
                     schema_path_file,
                     species="arabiensis",
                     alleles=[("c0", 0.66), ("c1", 0.1), ("c2", 0.24)])

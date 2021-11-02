@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "Malaria-Ongoing (ff31c63)",
-        "DTK_Build_Date": "Aug 25 2021 14:25:30",
-        "DTK_Version": "2.20.5077.0"
+        "DTK_Branch": "Malaria-Ongoing(2ad644e4c)",
+        "DTK_Build_Date": "Sep 20 2021",
+        "DTK_Version": "2.20.5081.0"
     },
     "config": {
         "AIRBORNE_SIM": {
@@ -17321,7 +17321,7 @@
                     },
                     "Measurement_Sensitivity": {
                         "default": 0.1,
-                        "description": "The number of microliters of blood tested to find single parasites/gameotcytes in a traditional smear (corresponds to inverse parasites/microliters sensitivity).  This is similar to 'Parasite_Smear_Sensitivity' and 'Gametocyte_Smear_Sensitivity_DESC_TEXT' in the config used for reports, but this is for this instance of the diagnostic.",
+                        "description": "The number of microliters of blood tested to find single parasites/gameotcytes in a traditional smear (corresponds to inverse parasites/microliters sensitivity).  This is similar to 'Report_Parasite_Smear_Sensitivity' and 'Report_Gametocyte_Smear_Sensitivity' in the config used for reports, but this is for this instance of the diagnostic.",
                         "max": 1000000.0,
                         "min": 0,
                         "type": "float"
@@ -21935,7 +21935,6 @@
                             "HUMAN_POPULATION",
                             "CONSTANT",
                             "BRACKISH_SWAMP",
-                            "MARSHY_STREAM",
                             "LINEAR_SPLINE",
                             "ALL_HABITATS"
                         ],
@@ -22487,7 +22486,7 @@
                     },
                     "Released_Type": {
                         "default": "FIXED_NUMBER",
-                        "description": "If 'PERCENTAGE', the 'Released_Percentage' parameter is used to specify the percentage of the current population to release.  If 'FIXED_NUMBER; then 'Released_Number' is used to specify an exact count of mosquitos to release.",
+                        "description": "If 'FRACTION', the 'Released_Fraction' parameter is used to specify the fraction of the current population to release.  If 'FIXED_NUMBER; then 'Released_Number' is used to specify an exact count of mosquitos to release.",
                         "enum": [
                             "FIXED_NUMBER",
                             "FRACTION"
@@ -23390,7 +23389,6 @@
                             "HUMAN_POPULATION",
                             "CONSTANT",
                             "BRACKISH_SWAMP",
-                            "MARSHY_STREAM",
                             "LINEAR_SPLINE",
                             "ALL_HABITATS"
                         ],
@@ -24000,8 +23998,7 @@
                 "description": "This is a dictionary of allele-to-likelihood.  If the other gamete has the 'Allele_To_Replace', this is the likelihood that it will result in one of the specified values.  Notice that you can specify the 'Allele_To_Copy' to indicate the probability that the copy failed or other alleles to account for mutation in the copy process.",
                 "item_type": "idmType:CopyToAlleleLikelihood",
                 "type": "Vector idmType:CopyToAlleleLikelihood"
-            },
-            "class": "AlleleDriven"
+            }
         },
         "idmType:CopyToAlleleLikelihood": {
             "Copy_To_Allele": {
@@ -25487,7 +25484,6 @@
                     "HUMAN_POPULATION",
                     "CONSTANT",
                     "BRACKISH_SWAMP",
-                    "MARSHY_STREAM",
                     "LINEAR_SPLINE",
                     "ALL_HABITATS"
                 ],
@@ -26128,6 +26124,40 @@
                 "type": "enum"
             }
         },
+        "idmType:ShreddingAlleles": {
+            "Allele_Required": {
+                "default": "UNINITIALIZED STRING",
+                "description": "The genome must have this gender allele in order for shredding to occur. If the driver is X_SHRED, then the allele must be designated as a Y chromosome. If the driver is Y_SHRED, then the allele must NOT be designated as a Y chromosome.",
+                "type": "Constrained String",
+                "value_source": "VectorSpeciesParameters.<species>.Genes"
+            },
+            "Allele_Shredding_Fraction": {
+                "default": 1,
+                "description": "This is the fraction of the Alleles_To_Shred that will be converted to Allele_To_Shred_To.  If this value is less than one, then some of the Allele_To_Shred will remain and be part of the gametes.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Allele_To_Shred": {
+                "default": "UNINITIALIZED STRING",
+                "description": "The genome must have this gender allele in order for shredding to occur. If the driver is X_SHRED, then the allele must NOT be designated as a Y chromosome. If the driver is Y_SHRED, then the allele must be designated as a Y chromosome.",
+                "type": "Constrained String",
+                "value_source": "VectorSpeciesParameters.<species>.Genes"
+            },
+            "Allele_To_Shred_To": {
+                "default": "UNINITIALIZED STRING",
+                "description": "This is a gender allele that the 'shredding' will change the Allele_To_Shred into. It can be a temporary allele that never exists in the output or could be something that appears due to resistance/failures.",
+                "type": "Constrained String",
+                "value_source": "VectorSpeciesParameters.<species>.Genes"
+            },
+            "Allele_To_Shred_To_Surviving_Fraction": {
+                "default": 0,
+                "description": "A trait modifier will automatically generated for [ Allele_To_Shred_To, * ], the trait ADJUST_FERTILE_EGGS, and this value as its modifier. A value of 0 implies perfect shredding such that no Allele_To_Shred_To survive in the eggs. A value of 1 means all of the 'shredded' alleles survive.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            }
+        },
         "idmType:TargetedDistribution": {
             "Age_Ranges_Years": {
                 "default": [],
@@ -26308,8 +26338,6 @@
                     "FEMALE_EGG_RATIO",
                     "STERILITY",
                     "TRANSMISSION_TO_HUMAN",
-                    "X_SHRED",
-                    "DRIVING_Y",
                     "ADJUST_FERTILE_EGGS",
                     "MORTALITY",
                     "INFECTED_PROGRESS"
@@ -26325,6 +26353,11 @@
                 "max": 1,
                 "min": 0,
                 "type": "float"
+            },
+            "Is_Y_Chromosome": {
+                "default": 0,
+                "description": "True implies that this allele represents the Y chromosome.  This can only be used when 'Is_Gender_Allele' is also true.",
+                "type": "bool"
             },
             "Name": {
                 "default": "",
@@ -26362,6 +26395,11 @@
                 "item_type": "idmType:VectorAllele",
                 "type": "Vector idmType:VectorAllele"
             },
+            "Is_Gender_Gene": {
+                "default": 0,
+                "description": "True implies that the alleles of this gene are for gender.  If defining the gender gene, X & Y must be defined.  One can have 4 alleles of a particular gender type.",
+                "type": "bool"
+            },
             "Mutations": {
                 "default": [],
                 "description": "(Germline Mutation) This is an array of elements that define allele mutations that occur during the creation of the gametes. An allele cannot mutate into itself.",
@@ -26373,6 +26411,9 @@
         "idmType:VectorGeneDriver": {
             "Alleles_Driven": {
                 "default": [],
+                "depends-on": {
+                    "Driver_Type": "CLASSIC,INTEGRAL_AUTONOMOUS"
+                },
                 "description": "If the drive can be activated, then these elements define the probabilities of how alleles are copied.",
                 "item_type": "idmType:AlleleDriven",
                 "type": "Vector idmType:AlleleDriven"
@@ -26382,7 +26423,9 @@
                 "description": "This indicates the type of driver.  CLASSIC-The driver can only drive if the one gamete has the driving allele and the other has a specific allele to be replaced; INTEGRAL_AUTONOMOUS-At least one of the gametes must have the driver.  Alleles can still be driven if the driving allele is in both gametes or even if the driving allele cannot replace the allele in the other gamete.",
                 "enum": [
                     "CLASSIC",
-                    "INTEGRAL_AUTONOMOUS"
+                    "INTEGRAL_AUTONOMOUS",
+                    "X_SHRED",
+                    "Y_SHRED"
                 ],
                 "type": "enum"
             },
@@ -26391,6 +26434,20 @@
                 "description": "This is the allele that is known as the driver.",
                 "type": "Constrained String",
                 "value_source": "Vector_Species_Params[x].Genes"
+            },
+            "Driving_Allele_Params": {
+                "depends-on": {
+                    "Driver_Type": "X_SHRED,Y_SHRED"
+                },
+                "description": "If the drive is X_SHRED or Y_SHRED and it can be activiated, then these parameters define how the driver is copied.",
+                "type": "idmType:AlleleDriven"
+            },
+            "Shredding_Alleles": {
+                "depends-on": {
+                    "Driver_Type": "X_SHRED,Y_SHRED"
+                },
+                "description": "If the drive is X_SHRED or Y_SHRED and it can be activated, then these parameters define how gender alleles are shredded.",
+                "type": "idmType:ShreddingAlleles"
             },
             "class": "VectorGeneDriver"
         },
@@ -26422,7 +26479,6 @@
                     "HUMAN_POPULATION",
                     "CONSTANT",
                     "BRACKISH_SWAMP",
-                    "MARSHY_STREAM",
                     "LINEAR_SPLINE",
                     "ALL_HABITATS"
                 ],
