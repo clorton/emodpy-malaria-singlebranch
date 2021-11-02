@@ -19,6 +19,10 @@
 # PyCharm
 /.idea
 
+.eggs
+build
+dist
+
 # Jupyter
 .ipynb_checkpoints
 */.ipynb_checkpoints/*

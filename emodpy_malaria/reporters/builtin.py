@@ -823,6 +823,34 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
         return reporter
 
 
+def add_event_recorder(task, event_list, only_include_events_in_list=True, ips_to_record=None):
+    """
+    Adds ReportEventRecorder report to the simulation. See class definition for description of the report.
+
+    Args:
+        task: task to which to add the reporter
+        event_list: a list of events to record or exclude, depending on value of only_include_events_in_list
+        only_include_events_in_list: if True, only record events listed.  if False, record ALL events EXCEPT for the ones listed
+        ips_to_record: list of individual properties to include in report
+    Returns:
+        Nothing
+
+    """
+    # Documentation: https://docs.idmod.org/projects/emod-malaria/en/latest/software-report-event-recorder.html
+
+    task.config.parameters.Report_Event_Recorder = 1
+    task.config.parameters.Report_Event_Recorder_Events = event_list
+    task.config.parameters.Report_Event_Recorder_Individual_Properties = ips_to_record if ips_to_record else []
+
+    if only_include_events_in_list:
+        # Only record events listed
+        task.config.parameters.Report_Event_Recorder_Ignore_Events_In_List = 0
+    else:
+        # Record ALL events EXCEPT for the ones listed
+        task.config.parameters.Report_Event_Recorder_Ignore_Events_In_List = 1
+
+
+
 @dataclass
 class ReportVectorGenetics(BuiltInReporter):
     """

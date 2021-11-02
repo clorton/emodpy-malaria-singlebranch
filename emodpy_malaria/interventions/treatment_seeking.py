@@ -12,7 +12,7 @@ def _get_events(
         ind_property_restrictions: list = None,
         drug_ineligibility_duration: float = 0,
         duration: int = -1,
-        broadcast_event_name: str = 'ReceivedTreatment'):
+        broadcast_event_name: str = 'Received_Treatment'):
     if drug is None:
         drug = ['Artemether', 'Lumefantrine']
 
@@ -78,7 +78,7 @@ def add_treatment_seeking(camp,
                           ind_property_restrictions: list = None,
                           drug_ineligibility_duration: float = 0,
                           duration: int = -1,
-                          broadcast_event_name: str = 'ReceivedTreatment'):
+                          broadcast_event_name: str = 'Received_Treatment'):
     """
     Add an event-triggered drug-seeking behavior intervention to the campaign using
     the **NodeLevelHealthTriggeredIV**. The intervention will distribute drugs 

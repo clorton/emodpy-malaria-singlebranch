@@ -50,7 +50,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import irs
 
         self.expected_items = [
-            "IRSHousingModification", "utils"
+            "add_irs_housing_modification", "utils"
         ]
         self.verify_expected_items_present(namespace=irs)
         return

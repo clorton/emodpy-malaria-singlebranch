@@ -99,12 +99,14 @@ class MalariaInterventionFileTest(unittest.TestCase):
         return
 
     def test_irs_file(self):
+        camp.campaign_dict["Events"] = []
         self.method_under_test = irs_file
         self.expected_intervention_class = "IRSHousingModification"
         self.run_test()
         return
 
     def test_irs_file_nofilename(self):
+        camp.campaign_dict["Events"] = []
         self.method_under_test = irs_file
         self.expected_intervention_class = "IRSHousingModification"
         self.file_path = None

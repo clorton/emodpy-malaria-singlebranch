@@ -78,14 +78,16 @@ def build_camp():
     """
     import emod_api.campaign as camp
     import emodpy_malaria.interventions.bednet as bednet
-    import emodpy_malaria.interventions.irs as irs
+    from emodpy_malaria.interventions.irs import add_irs_housing_modification
     import emodpy_malaria.interventions.drug as drug
 
     # This isn't desirable. Need to think about right way to provide schema (once)
     camp.schema_path = manifest.schema_file
 
     # print( f"Telling emod-api to use {manifest.schema_file} as schema." )
-    camp.add(irs.IRSHousingModification(camp, start_day=100, coverage=0.5, killing_eff=0.5, repelling_eff=0.5))
+    add_irs_housing_modification(campaign=camp, start_day=100, coverage=0.5, repelling_initial_effect=0.5,
+                                 killing_initial_effect=0.5)
+
     camp.add(drug.AntimalarialDrug(camp, start_day=300, coverage=0.5))
     """
     add_IRS(cb, start=start,

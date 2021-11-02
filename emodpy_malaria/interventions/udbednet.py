@@ -253,9 +253,9 @@ def UDBednet(
     intervention.Usage_Config_List.append( age_waning )
 
     # These should be built-in events at this point
-    intervention.Received_Event="Bednet_Got_New_One"
-    intervention.Using_Event="Bednet_Using"
-    intervention.Discard_Event="Bednet_Discarded"
+    intervention.Received_Event = camp.get_send_trigger("Bednet_Got_New_One", old=True)
+    intervention.Using_Event = camp.get_send_trigger("Bednet_Using", old=True)
+    intervention.Discard_Event = camp.get_send_trigger("Bednet_Discarded", old=True)
 
     # I kind of hate this but let's try it for now
     for param in discard_config:

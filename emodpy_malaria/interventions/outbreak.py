@@ -66,7 +66,7 @@ def add_outbreak_individual(campaign,
     intervention.Incubation_Period_Override = incubation_period_override
 
     if broadcast_event:
-        intervention = MultiInterventionDistributor(campaign, [intervention, BroadcastEvent(campaign)])
+        intervention = MultiInterventionDistributor(campaign, [intervention, BroadcastEvent(campaign, Event_Trigger=broadcast_event)])
 
     add_campaign_event(campaign, start_day=start_day, demographic_coverage=demographic_coverage,
                        repetitions=repetitions,
