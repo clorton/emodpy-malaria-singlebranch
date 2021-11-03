@@ -340,7 +340,7 @@ def add_campaign_event(campaign,
         target_age_min: The lower end of ages targeted for an intervention, in years. Sets **Target_Age_Min**
         target_age_max: The upper end of ages targeted for an intervention, in years. Sets **Target_Age_Max**
         target_gender: The gender targeted for an intervention: All, Male, or Female.
-        intervention: Intervention to be distributed by this event
+        intervention: Intervention or a list of interventions to be distributed by this event
     Returns:
 
     """
@@ -348,6 +348,10 @@ def add_campaign_event(campaign,
     event = s2c.get_class_with_defaults("CampaignEvent", schema_path)
     event.Start_Day = start_day
     event.Nodeset_Config = utils.do_nodes(schema_path, node_ids)
+    if isinstance(intervention, list):
+        multi_intervention_distributor = s2c.get_class_with_defaults("MultiInterventionDistributor", schema_path)
+        multi_intervention_distributor.Intervention_List = intervention
+        intervention = multi_intervention_distributor
 
     # configuring the coordinator
     coordinator = s2c.get_class_with_defaults("StandardEventCoordinator", schema_path)

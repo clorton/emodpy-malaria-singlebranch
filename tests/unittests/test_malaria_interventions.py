@@ -13,10 +13,11 @@ from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
 from emodpy_malaria.interventions import drug_campaign
 from emodpy_malaria.interventions import diag_survey
-from emodpy_malaria.interventions import common
+from emodpy_malaria.interventions.common import *
 from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
 from emodpy_malaria.interventions.inputeir import InputEIR
 from emodpy_malaria.interventions.outbreak import *
+from emodpy_malaria.interventions.vaccine import *
 from emodpy_malaria.interventions.irs import add_irs_housing_modification
 
 import emod_api.campaign as camp
@@ -793,15 +794,15 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_common(self):
         self.is_debugging = False
-        malaria_diagnostic = common.MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
+        malaria_diagnostic = MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
         measures = [malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
 
         self.assertFalse(any(item != 1 for item in measures), msg="Not all values are 1 when set to 1")
         self.assertEqual("BLOOD_SMEAR_PARASITES", malaria_diagnostic.Diagnostic_Type)
 
-        AntimalarialDrug = common.AntimalarialDrug(camp, "Malaria")
-        self.assertEqual(AntimalarialDrug.Drug_Type, "Malaria")
-        self.assertEqual(AntimalarialDrug.Cost_To_Consumer, 1.0)
+        antimalarial_drug = AntimalarialDrug(camp, "Malaria")
+        self.assertEqual(antimalarial_drug.Drug_Type, "Malaria")
+        self.assertEqual(antimalarial_drug.Cost_To_Consumer, 1.0)
 
     def mosquitorelease_build(self
                               , start_day=1
@@ -915,26 +916,21 @@ class TestMalariaInterventions(unittest.TestCase):
         camp.campaign_dict["Events"] = []
         add_outbreak_individual(camp)
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Number_Repetitions'], 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Timesteps_Between_Repetitions'],
-                         365)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Demographic_Coverage'], 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Gender'], "All")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Property_Restrictions'], [])
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetAll")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "OutbreakIndividual")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Antigen'],
-                         0)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Genome'],
-                         0)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Ignore_Immunity'], 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Incubation_Period_Override'], -1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], 1)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Number_Repetitions'], 1)
+        self.assertEqual(event_config['Timesteps_Between_Repetitions'], 365)
+        self.assertEqual(event_config['Demographic_Coverage'], 1)
+        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(event_config['Target_Gender'], "All")
+        self.assertEqual(event_config['Property_Restrictions'], [])
+        self.assertEqual(event_config['Intervention_Config']['class'], "OutbreakIndividual")
+        self.assertEqual(event_config['Intervention_Config']['Antigen'], 0)
+        self.assertEqual(event_config['Intervention_Config']['Genome'], 0)
+        self.assertEqual(event_config['Intervention_Config']['Ignore_Immunity'], 1)
+        self.assertEqual(event_config['Intervention_Config']['Incubation_Period_Override'], -1)
 
         pass
 
@@ -946,43 +942,38 @@ class TestMalariaInterventions(unittest.TestCase):
                                 antigen=2, genome=4, ignore_immunity=False, incubation_period_override=2,
                                 ind_property_restrictions=[{"Risk": "High"}], broadcast_event="Testing!")
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], 3)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Number_Repetitions'], 5)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Timesteps_Between_Repetitions'],
-                         9)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Num_Individuals'], 7)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "TARGET_NUM_INDIVIDUALS")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Gender'], "Female")
-        self.assertEqual(
-            camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Property_Restrictions_Within_Node'],
-            [{"Risk": "High"}])
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Age_Min'], 23)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Age_Max'], 34)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Demographic'],
-                         "ExplicitAgeRangesAndGender")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetNodeList")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['Node_List'], [45, 89])
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "MultiInterventionDistributor")
-        self.assertEqual(len(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List']),
-                         2)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]['class'],
-                         "OutbreakIndividual")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]['Antigen'],
-                         2)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]['Genome'],
-                         4)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]
-                         ['Ignore_Immunity'], 0)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]
-                         ['Incubation_Period_Override'], 2)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]
-                         ['Incubation_Period_Override'], 2)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][1]
-                         ['class'], "BroadcastEvent")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][1]
-                         ['Broadcast_Event'], "Testing!")
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], 3)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], [45, 89])
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Number_Repetitions'], 5)
+        self.assertEqual(event_config['Timesteps_Between_Repetitions'], 9)
+        self.assertEqual(event_config['Target_Num_Individuals'], 7)
+        self.assertEqual(event_config['Individual_Selection_Type'], "TARGET_NUM_INDIVIDUALS")
+        self.assertEqual(event_config['Target_Gender'], "Female")
+        self.assertEqual(event_config['Property_Restrictions_Within_Node'], [{"Risk": "High"}])
+        self.assertEqual(event_config['Target_Age_Min'], 23)
+        self.assertEqual(event_config['Target_Age_Max'], 34)
+        self.assertEqual(event_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
+        self.assertEqual(len(event_config['Intervention_Config']['Intervention_List']), 2)
+        intervention_1 = event_config['Intervention_Config']['Intervention_List'][1]
+        intervention_0 = event_config['Intervention_Config']['Intervention_List'][0]
+        if intervention_0['class'] == "BroadcastEvent":
+            self.assertEqual(intervention_0["Broadcast_Event"], "Testing!")
+            self.assertEqual(intervention_1['class'], "OutbreakIndividual")
+            self.assertEqual(intervention_1['Antigen'], 2)
+            self.assertEqual(intervention_1['Genome'], 4)
+            self.assertEqual(intervention_1['Ignore_Immunity'], 0)
+            self.assertEqual(intervention_1['Incubation_Period_Override'], 2)
+        else:  # just in case this happens the other way around
+            self.assertEqual(intervention_0['class'], "OutbreakIndividual")
+            self.assertEqual(intervention_0['Antigen'], 2)
+            self.assertEqual(intervention_0['Genome'], 4)
+            self.assertEqual(intervention_0['Ignore_Immunity'], 0)
+            self.assertEqual(intervention_0['Incubation_Period_Override'], 2)
+
+
 
         pass
 
@@ -1012,22 +1003,19 @@ class TestMalariaInterventions(unittest.TestCase):
                                       node_ids=node_ids)
 
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], start_day)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Num_Individuals'],
-                         target_num_individuals)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "TARGET_NUM_INDIVIDUALS")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetNodeList")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['Node_List'], node_ids)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "OutbreakIndividualMalariaGenetics")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Barcode_Allele_Frequencies_Per_Genome_Location'], allele_frequencies)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Drug_Resistant_Allele_Frequencies_Per_Genome_Location'],
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Target_Num_Individuals'], target_num_individuals)
+        self.assertEqual(event_config['Individual_Selection_Type'], "TARGET_NUM_INDIVIDUALS")
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "OutbreakIndividualMalariaGenetics")
+        self.assertEqual(intervention_config['Barcode_Allele_Frequencies_Per_Genome_Location'], allele_frequencies)
+        self.assertEqual(intervention_config['Drug_Resistant_Allele_Frequencies_Per_Genome_Location'],
                          drug_resistant_allele_frequencies_per_genome_location)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Create_Nucleotide_Sequence_From'], create_nucleotide_sequence_from)
+        self.assertEqual(intervention_config['Create_Nucleotide_Sequence_From'], create_nucleotide_sequence_from)
 
         pass
 
@@ -1041,24 +1029,19 @@ class TestMalariaInterventions(unittest.TestCase):
                                       barcode_string=barcode_string,
                                       drug_resistant_string=drug_resistant_string)
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Demographic_Coverage'],
-                         1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetAll")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "OutbreakIndividualMalariaGenetics")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Barcode_String'], barcode_string)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Drug_Resistant_String'], drug_resistant_string)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Create_Nucleotide_Sequence_From'], create_nucleotide_sequence_from)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Incubation_Period_Override'], -1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Ignore_Immunity'], 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], 1)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Demographic_Coverage'], 1)
+        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "OutbreakIndividualMalariaGenetics")
+        self.assertEqual(intervention_config['Barcode_String'], barcode_string)
+        self.assertEqual(intervention_config['Drug_Resistant_String'], drug_resistant_string)
+        self.assertEqual(intervention_config['Create_Nucleotide_Sequence_From'], create_nucleotide_sequence_from)
+        self.assertEqual(intervention_config['Incubation_Period_Override'], -1)
+        self.assertEqual(intervention_config['Ignore_Immunity'], 1)
 
         pass
 
@@ -1079,22 +1062,18 @@ class TestMalariaInterventions(unittest.TestCase):
                                       msp_variant_value=msp_variant_value,
                                       pfemp1_variants_values=pfemp1_variants_values)
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], start_day)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Demographic_Coverage'],
-                         demographic_coverage)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetAll")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "OutbreakIndividualMalariaGenetics")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Drug_Resistant_String'], drug_resistant_string)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Create_Nucleotide_Sequence_From'], create_nucleotide_sequence_from)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['PfEMP1_Variants_Values'], pfemp1_variants_values)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['MSP_Variant_Value'], msp_variant_value)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "OutbreakIndividualMalariaGenetics")
+        self.assertEqual(intervention_config['Drug_Resistant_String'], drug_resistant_string)
+        self.assertEqual(intervention_config['Create_Nucleotide_Sequence_From'], create_nucleotide_sequence_from)
+        self.assertEqual(intervention_config['PfEMP1_Variants_Values'], pfemp1_variants_values)
+        self.assertEqual(intervention_config['MSP_Variant_Value'], msp_variant_value)
 
         pass
 
@@ -1117,20 +1096,17 @@ class TestMalariaInterventions(unittest.TestCase):
                                        demographic_coverage=demographic_coverage,
                                        msp_type=msp_type, irbc_type=irbc_type, minor_epitope_type=minor_epitope_type)
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], start_day)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Demographic_Coverage'],
-                         demographic_coverage)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetAll")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "OutbreakIndividualMalariaVarGenes")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['IRBC_Type'], irbc_type)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Minor_Epitope_Type'], minor_epitope_type)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['MSP_Type'], msp_type)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "OutbreakIndividualMalariaVarGenes")
+        self.assertEqual(intervention_config['IRBC_Type'], irbc_type)
+        self.assertEqual(intervention_config['Minor_Epitope_Type'], minor_epitope_type)
+        self.assertEqual(intervention_config['MSP_Type'], msp_type)
 
         pass
 
@@ -1155,24 +1131,126 @@ class TestMalariaInterventions(unittest.TestCase):
                                        node_ids=node_ids,
                                        msp_type=msp_type, irbc_type=irbc_type, minor_epitope_type=minor_epitope_type)
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], start_day)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Target_Num_Individuals'],
-                         target_num_individuals)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Individual_Selection_Type'],
-                         "TARGET_NUM_INDIVIDUALS")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['class'],
-                         "OutbreakIndividualMalariaVarGenes")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['IRBC_Type'], irbc_type)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['Minor_Epitope_Type'], minor_epitope_type)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']
-                         ['MSP_Type'], msp_type)
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetNodeList")
-        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['Node_List'], node_ids)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Target_Num_Individuals'],target_num_individuals)
+        self.assertEqual(event_config['Individual_Selection_Type'], "TARGET_NUM_INDIVIDUALS")
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "OutbreakIndividualMalariaVarGenes")
+        self.assertEqual(intervention_config['IRBC_Type'], irbc_type)
+        self.assertEqual(intervention_config['Minor_Epitope_Type'], minor_epitope_type)
+        self.assertEqual(intervention_config['MSP_Type'], msp_type)
 
         pass
 
+    def test_vaccine_custom(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 12
+        target_num_individuals = 78
+        node_ids = [12, 234, 3]
+        repetitions = 5
+        timesteps_between_repetitions = 30
+        ind_property_restrictions = [{"Risk": "High", "Location": "Rural"}, {"Risk": "Medium", "Location": "Urban"}]
+        node_property_restrictions = ["Planet:Mars"]
+        target_age_min = 3
+        target_age_max = 35
+        target_gender = "Female"
+        broadcast_event = "I am vaccinated!"
+        vaccine_type = "TransmissionBlocking"
+        vaccine_take = 0.95
+        vaccine_initial_effect = 0.98
+        vaccine_box_duration = 2000
+        vaccine_exponential_decay_rate = 0
+        efficacy_is_multiplicative = False
+
+        add_scheduled_vaccine(camp,
+                              start_day=start_day,
+                              target_num_individuals=target_num_individuals,
+                              node_ids=node_ids,
+                              repetitions=repetitions,
+                              timesteps_between_repetitions=timesteps_between_repetitions,
+                              ind_property_restrictions=ind_property_restrictions,
+                              node_property_restrictions=node_property_restrictions,
+                              target_age_min=target_age_min,
+                              target_age_max=target_age_max,
+                              target_gender=target_gender,
+                              broadcast_event=broadcast_event,
+                              vaccine_type=vaccine_type,
+                              vaccine_take=vaccine_take,
+                              vaccine_initial_effect=vaccine_initial_effect,
+                              vaccine_box_duration=vaccine_box_duration,
+                              vaccine_exponential_decay_rate=vaccine_exponential_decay_rate,
+                              efficacy_is_multiplicative=efficacy_is_multiplicative)
+
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+        coordinator_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(coordinator_config['Target_Num_Individuals'], target_num_individuals)
+        self.assertEqual(coordinator_config['Individual_Selection_Type'], "TARGET_NUM_INDIVIDUALS")
+        self.assertEqual(coordinator_config['Target_Age_Max'], target_age_max)
+        self.assertEqual(coordinator_config['Target_Age_Min'], target_age_min)
+        self.assertEqual(coordinator_config['Target_Gender'], target_gender)
+        self.assertEqual(coordinator_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
+        self.assertEqual(coordinator_config['Property_Restrictions_Within_Node'], ind_property_restrictions)
+        self.assertEqual(coordinator_config['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(coordinator_config['Number_Repetitions'], repetitions)
+        self.assertEqual(coordinator_config['Timesteps_Between_Repetitions'], timesteps_between_repetitions)
+        self.assertEqual(len(coordinator_config['Intervention_Config']['Intervention_List']), 2)
+        intervention_1 = coordinator_config['Intervention_Config']['Intervention_List'][1]
+        intervention_0 = coordinator_config['Intervention_Config']['Intervention_List'][0]
+        if intervention_0['class'] == "BroadcastEvent":
+            self.assertEqual(intervention_0["Broadcast_Event"], broadcast_event)
+            self.assertEqual(intervention_1['class'], "SimpleVaccine")
+            self.assertEqual(intervention_1['Efficacy_Is_Multiplicative'], 0)
+            self.assertEqual(intervention_1['Vaccine_Take'], vaccine_take)
+            self.assertEqual(intervention_1['Vaccine_Type'], vaccine_type)
+            self.assertEqual(intervention_1['Waning_Config']["Box_Duration"], vaccine_box_duration)
+            self.assertEqual(intervention_1['Waning_Config']["Initial_Effect"], vaccine_initial_effect)
+            self.assertEqual(intervention_1['Waning_Config']["class"], "WaningEffectBoxExponential")
+        else:  # just in case this happens the other way around
+            self.assertEqual(intervention_0['class'], "SimpleVaccine")
+            self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 0)
+            self.assertEqual(intervention_0['Vaccine_Take'], vaccine_take)
+            self.assertEqual(intervention_0['Vaccine_Type'], vaccine_type)
+            self.assertEqual(intervention_0['Waning_Config']["Box_Duration"], vaccine_box_duration)
+            self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], vaccine_initial_effect)
+            self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
+            self.assertEqual(intervention_1["Broadcast_Event"], broadcast_event)
+        pass
+
+
+    def test_vaccine_default(self):
+        camp.campaign_dict["Events"] = []
+        add_scheduled_vaccine(camp)
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]['Event_Coordinator_Config']
+        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], 1)
+        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetAll")
+        self.assertEqual(campaign_event['Demographic_Coverage'], 1)
+        self.assertEqual(campaign_event['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(campaign_event['Target_Gender'], "All")
+        self.assertEqual(campaign_event['Target_Demographic'], "Everyone")
+        self.assertEqual(campaign_event['Property_Restrictions_Within_Node'], [])
+        self.assertEqual(campaign_event['Node_Property_Restrictions'], [])
+        self.assertEqual(campaign_event['Number_Repetitions'], 1)
+        self.assertEqual(campaign_event['Timesteps_Between_Repetitions'], 365)
+        intervention_0 = campaign_event['Intervention_Config']['Intervention_List'][0]
+        self.assertEqual(len(campaign_event['Intervention_Config']['Intervention_List']), 1)
+        self.assertEqual(intervention_0['class'], "SimpleVaccine")
+        self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 1)
+        self.assertEqual(intervention_0['Vaccine_Take'], 1)
+        self.assertEqual(intervention_0['Vaccine_Type'], "AcquisitionBlocking")
+        self.assertEqual(intervention_0['Waning_Config']["Box_Duration"], 365)
+        self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
+        self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
+
+        
     # test IRSHousindModification
     def test_add_irs_housing_modification_custom(self):
         camp.campaign_dict["Events"] = []  # resetting
@@ -1232,6 +1310,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
 
         return
+
 
 
 # Uncomment below if you would like to run test suite with different schema
