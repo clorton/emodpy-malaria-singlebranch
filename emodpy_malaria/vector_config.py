@@ -619,3 +619,30 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
     gene_driver.parameters.Driver_Type = driver_type #to circumvent the implicit settings
     species_params.Drivers.append(gene_driver.parameters)
     return config
+
+def set_max_larval_capacity(config, species_name, habitat_type, mlc): 
+    """
+    Set the Max_Larval_Capacity for a given speecies and habitat. Effectively doing something like:
+    simulation.task.config.parameters.Vector_Species_Params[i]["Habitats"][j]["Max_Larval_Capacity"] = mlc
+    where i is index of species_name and j is index of habitat_type.
+
+    Args:
+        species_name: string. Species_Name to target.
+        habitat_type: enum. Habitat_Type to target.
+        mlc: integer. New value of Max_Larval_Capacity.
+
+    Returns:
+        Nothing.
+
+    """
+
+    habitats = get_species_params( config, species_name ).Habitats
+    # g_s_p raises a ValueError so if we get this far, we can use habitats unconditionally.
+    for hab in habitats:
+        if hab['Habitat_Type'] == habitat_type:
+            hab['Max_Larval_Capacity'] = mlc
+            return
+
+    raise ValueError(f"Failed to find habitat_type {habitat_type} for species {species_name}.")
+                             
+    return # can't get here

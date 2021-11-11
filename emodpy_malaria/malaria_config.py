@@ -460,3 +460,20 @@ def get_species_params(config, species: str = None):
         Pass through for vector version of function.
     """
     return vector_config.get_species_params(config, species)
+
+def set_max_larval_capacity(config, species_name: str, habitat_type: str, mlc: int): 
+    """
+    Set the Max_Larval_Capacity for a given speecies and habitat. Effectively doing something like:
+    simulation.task.config.parameters.Vector_Species_Params[i]["Habitats"][j]["Max_Larval_Capacity"] = mlc
+    where i is index of species_name and j is index of habitat_type.
+
+    Args:
+        species_name: string. Species_Name to target.
+        habitat_type: enum. Habitat_Type to target.
+        mlc: integer. New value of Max_Larval_Capacity.
+
+    Returns:
+        Nothing.
+
+    """
+    return vector_config.set_max_larval_capacity(config, species_name, habitat_type, mlc) 

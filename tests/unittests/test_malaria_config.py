@@ -12,7 +12,7 @@ default_config = None  # is set in setUpClass()
 
 import schema_path_file
 
-from emodpy_malaria.malaria_config import set_team_defaults, add_species
+from emodpy_malaria.malaria_config import set_team_defaults, add_species, set_max_larval_capacity
 
 from emodpy_malaria.vector_config import \
     add_genes_and_alleles, \
@@ -228,6 +228,18 @@ class TestMalariaConfig(unittest.TestCase):
                                     self.assertEqual(mutation.Mutate_To, "c2")
                                     self.assertEqual(mutation.Probability_Of_Mutation, 0.04)
 
+
+    def test_set_max_larval_capacity(self):
+        add_species(self.config, schema_path_file, ["funestus", "arabiensis"])
+        set_max_larval_capacity(self.config, "funestus", "TEMPORARY_RAINFALL", 123000)
+        set_max_larval_capacity(self.config, "arabiensis", "TEMPORARY_RAINFALL", 654000)
+        for species in self.config.parameters.Vector_Species_Params:
+            if species.Name == "funestus":
+                self.assertEqual(species.Habitats[0]["Habitat_Type"], "TEMPORARY_RAINFALL")
+                self.assertEqual(species.Habitats[0]["Max_Larval_Capacity"], 123000)
+            elif species.Name == "arabiensis":
+                self.assertEqual(species.Habitats[0]["Habitat_Type"], "TEMPORARY_RAINFALL")
+                self.assertEqual(species.Habitats[0]["Max_Larval_Capacity"], 654000)
 
 
 if __name__ == '__main__':
