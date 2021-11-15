@@ -151,8 +151,11 @@ def add_diagnostic_survey(
 
     if IP_restrictions is None:
         IP_restrictions = []
-    if NP_restrictions is None:
+    if NP_restrictions:
+        raise ValueError("Node Property Restrictions are not hooked up.\n")
+    else:
         NP_restrictions = []
+
     if disqualifying_properties is None:
         disqualifying_properties = []
     nodeset_config = utils.do_nodes( camp.schema_path, node_ids )
@@ -224,7 +227,7 @@ def add_diagnostic_survey(
             for x in range(repetitions):
                 tcde = TriggeredCampaignEvent(
                         camp,
-                        Start_Day=start_day,
+                        Start_Day=start_day+1,
                         Event_Name="Diag_Survey_Now",
                         Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=node_ids ),
                         Triggers=trigger_condition_list,
@@ -237,7 +240,7 @@ def add_diagnostic_survey(
 
         survey_event = TriggeredCampaignEvent(
             camp,
-            Start_Day=start_day,
+            Start_Day=start_day+1,
             Event_Name=event_name,
             Nodeset_Config=nodeset_config,
             Triggers=trigger_condition_list,
@@ -257,7 +260,7 @@ def add_diagnostic_survey(
         diagnosis_config_listening_duration = listening_duration
         survey_event = ScheduledCampaignEvent(
             camp,
-            Start_Day=start_day,
+            Start_Day=start_day+1,
             Event_Name=event_name,
             Nodeset_Config=nodeset_config, 
             Property_Restrictions=IP_restrictions,
@@ -281,7 +284,7 @@ def add_diagnostic_survey(
     if positive_diagnosis_configs:
         tested_positive_event = TriggeredCampaignEvent(
             camp,
-            Start_Day=start_day - 1,
+            Start_Day=start_day,
             Event_Name=event_name + "Positive Result Action",
             Nodeset_Config=nodeset_config,
             Duration=diagnosis_config_listening_duration,
@@ -294,7 +297,7 @@ def add_diagnostic_survey(
     if negative_diagnosis_configs:
         tested_negative_event = TriggeredCampaignEvent(
             camp,
-            Start_Day=start_day - 1,
+            Start_Day=start_day,
             Event_Name=event_name + "Negative Result Action",
             Nodeset_Config=nodeset_config,
             Duration=diagnosis_config_listening_duration,

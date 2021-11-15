@@ -777,20 +777,135 @@ class TestMalariaInterventions(unittest.TestCase):
 
     # endregion
 
-    def test_diagnostic_survey(self):
+    def test_diagnostic_survey_default(self):
         camp.campaign_dict["Events"] = []
+        coverage = 1
+        repetitions = 1
+        tsteps_btwn_repetitions = 365
+        target = 'Everyone'
+        start_day = 1
+        diagnostic_type = 'BLOOD_SMEAR_PARASITES'
+        diagnostic_threshold = 40
+        measurement_sensitivity= 0.1
+        received_test_event = 'Received_Test'
         self.is_debugging = False
+
         diag_survey.add_diagnostic_survey(camp)
-        camp.save()
-        with open("campaign.json") as file:
-            campaign = json.load(file)
-        event = campaign['Events'][0]
-        coord_config = event['Event_Coordinator_Config']
-        coverage = coord_config['Demographic_Coverage']
-        intervention_config = coord_config['Intervention_Config']['Intervention_List'][0]
-        name = intervention_config['Intervention_Name']
-        self.assertEqual(name, "MalariaDiagnostic")
-        self.assertEqual(coverage, 1)
+
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day + 1)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Demographic_Coverage'], coverage)
+        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(event_config['Timesteps_Between_Repetitions'], tsteps_btwn_repetitions)
+        self.assertEqual(event_config['Number_Repetitions'], repetitions)
+        self.assertEqual(event_config['Target_Demographic'], target)
+        self.assertEqual(event_config['Node_Property_Restrictions'], [])
+        self.assertEqual(event_config['Property_Restrictions'], [])
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "MultiInterventionDistributor")
+        self.assertEqual(len(intervention_config['Intervention_List']), 2)
+        if intervention_config['Intervention_List'][0]["class"] == "MalariaDiagnostic":
+            malaria_diagnostic = intervention_config['Intervention_List'][0]
+            broadcast_event = intervention_config['Intervention_List'][1]
+        else:
+            malaria_diagnostic = intervention_config['Intervention_List'][1]
+            broadcast_event = intervention_config['Intervention_List'][0]
+        self.assertEqual(malaria_diagnostic['Diagnostic_Type'], diagnostic_type)
+        self.assertEqual(malaria_diagnostic['Detection_Threshold'], diagnostic_threshold)
+        self.assertEqual(malaria_diagnostic['Measurement_Sensitivity'], measurement_sensitivity)
+        self.assertEqual(malaria_diagnostic['Disqualifying_Properties'], [])
+        self.assertEqual(len(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List']), 2)
+        self.assertIn(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
+                      "TestedNegative")
+        self.assertIn(malaria_diagnostic['Positive_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
+                      "TestedPositive")
+        self.assertEqual(broadcast_event['Broadcast_Event'], received_test_event)
+
+
+
+    def test_diagnostic_survey_custom(self):
+        camp.campaign_dict["Events"] = []
+
+        coverage = 0.65
+        repetitions = 1
+        agemin = 5
+        agemax = 10
+        gender = "Female"
+        target = {"agemin": agemin, "agemax": agemax, "gender": gender}
+        start_day = 6
+        diagnostic_type = 'PCR_PARASITES'
+        diagnostic_threshold = 12
+        measurement_sensitivity = 0.2
+        event_name = "Diagnostic Survey"
+        node_ids = [23, 49, 50]
+        positive_diagnosis_configs = None
+        negative_diagnosis_configs = None
+        received_test_event = 'Received_Test_Test'
+        IP_restrictions = [{"IndividualProperty1": "PropertyValue1"}, {"IndividualProperty2": "PropertyValue2"}]
+        NP_restrictions = []
+        disqualifying_properties = [{"IndividualProperty3": "PropertyValue2"}]
+        trigger_condition_list = ["NewInfection"]
+        listening_duration = 50
+        triggered_campaign_delay = 0
+        check_eligibility_at_trigger = False
+        expire_recent_drugs = None
+        self.is_debugging = False
+
+        diag_survey.add_diagnostic_survey(camp, start_day=start_day, coverage=coverage, repetitions=repetitions,
+                                          target=target,
+                                          diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
+                                          measurement_sensitivity=measurement_sensitivity, node_ids=node_ids,
+                                          positive_diagnosis_configs=positive_diagnosis_configs,
+                                          negative_diagnosis_configs=negative_diagnosis_configs,
+                                          received_test_event=received_test_event,
+                                          IP_restrictions=IP_restrictions, NP_restrictions=NP_restrictions,
+                                          disqualifying_properties=disqualifying_properties,
+                                          trigger_condition_list=trigger_condition_list,
+                                          listening_duration=listening_duration,
+                                          triggered_campaign_delay=triggered_campaign_delay,
+                                          check_eligibility_at_trigger=check_eligibility_at_trigger,
+                                          expire_recent_drugs=expire_recent_drugs)
+
+        with open("testcampaign.json", "w") as testcampaign:
+            json.dump(camp.campaign_dict['Events'], testcampaign)
+
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day + 1)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+        event_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(event_config['Node_Property_Restrictions'], NP_restrictions)
+        intervention_config = event_config['Intervention_Config']
+        self.assertEqual(intervention_config['Property_Restrictions_Within_Node'], IP_restrictions)
+        self.assertEqual(intervention_config['Demographic_Coverage'], coverage)
+        self.assertEqual(intervention_config['Duration'], listening_duration)
+        self.assertEqual(intervention_config['class'], "NodeLevelHealthTriggeredIV")
+        self.assertEqual(intervention_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
+        self.assertEqual(intervention_config['Target_Age_Min'], agemin)
+        self.assertEqual(intervention_config['Target_Age_Max'], agemax)
+        self.assertEqual(intervention_config['Target_Gender'], gender)
+        self.assertEqual(len(intervention_config['Actual_IndividualIntervention_Config']['Intervention_List']), 2)
+        if intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]["class"] == "MalariaDiagnostic":
+            malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
+            broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
+        else:
+            malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
+            broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
+        self.assertEqual(malaria_diagnostic['Diagnostic_Type'], diagnostic_type)
+        self.assertEqual(malaria_diagnostic['Detection_Threshold'], diagnostic_threshold)
+        self.assertEqual(malaria_diagnostic['Measurement_Sensitivity'], measurement_sensitivity)
+        self.assertEqual(malaria_diagnostic['Disqualifying_Properties'], [])
+        self.assertEqual(len(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List']), 2)
+        self.assertIn(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
+                      "TestedNegative")
+        self.assertIn(malaria_diagnostic['Positive_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
+                      "TestedPositive")
+        self.assertEqual(broadcast_event['Broadcast_Event'], received_test_event)
 
     def test_common(self):
         self.is_debugging = False
