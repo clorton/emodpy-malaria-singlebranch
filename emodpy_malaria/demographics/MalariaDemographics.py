@@ -6,6 +6,7 @@ see :doc:`emod-malaria:software-demographics`.
 
 import emod_api.demographics.Demographics as Demog
 from emod_api.demographics import DemographicsTemplates as DT
+import emod_api.config.default_from_schema_no_validation as dfs
 
 class MalariaDemographics(Demog.Demographics):
     """
@@ -50,6 +51,44 @@ class MalariaDemographics(Demog.Demographics):
         """
         super().SetHeteroRiskExponDist( mean=1.0 ) # 1.0 is placeholder
 
+    def add_larval_habitat_multiplier( self, schema, hab_type, multiplier, species="ALL_SPECIES", node_id=0 ):
+        """
+            Add LarvalHabitatMultiplier to node(s).
+
+            Args:
+                schema: Path to schema.json.
+                hab_type: Habitat type.
+                multiplier: Multiplier or Factor.
+                specices: Specific species (defaults to ALL).
+                node_id: Nodes for this LHM. Defaults to all.
+
+            Returns:
+                Nothing.
+
+        """
+
+        lhm = dfs.schema_to_config_subnode( schema, [ "idmTypes", "idmType:LarvalHabitatMultiplierSpec" ] )
+        lhm.parameters.Factor = multiplier
+        lhm.parameters.Habitat = hab_type
+        lhm.parameters.Species = species
+        lhm.parameters.finalize()
+
+        # set params
+        if node_id == 0:
+            if "LarvalHabitatMultiplier" in self.raw['Defaults']['NodeAttributes']:
+                lhm_dict = self.raw['Defaults']['NodeAttributes']["LarvalHabitatMultiplier"]
+            else:
+                lhm_dict = []
+            lhm_dict.append( lhm.parameters )
+            self.SetNodeDefaultFromTemplate( { "LarvalHabitatMultiplier": lhm_dict }, setter_fn = None )
+        else:
+            if self.get_node(node_id).node_attributes.larval_habitat_multiplier:
+                lhm_dict = self.get_node(node_id).node_attributes.larval_habitat_multiplier
+            else:
+                lhm_dict = []
+            lhm_dict.append( lhm.parameters )
+            self.get_node(node_id).node_attributes.larval_habitat_multiplier = lhm_dict
+
 def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2, include_biting_heterogeneity=True):
     """
     Create a single-node :py:class:`~emodpy_malaria.demographics.MalariaDemographics`
@@ -87,6 +126,23 @@ def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", s
     nodes = generic_demog.nodes
     return MalariaDemographics(nodes=nodes, idref=site)
 
+def from_csv(input_file, res=30/3600, id_ref="from_csv"):
+    """
+    Create a multi-node :py:class:`~emodpy_malaria.demographics.MalariaDemographics`
+    instance from a CSV file describing a population.
+
+    Args:
+        input_file: The path to the csv file to ingest.
+        res: Resolution.
+        id_ref: A string to identify the file, needs to match other input files.
+
+    Returns:
+        A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance
+    """
+    generic_demog = Demog.from_csv( input_file, res, id_ref )
+    nodes = generic_demog.nodes
+    return MalariaDemographics(nodes=nodes, idref=id_ref)
+
 def from_params(tot_pop=1e6, num_nodes=100, frac_rural=0.3, id_ref="from_params" ):
     """
     Create a multi-node :py:class:`~emodpy_malaria.demographics.MalariaDemographics`
@@ -108,3 +164,4 @@ def from_params(tot_pop=1e6, num_nodes=100, frac_rural=0.3, id_ref="from_params"
     generic_demog = Demog.from_params(tot_pop, num_nodes, frac_rural, id_ref )
     nodes = generic_demog.nodes
     return MalariaDemographics(nodes=nodes, idref=id_ref )
+

@@ -1,2 +1,3 @@
-emodpy~=1.14.0
+emodpy~=1.16.0
 emod-malaria==0.0.0
+emod-api~=1.17.0
