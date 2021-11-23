@@ -10,6 +10,41 @@ schema_path = None
 iv_name = "Bednet"
 
 
+def _BednetIntervention( 
+           blocking_eff: float = 1,
+           killing_eff: float = 1,
+           repelling_eff: float = 1,
+           usage_eff: float = 1,
+           blocking_decay_rate: float = 0,
+           blocking_predecay_duration: int = 365,
+           killing_decay_rate: float = 0,
+           killing_predecay_duration: int = 365,
+           repelling_decay_rate: float = 0,
+           repelling_predecay_duration: int = 365,
+           usage_decay_rate: float = 0,
+           usage_predecay_duration: int = 365,
+           insecticide: str = None
+           ):
+    intervention = s2c.get_class_with_defaults("SimpleBednet", schema_path)
+    blocking = utils.get_waning_from_params(schema_path, blocking_eff, blocking_predecay_duration, blocking_decay_rate)
+    killing = utils.get_waning_from_params(schema_path, killing_eff, killing_predecay_duration, killing_decay_rate)
+    repelling = utils.get_waning_from_params(schema_path, repelling_eff, repelling_predecay_duration,
+                                             repelling_decay_rate)
+    usage = utils.get_waning_from_params(schema_path, usage_eff, usage_predecay_duration, usage_decay_rate)
+
+    # Second, hook them up
+    intervention.Killing_Config = killing
+    intervention.Blocking_Config = blocking
+    intervention.Repelling_Config = repelling
+    intervention.Usage_Config = usage
+    intervention.Intervention_Name = iv_name
+    if insecticide is None:
+        intervention.pop("Insecticide_Name")  # this is not permanent
+    else:
+        intervention.Insecticide_Name = insecticide
+
+    return intervention
+
 def Bednet(campaign,
            start_day: int = 0,
            coverage: float = 1.0,
@@ -72,29 +107,26 @@ def Bednet(campaign,
     coordinator.Node_Property_Restrictions = []
     coordinator.Property_Restrictions_Within_Node = []
     coordinator.Property_Restrictions = []
-
-    intervention = s2c.get_class_with_defaults("SimpleBednet", schema_path)
-    blocking = utils.get_waning_from_params(schema_path, blocking_eff, blocking_predecay_duration, blocking_decay_rate)
-    killing = utils.get_waning_from_params(schema_path, killing_eff, killing_predecay_duration, killing_decay_rate)
-    repelling = utils.get_waning_from_params(schema_path, repelling_eff, repelling_predecay_duration,
-                                             repelling_decay_rate)
-    usage = utils.get_waning_from_params(schema_path, usage_eff, usage_predecay_duration, usage_decay_rate)
-
-    # Second, hook them up
     event.Event_Coordinator_Config = coordinator
-    coordinator.Intervention_Config = intervention
-    intervention.Killing_Config = killing
-    intervention.Blocking_Config = blocking
-    intervention.Repelling_Config = repelling
-    intervention.Usage_Config = usage
-    event.Start_Day = float(start_day)
 
-    # Third, do the actual settings
-    intervention.Intervention_Name = iv_name
-    if insecticide is None:
-        intervention.pop("Insecticide_Name")  # this is not permanent
-    else:
-        intervention.Insecticide_Name = insecticide
+    intervention = _BednetIntervention(
+           blocking_eff, 
+           killing_eff, 
+           repelling_eff, 
+           usage_eff, 
+           blocking_decay_rate, 
+           blocking_predecay_duration, 
+           killing_decay_rate, 
+           killing_predecay_duration, 
+           repelling_decay_rate, 
+           repelling_predecay_duration, 
+           usage_decay_rate, 
+           usage_predecay_duration, 
+           insecticide
+       )
+
+    coordinator.Intervention_Config = intervention
+    event.Start_Day = float(start_day)
 
     event.Nodeset_Config = utils.do_nodes(schema_path, node_ids)
 
