@@ -141,6 +141,9 @@ def general_sim():
     # VectorHabitatReport
     add_vector_habitat_report(task, manifest)
 
+    # ReportIneterventionPopAvg
+    add_report_intervention_pop_avg(task, manifest, start_day=70, report_description="test")
+
     # ReportNodeDemographicsMalaria
     add_report_node_demographics_malaria(task, manifest, age_bins=[3, 25, 50, 100] )
 

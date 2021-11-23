@@ -5,7 +5,6 @@ import sys
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-
 from emodpy_malaria.reporters.builtin import *
 import schema_path_file
 
@@ -480,9 +479,9 @@ class TestMalariaReport(unittest.TestCase):
         individual_property_to_collect = "Risk"
         stratify_by_gender = 0
         self.tmp_reporter = add_report_node_demographics_malaria(None, schema_path_file,
-                                                         age_bins=age_bins,
-                                                         individual_property_to_collect=individual_property_to_collect,
-                                                         stratify_by_gender=stratify_by_gender)
+                                                                 age_bins=age_bins,
+                                                                 individual_property_to_collect=individual_property_to_collect,
+                                                                 stratify_by_gender=stratify_by_gender)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Age_Bins'], age_bins)
@@ -501,7 +500,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
 
     # end region
-
 
     # ReportNodeDemographicsMalariaGenetics
     def test_report_node_demographics_malaria_genetics_custom(self):
@@ -649,6 +647,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], nodes)
         self.assertEqual(self.p_dict['Report_File_Name'], report_filename)
         self.assertEqual(self.p_dict['Spatial_Output_Channels'], spatial_output_channels)
+
     # endregion
 
     # region ReportMalariaFiltered
@@ -669,7 +668,7 @@ class TestMalariaReport(unittest.TestCase):
                                                         min_age_years=min_age,
                                                         max_age_years=max_age,
                                                         has_interventions=has_interventions,
-                                                        include_30day_avd_infection_duration=include_average)
+                                                        include_30day_avg_infection_duration=include_average)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], start_day)
@@ -704,14 +703,34 @@ class TestMalariaReport(unittest.TestCase):
 
     # endregion
 
-
     # region ReportHumanMigrationTracking
     def test_human_migration_tracking_default(self):
         self.assertIsNone(self.tmp_reporter)
         self.tmp_reporter = add_human_migration_tracking(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
+
     # region end
+
+    # region ReportIneterventionPopAvg
+    def test_report_intervention_pop_avg(self):
+        start_day = 83
+        duration_days = 23487
+        nodes = [1, 42, 23]
+        report_description = "test_test"
+        self.tmp_reporter = add_report_intervention_pop_avg(None, schema_path_file,
+                                                            start_day=start_day,
+                                                            duration_days=duration_days,
+                                                            report_description=report_description,
+                                                            nodes=nodes)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['Duration_Days'], duration_days)
+        self.assertEqual(self.p_dict['Nodeset_Config']['Node_List'], nodes)
+        self.assertEqual(self.p_dict['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(self.p_dict['Report_Description'], report_description)
+    # endregion
 
 
 if __name__ == '__main__':

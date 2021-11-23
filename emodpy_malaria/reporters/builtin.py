@@ -253,7 +253,7 @@ def add_report_malaria_filtered(task, manifest,
                                 min_age_years: float = 0,
                                 max_age_years: float = 125,
                                 has_interventions: list = None,
-                                include_30day_avd_infection_duration: bool = True):
+                                include_30day_avg_infection_duration: bool = True):
     """
     Adds ReportMalariaFiltered report to the simulation.
     See class definition for description of the report.
@@ -270,7 +270,7 @@ def add_report_malaria_filtered(task, manifest,
         has_interventions: A channel is added to the report for each InterventionName provided.  The channel name
             will be Has_<InterventionName> and will be the fraction of the population that has that intervention.
             The **Intervention_Name** in the campaign should be the values in this parameter
-        include_30day_avd_infection_duration: If set to True (1), the 30-Day Avg Infection channel is included in the
+        include_30day_avg_infection_duration: If set to True (1), the 30-Day Avg Infection channel is included in the
             report
 
     Returns:
@@ -285,7 +285,7 @@ def add_report_malaria_filtered(task, manifest,
         params.Node_IDs_Of_Interest = nodes if nodes else []
         params.Report_File_Name = report_filename
         params.Has_Interventions = has_interventions if has_interventions else []
-        params.Include_30Day_Avg_Infection_Duration = 1 if include_30day_avd_infection_duration else 0
+        params.Include_30Day_Avg_Infection_Duration = 1 if include_30day_avg_infection_duration else 0
         params.Max_Age_Years = max_age_years
         params.Min_Age_Years = min_age_years
         return params
@@ -854,6 +854,41 @@ def add_event_recorder(task, event_list, only_include_events_in_list=True, ips_t
         task.config.parameters.Report_Event_Recorder_Ignore_Events_In_List = 1
 
 
+def add_report_intervention_pop_avg(task, manifest,
+                                    start_day: int = 0,
+                                    duration_days: int = 36500000,
+                                    report_description: str = "",
+                                    nodes: list = None):
+    """
+    Adds ReportInterventionPopAvg reporter. See class definition for description of the report.
+
+    Args:
+        task: Task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: Schema path file
+        start_day: The day of the simulation to start collecting data
+        duration_days: The number of days over which to collect report data
+        report_description: Augments the filename of the report. If multiple CSV reports are being generated,
+            this allows you to distinguish among the multiple reports
+        nodes: List of nodes for which to collect data
+
+    Returns:
+        Nothing
+    """
+    reporter = ReportInterventionPopAvg()  # Create the reporter
+
+    def rec_config_builder(params):  # not used yet
+        params.Start_Day = start_day
+        params.Duration_Days = duration_days
+        params.Report_Description = report_description
+        params.Nodeset_Config = utils.do_nodes(manifest.schema_file, nodes)
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
 
 @dataclass
 class ReportVectorGenetics(BuiltInReporter):
@@ -1182,6 +1217,28 @@ class ReportVectorStatsMalariaGenetics(BuiltInReporter):
     def config(self, config_builder, manifest):
         self.class_name = "ReportVectorStatsMalariaGenetics"
         report_params = s2c.get_class_with_defaults("ReportVectorStatsMalariaGenetics", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class ReportInterventionPopAvg(BuiltInReporter):
+    """
+    ReportInterventionPopAvg is a CSV-formatted report that gives population average
+    data on the usage of interventions.  It provides data on the fraction of people
+    or nodes that have an intervention as well as averages on the intervention's efficacy.
+    For each persistent intervention that has been distributed to a node or person,
+    the report provides one line in the CSV for each intervention used in that node.
+    Since node-level intervention (usually vector control) can only have one per node,
+    the data will be for that one intervention.  The individual-level interventions
+    will have data for the people in that node.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportInterventionPopAvg"
+        report_params = s2c.get_class_with_defaults("ReportInterventionPopAvg", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")
