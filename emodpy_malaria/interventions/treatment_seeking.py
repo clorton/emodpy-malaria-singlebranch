@@ -26,14 +26,13 @@ def _get_events(
     drug_config = MultiInterventionDistributor(camp, Intervention_List=drugs)
 
     expire_recent_drug = None
-    if drug_ineligibility_duration:
-        raise ValueError("drug_ineligibility_duration is currently not implemented.")
+
     # cannot be used due to https://github.com/InstituteforDiseaseModeling/emod-api/issues/329
-    # if drug_ineligibility_duration > 0:
-    #     expire_recent_drug = PropertyValueChanger(camp,
-    #                                               Target_Property_Key="DrugStatus",
-    #                                               Target_Property_Value="RecentDrug",
-    #                                               Revert=drug_ineligibility_duration)
+    if drug_ineligibility_duration > 0:
+        expire_recent_drug = PropertyValueChanger(camp,
+                                                  Target_Property_Key="DrugStatus",
+                                                  Target_Property_Value="RecentDrug",
+                                                  Revert=drug_ineligibility_duration)
 
     ret_events = list()
 
@@ -63,7 +62,7 @@ def _get_events(
             Target_Age_Max=target_age_max,
             Demographic_Coverage=t['coverage'] * t['seek'],
             Property_Restrictions=ind_property_restrictions,
-            Intervention_List=[actual_config + expire_recent_drug] if expire_recent_drug else [actual_config])
+            Intervention_List=[actual_config, expire_recent_drug] if expire_recent_drug else [actual_config])
 
         ret_events.append(health_seeking_event)
 
