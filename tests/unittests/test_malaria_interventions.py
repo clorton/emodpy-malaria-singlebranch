@@ -19,6 +19,9 @@ from emodpy_malaria.interventions.inputeir import InputEIR
 from emodpy_malaria.interventions.outbreak import *
 from emodpy_malaria.interventions.vaccine import *
 from emodpy_malaria.interventions.irs import add_irs_housing_modification
+from emodpy_malaria.interventions.spacespraying import SpaceSpraying
+from emodpy_malaria.interventions.sugartrap import SugarTrap
+from emodpy_malaria.interventions.community_health_worker import add_community_health_worker
 
 import emod_api.campaign as camp
 
@@ -1087,9 +1090,6 @@ class TestMalariaInterventions(unittest.TestCase):
             self.assertEqual(intervention_0['Genome'], 4)
             self.assertEqual(intervention_0['Ignore_Immunity'], 0)
             self.assertEqual(intervention_0['Incubation_Period_Override'], 2)
-
-
-
         pass
 
     def test_1_custom_add_outbreak_malaria_genetics(self):
@@ -1251,7 +1251,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
         self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
         event_config = campaign_event['Event_Coordinator_Config']
-        self.assertEqual(event_config['Target_Num_Individuals'],target_num_individuals)
+        self.assertEqual(event_config['Target_Num_Individuals'], target_num_individuals)
         self.assertEqual(event_config['Individual_Selection_Type'], "TARGET_NUM_INDIVIDUALS")
         intervention_config = event_config['Intervention_Config']
         self.assertEqual(intervention_config['class'], "OutbreakIndividualMalariaVarGenes")
@@ -1339,7 +1339,6 @@ class TestMalariaInterventions(unittest.TestCase):
             self.assertEqual(intervention_1["Broadcast_Event"], broadcast_event)
         pass
 
-
     def test_vaccine_default(self):
         camp.campaign_dict["Events"] = []
         add_scheduled_vaccine(camp)
@@ -1365,7 +1364,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
         self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
 
-        
     # test IRSHousindModification
     def test_add_irs_housing_modification_custom(self):
         camp.campaign_dict["Events"] = []  # resetting
@@ -1426,6 +1424,187 @@ class TestMalariaInterventions(unittest.TestCase):
 
         return
 
+    def test_default_space_spraying(self):
+        start_day = 1
+        spray_coverage = 1
+        killing_effect = 1
+        insecticide = None
+        box_duration = 0
+        decay_rate = 0
+        self.tmp_intervention = SpaceSpraying(camp)
+        self.parse_intervention_parts()
+        self.assertEqual(self.intervention_config.Spray_Coverage, spray_coverage)
+        self.assertEqual(self.start_day, start_day)
+        self.assertNotIn("Insecticide_Name", self.intervention_config)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        pass
+
+    def test_custom_space_spraying(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 235
+        spray_coverage = 0.69
+        killing_effect = 0.52
+        insecticide = "KillVectors"
+        box_duration = 51
+        decay_rate = 0.02
+        node_ids = [2, 3, 6]
+        self.tmp_intervention = SpaceSpraying(camp, start_day=start_day, spray_coverage=spray_coverage,
+                                              killing_effect=killing_effect, insecticide=insecticide,
+                                              box_duration=box_duration, decay_rate=decay_rate, node_ids=node_ids)
+        self.parse_intervention_parts()
+        self.assertEqual(self.intervention_config.Spray_Coverage, spray_coverage)
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.intervention_config.Insecticide_Name, insecticide)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / decay_rate)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
+        pass
+
+    def test_default_sugar_trap(self):
+        start_day = 0
+        killing_effect = 1
+        box_duration = 100
+        self.tmp_intervention = SugarTrap(camp)
+        self.parse_intervention_parts()
+        self.assertEqual(self.start_day, start_day)
+        self.assertNotIn("Insecticide_Name", self.intervention_config)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        pass
+
+    def test_custom_sugar_trap(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 235
+        killing_effect = 0.52
+        insecticide = "KillVectors"
+        box_duration = 51
+        decay_rate = 0.02
+        node_ids = [2, 3, 6]
+        self.tmp_intervention = SugarTrap(camp, start_day=start_day,
+                                          killing_effect=killing_effect, insecticide=insecticide,
+                                          box_duration=box_duration, decay_rate=decay_rate, node_ids=node_ids)
+        self.parse_intervention_parts()
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.intervention_config.Insecticide_Name, insecticide)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / decay_rate)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
+        pass
+
+    def test_custom_add_community_health_worker(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 123
+        trigger_condition_list = ["Sick", "SoSick"]
+        demographic_coverage = 0.63
+        node_ids = [4, 6, 33]
+        ind_property_restrictions = [{"Risk": "High", "Location": "Rural"}, {"Risk": "Medium", "Location": "Urban"}]
+        node_property_restrictions = ["Planet:Mars"]
+        target_age_min = 3
+        target_age_max = 35
+        target_gender = "Female"
+        initial_amount = 12
+        amount_in_shipment = 30
+        days_between_shipments = 14
+        duration = 780
+        intervention_config = AntimalarialDrug(camp, "malaria_drug")
+        max_distributed_per_day = 3
+        max_stock = 65
+        waiting_period = 2
+        self.tmp_intervention = add_community_health_worker(camp, start_day=start_day,
+                                                            trigger_condition_list=trigger_condition_list,
+                                                            demographic_coverage=demographic_coverage,
+                                                            node_ids=node_ids,
+                                                            ind_property_restrictions=ind_property_restrictions,
+                                                            node_property_restrictions=node_property_restrictions,
+                                                            target_age_min=target_age_min,
+                                                            target_age_max=target_age_max,
+                                                            target_gender=target_gender,
+                                                            initial_amount=initial_amount,
+                                                            amount_in_shipment=amount_in_shipment,
+                                                            days_between_shipments=days_between_shipments,
+                                                            duration=duration,
+                                                            intervention_config=intervention_config,
+                                                            max_distributed_per_day=max_distributed_per_day,
+                                                            max_stock=max_stock,
+                                                            waiting_period=waiting_period)
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+        coordinator_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(coordinator_config['Target_Age_Max'], target_age_max)
+        self.assertEqual(coordinator_config['Target_Age_Min'], target_age_min)
+        self.assertEqual(coordinator_config['Target_Gender'], target_gender)
+        self.assertEqual(coordinator_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
+        self.assertEqual(coordinator_config['Property_Restrictions_Within_Node'], ind_property_restrictions)
+        self.assertEqual(coordinator_config['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(coordinator_config['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(coordinator_config['class'], "CommunityHealthWorkerEventCoordinator")
+        self.assertEqual(coordinator_config['Amount_In_Shipment'], amount_in_shipment)
+        self.assertEqual(coordinator_config['Days_Between_Shipments'], days_between_shipments)
+        self.assertEqual(coordinator_config['Max_Distributed_Per_Day'], max_distributed_per_day)
+        self.assertEqual(coordinator_config['Max_Stock'], max_stock)
+        self.assertEqual(coordinator_config['Duration'], duration)
+        self.assertEqual(coordinator_config['Trigger_Condition_List'], trigger_condition_list)
+        self.assertEqual(coordinator_config['Waiting_Period'], waiting_period)
+        self.assertEqual(coordinator_config['Initial_Amount_Constant'], initial_amount)
+        self.assertEqual(coordinator_config['Initial_Amount_Distribution'], "CONSTANT_DISTRIBUTION")
+        intervention_config = coordinator_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "AntimalarialDrug")
+
+        pass
+
+    def test_default_add_community_health_worker(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 1
+        trigger_condition_list = ["Sick", "SoSick"]
+        demographic_coverage = 1.0
+        initial_amount = 6
+        amount_in_shipment = 2147480000
+        days_between_shipments = 7
+        duration = 3.40282e+38
+        intervention_config = AntimalarialDrug(camp, "malaria_drug")
+        max_distributed_per_day = 2147480000
+        max_stock = 2147480000
+        waiting_period = 0
+        self.tmp_intervention = add_community_health_worker(camp, trigger_condition_list=trigger_condition_list,
+                                                            intervention_config=intervention_config)
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+        coordinator_config = campaign_event['Event_Coordinator_Config']
+        self.assertEqual(coordinator_config['Target_Demographic'], "Everyone")
+        self.assertEqual(coordinator_config['Property_Restrictions_Within_Node'], [])
+        self.assertEqual(coordinator_config['Node_Property_Restrictions'], [])
+        self.assertEqual(coordinator_config['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(coordinator_config['class'], "CommunityHealthWorkerEventCoordinator")
+        self.assertEqual(coordinator_config['Amount_In_Shipment'], amount_in_shipment)
+        self.assertEqual(coordinator_config['Days_Between_Shipments'], days_between_shipments)
+        self.assertEqual(coordinator_config['Max_Distributed_Per_Day'], max_distributed_per_day)
+        self.assertEqual(coordinator_config['Max_Stock'], max_stock)
+        self.assertEqual(coordinator_config['Duration'], duration)
+        self.assertEqual(coordinator_config['Trigger_Condition_List'], trigger_condition_list)
+        self.assertEqual(coordinator_config['Waiting_Period'], waiting_period)
+        self.assertEqual(coordinator_config['Initial_Amount_Constant'], initial_amount)
+        self.assertEqual(coordinator_config['Initial_Amount_Distribution'], "CONSTANT_DISTRIBUTION")
+        intervention_config = coordinator_config['Intervention_Config']
+        self.assertEqual(intervention_config['class'], "AntimalarialDrug")
+        pass
 
 
 # Uncomment below if you would like to run test suite with different schema
