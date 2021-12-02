@@ -354,62 +354,63 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Nodeset_Config']['class'], "NodeSetNodeList")
 
     # end region
-    #
-    # # MalariaSurveyJSONAnalyzer
-    # def test_malaria_survey_analyzer_custom(self):
-    #     start_day = 42
-    #     duration_days = 25
-    #     event_trigger_list = ["HappyBirthday"]
-    #     max_number_reports = 15
-    #     nodes = [42, 434, 94]
-    #     individual_property_to_collect = "Risk"
-    #     pretty_format = 1
-    #     reporting_interval = 234.6
-    #
-    #     report_description = "Analyzer_Test"
-    #     self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file,
-    #                                                     start_day=start_day,
-    #                                                     duration_days=duration_days,
-    #                                                     event_trigger_list=event_trigger_list,
-    #                                                     max_number_reports=max_number_reports,
-    #                                                     reporting_interval=reporting_interval,
-    #                                                     nodes=nodes,
-    #                                                     individual_property_to_collect=individual_property_to_collect,
-    #                                                     pretty_format=pretty_format,
-    #                                                     report_description=report_description)
-    #     self.p_dict = self.tmp_reporter.parameters
-    #     self.assertIsNotNone(self.tmp_reporter)
-    #     self.assertEqual(self.p_dict['Start_Day'], start_day)
-    #     self.assertEqual(self.p_dict['Duration_Days'], duration_days)
-    #     self.assertEqual(self.p_dict['Max_Number_Reports'], max_number_reports)
-    #     self.assertEqual(self.p_dict['Event_Trigger_List'], event_trigger_list)
-    #     self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
-    #     self.assertEqual(self.p_dict['Pretty_Format'], pretty_format)
-    #     self.assertEqual(self.p_dict['Reporting_Interval'], reporting_interval)
-    #     self.assertEqual(self.p_dict['Report_Description'], report_description)
-    #     self.assertEqual(self.p_dict['Nodeset_Config']['class'], "NodeSetAll")
-    #
-    # def test_malaria_survey_analyzer_default(self):
-    #     start_day = 0
-    #     duration_days = 365000
-    #     event_trigger_list = []
-    #     max_number_reports = 65000,
-    #     individual_property_to_collect = ""
-    #     pretty_format = 0
-    #     report_description = ""
-    #     reporting_interval = 1000000.0
-    #     self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file)
-    #     self.p_dict = self.tmp_reporter.parameters
-    #     self.assertIsNotNone(self.tmp_reporter)
-    #     self.assertEqual(self.p_dict['Start_Day'], start_day)
-    #     self.assertEqual(self.p_dict['Duration_Days'], duration_days)
-    #     self.assertEqual(self.p_dict['Max_Number_Reports'], max_number_reports)
-    #     self.assertEqual(self.p_dict['Event_Trigger_List'], event_trigger_list)
-    #     self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
-    #     self.assertEqual(self.p_dict['Pretty_Format'], pretty_format)
-    #     self.assertEqual(self.p_dict['Reporting_Interval'], reporting_interval)
-    #     self.assertEqual(self.p_dict['Report_Description'], report_description)
-    #     self.assertEqual(self.p_dict['Nodeset_Config']['class'], "NodeSetAll")
+
+    # MalariaSurveyJSONAnalyzer
+    def test_malaria_survey_analyzer_custom(self):
+        start_day = 42
+        duration_days = 25
+        event_trigger_list = ["HappyBirthday"]
+        max_number_reports = 15
+        nodes = [42, 434, 94]
+        individual_property_to_collect = "Risk"
+        pretty_format = 1
+        reporting_interval = 234.6
+
+        report_description = "Analyzer_Test"
+        self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file,
+                                                        start_day=start_day,
+                                                        duration_days=duration_days,
+                                                        event_trigger_list=event_trigger_list,
+                                                        max_number_reports=max_number_reports,
+                                                        reporting_interval=reporting_interval,
+                                                        nodes=nodes,
+                                                        individual_property_to_collect=individual_property_to_collect,
+                                                        pretty_format=pretty_format,
+                                                        report_description=report_description)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['Duration_Days'], duration_days)
+        self.assertEqual(self.p_dict['Max_Number_Reports'], max_number_reports)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], event_trigger_list)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
+        self.assertEqual(self.p_dict['Pretty_Format'], pretty_format)
+        self.assertEqual(self.p_dict['Reporting_Interval'], reporting_interval)
+        self.assertEqual(self.p_dict['Report_Description'], report_description)
+        self.assertEqual(self.p_dict['Nodeset_Config']['Node_List'], nodes)
+        self.assertEqual(self.p_dict['Nodeset_Config']['class'], "NodeSetNodeList")
+
+    def test_malaria_survey_analyzer_default(self):
+        start_day = 0
+        duration_days = 365000
+        event_trigger_list = ["HappyBirthday"]
+        max_number_reports = 365000
+        individual_property_to_collect = ""
+        pretty_format = 0
+        report_description = ""
+        reporting_interval = 1000000.0
+        self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file, event_trigger_list=event_trigger_list)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['Duration_Days'], duration_days)
+        self.assertEqual(self.p_dict['Max_Number_Reports'], max_number_reports)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], event_trigger_list)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
+        self.assertEqual(self.p_dict['Pretty_Format'], pretty_format)
+        self.assertEqual(self.p_dict['Reporting_Interval'], reporting_interval)
+        self.assertEqual(self.p_dict['Report_Description'], report_description)
+        self.assertEqual(self.p_dict['Nodeset_Config']['class'], "NodeSetAll")
 
     # end region
 

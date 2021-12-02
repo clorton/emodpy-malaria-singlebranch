@@ -530,9 +530,9 @@ def add_malaria_survey_analyzer(task, manifest,
         manifest: schema path file
         start_day: the day of the simulation to start collecting data
         duration_days: number of days over which to report data
-        event_trigger_list: list of events to include into the report
         reporting_interval: defines the cadence of the report by specifying how many time steps to collect data
             before writing to the file
+        event_trigger_list: list of individual events to include into the report
         max_number_reports: the maximum number of report output files that will be produced for a given simulation
         nodes: list of nodes for which to collect data
         individual_property_to_collect: name of the Individual Property Key whose value to collect.  Empty string means
@@ -544,6 +544,9 @@ def add_malaria_survey_analyzer(task, manifest,
     Returns:
 
     """
+    if not event_trigger_list:
+        raise ValueError("event_trigger_list cannot be empty, please define individual"
+                         " events to include into the report.\n")
 
     reporter = MalariaSurveyJSONAnalyzer()  # Create the reporter
 
@@ -552,10 +555,10 @@ def add_malaria_survey_analyzer(task, manifest,
         params.Duration_Days = duration_days
         params.Max_Number_Reports = max_number_reports
         params.Event_Trigger_List = event_trigger_list if event_trigger_list else []
-        params.Reporting_Interval = reporting_interval
         params.IP_Key_To_Collect = individual_property_to_collect
         params.Nodeset_Config = utils.do_nodes(manifest.schema_file, nodes)
         params.Pretty_Format = pretty_format
+        params.Reporting_Interval = reporting_interval
         params.Report_Description = report_description
 
         return params

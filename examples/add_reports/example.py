@@ -119,7 +119,8 @@ def general_sim():
     add_malaria_patient_json_report(task, manifest)
 
     # MalariaSummaryReport
-    add_malaria_summary_report(task, manifest, start_day=56, duration_days=23, reporting_interval=7, age_bins=[3, 77, 115],
+    add_malaria_summary_report(task, manifest, start_day=56, duration_days=23, reporting_interval=7,
+                               age_bins=[3, 77, 115],
                                infectiousness_bins=[0.023, 0.1, 0.5], max_number_reports=3, parasitemia_bins=[12, 3423],
                                pretty_format=True, report_description="TestReport3")
 
@@ -145,7 +146,14 @@ def general_sim():
     add_report_intervention_pop_avg(task, manifest, start_day=70, report_description="test")
 
     # ReportNodeDemographicsMalaria
-    add_report_node_demographics_malaria(task, manifest, age_bins=[3, 25, 50, 100] )
+    add_report_node_demographics_malaria(task, manifest, age_bins=[3, 25, 50, 100])
+
+    # MalariaSurveyJSONAnalyzer
+    add_malaria_survey_analyzer(task, manifest, start_day=34, duration_days=355, event_trigger_list=["HappyBirthday"],
+                                max_number_reports=74,
+                                reporting_interval=12,
+                                nodes=[1],
+                                report_description="Example_MalariaSurveyJSONAnalyzer")
 
     # We are creating one-simulation experiment straight from task.
     # If you are doing a sweep, please see sweep_* examples.
@@ -170,6 +178,6 @@ if __name__ == "__main__":
     # Getting the latest LINUX version of eradicaiton app
     plan = EradicationBambooBuilds.MALARIA_LINUX
     # print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files(plan, manifest)
+    # get_model_files(plan, manifest)
     # print("...done.")
     general_sim()
