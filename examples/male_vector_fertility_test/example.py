@@ -68,7 +68,11 @@ def set_param_fn(config):
     This function is a callback that is passed to emod-api.config to set parameters The Right Way.
     """
     config = malconf.set_team_defaults(config, manifest)
-    malconf.add_species(config, manifest,  ["gambiae", "SillySkeeter"])
+    malconf.add_species(config, manifest, ["gambiae"])
+    malconf.add_species(config, manifest, ["gambiae"])
+    # we're adding another gambiae, because we'll rename it to SillySkeeter since it doesn't exist in our species list
+    # renaming (the first "gambiae" found gets renamed)
+    malconf.set_species_param(config, "gambiae", "Name", "SillySkeeter")
     config.parameters.Simulation_Duration = 365
 
     # Vector Genetics

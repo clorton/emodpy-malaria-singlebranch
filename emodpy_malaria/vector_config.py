@@ -1,7 +1,7 @@
 import emod_api.config.default_from_schema_no_validation as dfs
 import csv
 import os
-
+from emodpy_malaria.malaria_vector_species_params import species_params
 
 #
 # PUBLIC API section
@@ -124,7 +124,7 @@ def set_species_param(config, species, parameter, value, overwrite=False):
 
 def add_species(config, manifest, species_to_select):
     """
-    Adds species with preset parameters from 'malaria_vector_species_params.csv', if species
+    Adds species with preset parameters from 'malaria_vector_species_params.py', if species
     name not found - "gambiae" parameters are added and the new species name assigned.
 
     Args:
@@ -141,50 +141,14 @@ def add_species(config, manifest, species_to_select):
         species_to_select = [species_to_select]
 
     for species in species_to_select:
-        found = False
-        with open(os.path.join(os.path.dirname(__file__), 'malaria_vector_species_params.csv'),
-                  newline='') as csvfile:
-            my_reader = csv.reader(csvfile)
-            header = next(my_reader)
-            for row in my_reader:
-                if species == row[header.index("Name")]:
-                    found = True
-                    vsp = dfs.schema_to_config_subnode(manifest.schema_file,
-                                                       ["idmTypes", "idmType:VectorSpeciesParameters"])
-                    vsp.parameters.Anthropophily = float(row[header.index("Anthropophily")])
-                    vsp.parameters.Name = row[header.index("Name")]
-                    vsp.parameters.Acquire_Modifier = float(row[header.index("Acquire_Modifier")])
-                    vsp.parameters.Adult_Life_Expectancy = float(row[header.index("Adult_Life_Expectancy")])
-                    vsp.parameters.Aquatic_Arrhenius_1 = float(row[header.index("Aquatic_Arrhenius_1")])
-                    vsp.parameters.Aquatic_Arrhenius_2 = float(row[header.index("Aquatic_Arrhenius_2")])
-                    vsp.parameters.Aquatic_Mortality_Rate = float(row[header.index("Aquatic_Mortality_Rate")])
-                    vsp.parameters.Days_Between_Feeds = float(row[header.index("Days_Between_Feeds")])
-                    vsp.parameters.Egg_Batch_Size = float(row[header.index("Egg_Batch_Size")])
-                    vsp.parameters.Immature_Duration = float(row[header.index("Immature_Duration")])
-                    vsp.parameters.Indoor_Feeding_Fraction = float(row[header.index("Indoor_Feeding_Fraction")])
-                    vsp.parameters.Infected_Arrhenius_1 = float(row[header.index("Infected_Arrhenius_1")])
-                    vsp.parameters.Infected_Arrhenius_2 = float(row[header.index("Infected_Arrhenius_2")])
-                    vsp.parameters.Infectious_Human_Feed_Mortality_Factor = float(
-                        row[header.index("Infectious_Human_Feed_Mortality_Factor")])
-                    vsp.parameters.Male_Life_Expectancy = float(row[header.index("Male_Life_Expectancy")])
-                    vsp.parameters.Transmission_Rate = float(row[header.index("Transmission_Rate")])
-                    vsp.parameters.Vector_Sugar_Feeding_Frequency = row[header.index("Vector_Sugar_Feeding_Frequency")]
-                    vsp.parameters.Habitats = [{"Habitat_Type": row[header.index("LHT1_Key")],
-                                                "Max_Larval_Capacity": float(
-                                                    row[header.index("LHT1_Value")])}]
-                    if row[header.index("LHT2_Key")]:
-                        vsp.parameters.Habitats.append(
-                            {"Habitat_Type": row[header.index("LHT2_Key")],
-                             "Max_Larval_Capacity": float(
-                                 row[header.index("LHT2_Value")])})
-
-                    config.parameters.Vector_Species_Params.append(vsp.parameters)
-
-        if not found:
-            add_species(config, manifest, "gambiae")
-            set_species_param(config, "gambiae", "Name", species)
-            print(f"{species} not found in list, adding 'gambiae' settings and renaming to '{species}', \n"
-                  f"you can edit the settings via set_species_params().\n")
+        vector_species_parameters = species_params(manifest, species)
+        if isinstance(vector_species_parameters, list):
+            raise ValueError(f"'{species}' species not found in list, available species are: {vector_species_parameters}. "
+                             f"We suggest adding 'gambiae' species and changing "
+                             f"the name and relevant parameters with set_species_params() or "
+                             f"adding your species to malaria_vector_species_params.py.\n")
+        else:
+            config.parameters.Vector_Species_Params.append(vector_species_parameters)
 
     return config
 

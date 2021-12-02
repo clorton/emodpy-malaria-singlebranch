@@ -2,7 +2,7 @@ import emod_api.config.default_from_schema_no_validation as dfs
 import csv
 import os
 from . import vector_config
-
+from emodpy_malaria.malaria_vector_species_params import species_params
 
 #
 # PUBLIC API section
@@ -322,39 +322,8 @@ def set_parasite_genetics_params(config, manifest, var_gene_randomness_type: str
             fpg.parameters.Neighborhood_Size_PfEMP1 = 10
     config.parameters.Parasite_Genetics = fpg.parameters
     # setting up gambiae parameters for parasite genetics
-    vsp = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorSpeciesParameters"])
-    vsp.parameters.Anthropophily = 0.65
-    vsp.parameters.Name = "gambiae"
-    vsp.parameters.Acquire_Modifier = 0.8
-    vsp.parameters.Adult_Life_Expectancy = 20
-    vsp.parameters.Aquatic_Arrhenius_1 = 84200000000
-    vsp.parameters.Aquatic_Arrhenius_2 = 8328
-    vsp.parameters.Aquatic_Mortality_Rate = 0.1
-    vsp.parameters.Days_Between_Feeds = 3
-    vsp.parameters.Egg_Batch_Size = 100
-    vsp.parameters.Immature_Duration = 2
-    vsp.parameters.Indoor_Feeding_Fraction = 0.5
-    vsp.parameters.Infected_Arrhenius_1 = 117000000000
-    vsp.parameters.Infected_Arrhenius_2 = 8336
-    vsp.parameters.Infectious_Human_Feed_Mortality_Factor = 1.5
-    vsp.parameters.Male_Life_Expectancy = 10
-    vsp.parameters.Transmission_Rate = 0.9
-    vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_DAY"
-    # adding habitats
-    lht = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorHabitat"])
-    lht.parameters.Habitat_Type = "LINEAR_SPLINE"
-    lht.parameters.Max_Larval_Capacity = 316227766.01683795
-    lht.parameters.Capacity_Distribution_Number_Of_Years = 1
-    # adding larval capacity
-    cdot = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:InterpolatedValueMap"])
-    cdot.parameters.Times = [0, 30.417, 60.833, 91.25, 121.667, 152.083, 182.5, 212.917, 243.333, 273.75, 304.167,
-                             334.583]
-    cdot.parameters.Values = [3, 0.8, 1.25, 0.1, 2.7, 8, 4, 35, 6.8, 6.5, 2.6, 2.1]
-    lht.parameters.Capacity_Distribution_Over_Time = cdot.parameters
-    # end adding larval capacity
-    vsp.parameters.Habitats = [lht.parameters]
-    # end adding habitats
-    config.parameters.Vector_Species_Params = [vsp.parameters]
+    fpg_gambiae_params = species_params(manifest, "fpg_gambiae")
+    config.parameters.Vector_Species_Params = [fpg_gambiae_params]
     # end vector species
     return config
 
