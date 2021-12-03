@@ -998,16 +998,19 @@ class TestMalariaInterventions(unittest.TestCase):
         self.parse_intervention_parts()
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)
         self.assertEqual(self.intervention_config.Age_Dependence, "OFF")
+        self.assertEqual(self.intervention_config.Scaling_Factor, 1)
         self.assertEqual(self.start_day, 1)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
         pass
 
     def test_inputeir(self):
         eir = [random.randint(0, 50) for x in range(12)]
-        self.tmp_intervention = InputEIR(camp, monthly_eir=eir, start_day=2, node_ids=[2, 3], age_dependence='LINEAR')
+        self.tmp_intervention = InputEIR(camp, monthly_eir=eir, start_day=2, node_ids=[2, 3],
+                                         age_dependence='LINEAR', scaling_factor=0.24)
         self.parse_intervention_parts()
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)
         self.assertEqual(self.intervention_config.Age_Dependence, "LINEAR")
+        self.assertEqual(self.intervention_config.Scaling_Factor, 0.24)
         self.assertEqual(self.start_day, 2)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], [2, 3])
@@ -1017,12 +1020,13 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_daily_inputeir(self):
         daily_eir = [random.randint(0, 50) for x in range(365)]
         self.tmp_intervention = InputEIR(camp, daily_eir=daily_eir, start_day=2, node_ids=[2, 3],
-                                         age_dependence='SURFACE_AREA_DEPENDENT')
+                                         age_dependence='SURFACE_AREA_DEPENDENT', scaling_factor=0.67)
         self.parse_intervention_parts()
 
         self.assertEqual(self.intervention_config.Daily_EIR, daily_eir)
         self.assertEqual(self.intervention_config.EIR_Type, "DAILY")
         self.assertEqual(self.intervention_config.Age_Dependence, "SURFACE_AREA_DEPENDENT")
+        self.assertEqual(self.intervention_config.Scaling_Factor, 0.67)
         self.assertEqual(self.start_day, 2)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], [2, 3])

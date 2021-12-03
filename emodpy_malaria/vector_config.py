@@ -213,7 +213,7 @@ def add_genes_and_alleles(config, manifest, species: str = None, alleles: list =
         vector_allele = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorAllele"])
         vector_allele.parameters.Name = allele[0]
         vector_allele.parameters.Initial_Allele_Frequency = allele[1]
-        if len(allele) == 3 :
+        if len(allele) == 3:
             if allele[2]:
                 gene.parameters.Is_Gender_Gene = 1
                 vector_allele.parameters.Is_Y_Chromosome = 1
@@ -509,7 +509,7 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
         raise ValueError(f"Please define all the parameters for this function (except shredding,"
                          f"unless you're using them).\n")
     if (driver_type != "X_SHRED" and driver_type != "Y_SHRED") and (shredding_allele_required or allele_to_shred
-        or allele_to_shred_to or allele_shredding_fraction or allele_to_shred_to_surviving_fraction):
+                                                                    or allele_to_shred_to or allele_shredding_fraction or allele_to_shred_to_surviving_fraction):
         raise ValueError(f"Please do not define any shredding parameters if you're not using 'driver_type' = X_SHRED or"
                          f"Y_SHRED.\n")
     species_params = get_species_params(config, species)
@@ -529,20 +529,23 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
                     if allele["Name"] == shredding_allele_required:
                         gender_allele_required = True
                         if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 0:
-                            raise ValueError(f"For 'driver_type' = X_SHRED, 'allele_to_shred' should be the Y chromosome.\n")
+                            raise ValueError(
+                                f"For 'driver_type' = X_SHRED, 'allele_to_shred' should be the Y chromosome.\n")
                         elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 1:
-                            raise ValueError(f"For 'driver_type' = Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
+                            raise ValueError(
+                                f"For 'driver_type' = Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
                     elif allele["Name"] == allele_to_shred:
                         gender_allele_to_shred = True
                         if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 1:
-                            raise ValueError(f"For 'driver_type'= X_SHRED, 'allele_to_shred' should not be Y chromosome.\n")
+                            raise ValueError(
+                                f"For 'driver_type'= X_SHRED, 'allele_to_shred' should not be Y chromosome.\n")
                         elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 0:
-                            raise ValueError(f"For 'driver_type'= Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
+                            raise ValueError(
+                                f"For 'driver_type'= Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
 
         if not (gender_allele_required and gender_allele_to_shred):
             raise ValueError(f"Looks like shredding allele required or allele to shred are not on a gender gene, "
                              f"but they both should be. Please verify your settings.\n")
-
 
         shredding_alleles = dfs.schema_to_config_subnode(manifest.schema_file,
                                                          ["idmTypes", "idmType:ShreddingAlleles"])
@@ -580,33 +583,35 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
     else:
         gene_driver.parameters.Alleles_Driven = [allele_driven.parameters]
 
-    gene_driver.parameters.Driver_Type = driver_type #to circumvent the implicit settings
+    gene_driver.parameters.Driver_Type = driver_type  # to circumvent the implicit settings
     species_params.Drivers.append(gene_driver.parameters)
     return config
 
-def set_max_larval_capacity(config, species_name, habitat_type, mlc): 
+
+def set_max_larval_capacity(config, species_name, habitat_type, max_larval_capacity):
     """
-    Set the Max_Larval_Capacity for a given speecies and habitat. Effectively doing something like:
-    simulation.task.config.parameters.Vector_Species_Params[i]["Habitats"][j]["Max_Larval_Capacity"] = mlc
+    Set the Max_Larval_Capacity for a given species and habitat. Effectively doing something like:
+    simulation.task.config.parameters.Vector_Species_Params[i]["Habitats"][j]["Max_Larval_Capacity"] = max_larval_capacity
     where i is index of species_name and j is index of habitat_type.
 
     Args:
+        config:
         species_name: string. Species_Name to target.
         habitat_type: enum. Habitat_Type to target.
-        mlc: integer. New value of Max_Larval_Capacity.
+        max_larval_capacity: integer. New value of Max_Larval_Capacity.
 
     Returns:
         Nothing.
 
     """
 
-    habitats = get_species_params( config, species_name ).Habitats
+    habitats = get_species_params(config, species_name).Habitats
     # g_s_p raises a ValueError so if we get this far, we can use habitats unconditionally.
     for hab in habitats:
         if hab['Habitat_Type'] == habitat_type:
-            hab['Max_Larval_Capacity'] = mlc
+            hab['Max_Larval_Capacity'] = max_larval_capacity
             return
 
     raise ValueError(f"Failed to find habitat_type {habitat_type} for species {species_name}.")
-                             
-    return # can't get here
+
+    return  # can't get here
