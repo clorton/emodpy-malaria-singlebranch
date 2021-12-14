@@ -1,146 +1,215 @@
 import os
 import pathlib
+from sys import platform
+from pathlib import Path
+
 dirs = os.listdir()
 input_files = list()
+
+def get_command(path: Path=None, script="example.py"):
+    # using pushd (i.e. cd into directory) to use script location as base dir, otherwise relative
+    # paths in script use snakemake dir as base
+    if platform == "linux":
+        command = "pushd " + path + " && python3 " + script
+    elif platform == "win32":
+        command = "pushd " + path + " && python " + script
+    else:
+        print("Unknown OS")
+        raise Exception  
+    return command
+    
+
+# Not sure about start_here, there seems to be an issue with comps2
+skip_tests = ["download_files",
+              "outdoor_rest_kill_male_mosquitoes",
+              "burnin_use",
+			  # "migration_spatial_malaria_sim",	# needs vpn connection
+			  # "migration_spatial_vector_sim",		# needs vpn connection
+              "filtered_report"]
+
 for dir in dirs:
-    if os.path.isdir( dir ) and str( dir ).startswith( "." ) == False:
-        input_files.append( str( pathlib.PurePath( dir, "experiment_id" ) ) )
+    if os.path.isdir( dir ) and str( dir ).startswith( "." ) == False and os.path.exists( dir + "/example.py" ):
+        if dir in skip_tests:
+            continue
+        input_files.append(str(pathlib.PurePath(dir, "experiment_id")))
+
 print( input_files )
 
 rule run:
     input: input_files
     output:
     shell: ""
+	
 rule start_here:
     input: 
-    output: "start_here/experiment_id"
+    output: Path("start_here", "experiment_id")
     run:
-        shell("pushd start_here && python ./example.py")
+        shell(get_command("start_here"))
+		
 rule filtered_report:
     input: 
-    output: "filtered_report/experiment_id"
+    output: Path("filtered_report", "experiment_id")
     run:
-        shell("pushd filtered_report && python ./example.py")
+        shell(get_command("filtered_report"))
+		
 rule burnin_create:
     input: 
-    output: "burnin_create/experiment_id"
+    output: Path("burnin_create", "experiment_id"),
+            out_020_0 = Path("burnin_create", "serialization_files", "output", "state-00020-000.dtk"),
+            out_020_1 = Path("burnin_create", "serialization_files", "output", "state-00020-001.dtk"),
+            out_200_0 = Path("burnin_create", "serialization_files", "output", "state-00200-000.dtk"),
+            out_200_1 = Path("burnin_create", "serialization_files", "output", "state-00200-001.dtk")           
     run:
-        shell("pushd burnin_create && python ./example.py")
+        shell(get_command("burnin_create"))
+		
+rule burnin_create_infections:
+    input: 
+    output: Path("burnin_create_infections", "experiment_id"),
+            out_050 = Path("burnin_create_infections", "serialization_files", "output", "state-00050.dtk")
+    run:
+        shell(get_command("burnin_create_infections"))
+		
 rule burnin_use:
     input: 
-    output: "burnin_use/experiment_id"
+    output: Path("burnin_use", "experiment_id")
     run:
-        shell("pushd burnin_use && python ./example.py")
+        shell(get_command("burnin_use"))
+		
+rule serialization_remove_infections:
+    input:  rules.burnin_create_infections.output.out_050
+    output: Path("serialization_remove_infections", "output", "state-00050_zeroed.dtk"),
+            Path("serialization_remove_infections", "experiment_id")
+    run:
+        shell(get_command("serialization_remove_infections"))
+        
 rule drug_campaign:
     input: 
-    output: "drug_campaign/experiment_id"
+    output: Path("drug_campaign","experiment_id")
     run:
-        shell("pushd drug_campaign && python ./example.py")
+        shell(get_command("drug_campaign"))
+		
 rule ivermectin:
     input: 
-    output: "ivermectin/experiment_id"
-    run:
-        shell("pushd ivermectin && python ./example.py")
+    output: Path("ivermectin", "experiment_id")
+    run:        
+        shell(get_command("ivermectin"))
+		
 rule jonr_1:
     input: 
-    output: "jonr_1/experiment_id"
-    run:
-        shell("pushd jonr_1 && python ./example.py")
+    output: Path("jonr_1", "experiment_id")
+    run:        
+        shell(get_command("jonr_1"))
+		
 rule kill_only_males_camp_sweep:
     input: 
-    output: "kill_only_males_camp_sweep/experiment_id"
-    run:
-        shell("pushd kill_only_males_camp_sweep && python ./example.py")
+    output: Path("kill_only_males_camp_sweep", "experiment_id")
+    run:        
+        shell(get_command("kill_only_males_camp_sweep"))
+		
 rule male_vector_fertility_test:
     input: 
-    output: "male_vector_fertility_test/experiment_id"
-    run:
-        shell("pushd male_vector_fertility_test && python ./example.py")
+    output: Path("male_vector_fertility_test", "experiment_id")
+    run:       
+        shell(get_command("male_vector_fertility_test"))
+		
 rule outdoor_rest_kill_male_mosquitoes:
     input: 
-    output: "outdoor_rest_kill_male_mosquitoes/experiment_id"
-    run:
-        shell("pushd outdoor_rest_kill_male_mosquitoes && python ./example.py")
+    output: Path("outdoor_rest_kill_male_mosquitoes", "experiment_id")
+    run:        
+        shell(get_command("outdoor_rest_kill_male_mosquitoes"))
+		
 rule simple_sim_template_emodpy:
     input: 
-    output: "simple-sim-template-emodpy/experiment_id"
-    run:
-        shell("pushd simple-sim-template-emodpy && python ./example.py")
+    output: Path("simple-sim-template-emodpy", "experiment_id")
+    run:        
+        shell(get_command("simple_sim_template_emodpy"))
+		
 rule campaign_sweep:
     input: 
-    output: "campaign_sweep/experiment_id"
-    run:
-        shell("pushd campaign_sweep && python ./example.py")
+    output: Path("campaign_sweep", "experiment_id")
+    run:        
+        shell(get_command("campaign_sweep"))
+		
 rule demographics_sweep:
     input: 
-    output: "demographics_sweep/experiment_id"
-    run:
-        shell("pushd demographics_sweep && python ./example.py")
+    output: Path("demographics_sweep", "experiment_id")
+    run:        
+        shell(get_command("demographics_sweep"))
 rule input_eir:
     input: 
-    output: "inputEIR/experiment_id"
-    run:
-        shell("pushd inputEIR && python ./example.py")
+    output: Path("inputEIR", "experiment_id")
+    run:        
+        shell(get_command("inputEIR"))
+		
 rule vector_basic:
     input: 
-    output: "vector_basic/experiment_id"
-    run:
-        shell("pushd vector_basic && python ./example.py")
+    output: Path("vector_basic", "experiment_id")
+    run:        
+        shell(get_command("vector_basic"))
 rule vector_genetics_vector_sim:
     input: 
-    output: "vector_genetics_vector_sim/experiment_id"
-    run:
-        shell("pushd vector_genetics_vector_sim && python ./example.py")
+    output: Path("vector_genetics_vector_sim", "experiment_id")
+    run:        
+        shell(get_command("vector_genetics_vector_sim"))
 rule vgir:
     input: 
-    output: "vector_genetics_insecticide_resistance/experiment_id"
-    run:
-        shell("pushd vector_genetics_insecticide_resistance && python ./example.py")
+    output: Path("vector_genetics_insecticide_resistance", "experiment_id")
+    run:        
+        shell(get_command("vector_genetics_insecticide_resistance"))
+		
 rule diagnostic_survey:
     input: 
-    output: "diagnostic_survey/experiment_id"
-    run:
-        shell("pushd diagnostic_survey && python ./example.py")
+    output: Path("diagnostic_survey", "experiment_id")
+    run:        
+        shell(get_command("diagnostic_survey"))
+		
 rule migration_spatial_vector_sim:
     input: 
-    output: "migration_spatial_vector_sim/experiment_id"
-    run:
-        shell("pushd migration_spatial_vector_sim && python ./example.py")
+    output: Path("migration_spatial_vector_sim", "experiment_id")
+    run:        
+        shell(get_command("migration_spatial_vector_sim"))
+		
 rule migration_spatial_malaria_sim:
     input: 
-    output: "migration_spatial_malaria_sim/experiment_id"
-    run:
-        shell("pushd migration_spatial_malaria_sim && python ./example.py")
+    output: Path("migration_spatial_malaria_sim", "experiment_id")
+    run:        
+        shell(get_command("migration_spatial_malaria_sim"))
+		
 rule add_reports:
     input: 
-    output: "add_reports/experiment_id"
-    run:
-        shell("pushd add_reports && python ./example.py")
+    output: Path("add_reports", "experiment_id")
+    run:       
+        shell(get_command("add_reports"))
 
 rule run_with_unobserved_importation:
     input:
-    output: "run_with_unobserved_importation/experiment_id"
-    run:
-        shell("pushd run_with_unobserved_importation && python ./example.py")
+    output: Path("run_with_unobserved_importation", "experiment_id")
+    run:        
+        shell(get_command("run_with_unobserved_importation"))
 
 rule example_template:
     input:
-    output: "example_template/experiment_id"
-    run:
-        shell("pushd example_template && python ./example.py")
+    output: Path("example_template", "experiment_id")
+    run:        
+        shell(get_command("example_template"))
+		
 rule fpg_example:
     input:
-    output: "fpg_example/experiment_id"
-    run:
-        shell("pushd fpg_example && python ./example.py")
+    output: Path("fpg_example", "experiment_id")
+    run:        
+        shell(get_command("fpg_example"))
+		
 rule download_files:
     input:
-    output: "download_files/experiment_id"
-    run:
-        shell("pushd download_files && python ./example.py")
+    output: Path("download_files", "experiment_id")
+    run:        
+        shell(get_command("download_files"))
 
-
-
+rule rcd_elimination_emodpy:
+    input: 
+    output: Path("rcd_elimination_emodpy", "experiment_id")
+    run:        
+        shell(get_command("rcd_elimination_emodpy"))
 
 rule clean:
     input: 

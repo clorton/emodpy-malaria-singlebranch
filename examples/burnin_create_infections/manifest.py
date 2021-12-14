@@ -10,6 +10,6 @@ eradication_path="download/Eradication"
 # Create 'Assets' directory or change to a path you prefer. idmtools will upload files found here.
 assets_input_dir="Assets"
 plugins_folder = "download/reporter_plugins"
-serialization_files = "../burnin_create/serialization_files/output"
+
 my_ep4_assets=None
 #requirements = "./requirements.txt"

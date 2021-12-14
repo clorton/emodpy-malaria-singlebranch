@@ -163,9 +163,7 @@ def general_sim():
 
 
 if __name__ == "__main__":
-    # TBD: user should be allowed to specify (override default) erad_path and input_path from command line
-    plan = EradicationBambooBuilds.MALARIA_LINUX
-    print("Retrieving Eradication and schema.json from Bamboo...")
-    get_model_files(plan, manifest)
-    print("...done.")
+    import emod_malaria.bootstrap as dtk
+    import pathlib
+    dtk.setup(pathlib.Path(manifest.eradication_path).parent)
     general_sim()

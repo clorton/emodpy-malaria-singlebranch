@@ -33,7 +33,6 @@ def add_OutdoorRestKill(campaign,
     event = ScheduledCampaignEvent(
         camp=campaign,
         Start_Day=start_day,
-        Event_Name="",
         Nodeset_Config=utils.do_nodes(schema_path, node_ids),
         Intervention_List=[intervention])
 

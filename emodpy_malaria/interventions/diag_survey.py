@@ -261,7 +261,6 @@ def add_diagnostic_survey(
         survey_event = ScheduledCampaignEvent(
             camp,
             Start_Day=start_day+1,
-            Event_Name=event_name,
             Nodeset_Config=nodeset_config, 
             Property_Restrictions=IP_restrictions,
             Number_Repetitions=repetitions,

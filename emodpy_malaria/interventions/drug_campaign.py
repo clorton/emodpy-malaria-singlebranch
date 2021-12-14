@@ -439,7 +439,6 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
             drug_event = ScheduledCampaignEvent(
                 camp=camp,
                 Start_Day=start_day,
-                Event_Name="Campaign_Event",
                 Nodeset_Config=nodeset_config,
                 Target_Age_Min=target_age_min,
                 Target_Age_Max=target_age_max,

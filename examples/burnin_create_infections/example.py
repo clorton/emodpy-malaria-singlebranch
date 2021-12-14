@@ -12,12 +12,8 @@ from emodpy.bamboo import get_model_files
 import manifest
 
 """
-In this example we create serialization files from a multicore simulation.
-The important bits are in set_param_fn function and in Platform class call
-
+This example shows how to remove infected vectors and/or infected humans from a serialized population.
 """
-
-
 
 def set_param_fn(config):
     """
@@ -33,8 +29,12 @@ def set_param_fn(config):
 
     import emodpy_malaria.malaria_config as malaria_config
     config = malaria_config.set_team_defaults(config, manifest)
-    config.parameters.Simulation_Duration = 210
-    config.parameters.Serialization_Time_Steps = [20, 200]
+    malaria_config.add_species(config, manifest, "gambiae")
+    # config.parameters.Vector_Sampling_Type = "TRACK_ALL_VECTORS"
+    # config.parameters.Vector_Sampling_Type = "SAMPLE_IND_VECTORS" # default
+    # config.parameters.Vector_Sampling_Type = "VECTOR_COMPARTMENTS_NUMBER"
+    config.parameters.Simulation_Duration = 51
+    config.parameters.Serialization_Time_Steps = [50]
     config.parameters.Serialized_Population_Writing_Type = "TIMESTEP"
     config.parameters.Serialization_Mask_Node_Write = 0
     config.parameters.Serialization_Precision = "REDUCED"
@@ -47,12 +47,10 @@ def build_camp():
     Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
     """
     import emod_api.campaign as campaign
-    import emodpy_malaria.interventions.bednet as bednet
+    import emodpy_malaria.interventions.outbreak as outbreak
 
     campaign.schema_path = manifest.schema_file
-
-    campaign.add(bednet.Bednet(campaign, start_day=100, coverage=1.0, killing_eff=1.0, blocking_eff=1.0, usage_eff=1.0,
-                               node_ids=[]))
+    outbreak.add_outbreak_individual(campaign, target_num_individuals=100)
     return campaign
 
 
@@ -78,7 +76,7 @@ def general_sim():
 
     # Set platform
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    platform = Platform("Calculon", num_cores=2, node_group="idm_48cores", priority="Highest")
+    platform = Platform("Calculon", num_cores=1, node_group="idm_48cores", priority="Highest")
     experiment_name = "Create simulation from serialized files"
     
     # create EMODTask 
@@ -118,10 +116,6 @@ def general_sim():
     # important bit
     # WE ARE GOING TO USE SERIALIZATION FILES GENERATED IN burnin_create
     from idmtools_platform_comps.utils.download.download import DownloadWorkItem, CompressType
-    # navigating to the experiment.id file to retrieve experiment id
-    # with open("../burnin_create/experiment.id") as f:
-    #    experiment_id = f.readline()
-
     dl_wi = DownloadWorkItem(
                              related_experiments=[experiment.uid.hex],
                              file_patterns=["output/*.dtk"],
@@ -140,4 +134,5 @@ if __name__ == "__main__":
     import emod_malaria.bootstrap as dtk
     import pathlib
     dtk.setup(pathlib.Path(manifest.eradication_path).parent)
+    
     general_sim()
