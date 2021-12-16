@@ -1,5 +1,6 @@
 from emod_api.interventions.common import *
 from emodpy_malaria.interventions.common import *
+from emodpy_malaria.interventions.outbreak import add_campaign_event
 
 
 def add_OutdoorRestKill(campaign,
@@ -30,12 +31,7 @@ def add_OutdoorRestKill(campaign,
     intervention.Killing_Config = utils.get_waning_from_params(schema_path, killing_initial_effect,
                                                                killing_box_duration,
                                                                killing_exponential_decay_rate)
-    event = ScheduledCampaignEvent(
-        camp=campaign,
-        Start_Day=start_day,
-        Nodeset_Config=utils.do_nodes(schema_path, node_ids),
-        Intervention_List=[intervention])
 
-    campaign.add(event)
+    add_campaign_event(campaign=campaign, start_day=start_day, node_ids=node_ids, intervention=intervention)
 
     return campaign

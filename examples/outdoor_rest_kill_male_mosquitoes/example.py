@@ -94,14 +94,14 @@ def set_param_fn(config):
 
 
 def build_camp(actual_start_day=90, current_insecticide="only_kill_male_funestus",
-               coverage=1.0, killing_effectiveness=0.5):
+               killing_effectiveness=0.5):
     import emod_api.campaign as campaign
     from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
     campaign.schema_path = manifest.schema_file
-    campaign = add_OutdoorRestKill(campaign, start_day=actual_start_day, target_coverage=coverage,
-                                   # insecticide_name=current_insecticide,
-                                   killing_effect=killing_effectiveness,
-                                   killing_predecay_duration=10, killing_decay_rate=0.07)
+    campaign = add_OutdoorRestKill(campaign, start_day=actual_start_day,
+                                   insecticide_name=current_insecticide,
+                                   killing_initial_effect=killing_effectiveness,
+                                   killing_box_duration=10, killing_exponential_decay_rate=0.07)
 
     return campaign
 

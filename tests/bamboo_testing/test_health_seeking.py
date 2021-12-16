@@ -14,7 +14,7 @@ import emodpy.emod_task as emod_task
 from emodpy.utils import EradicationBambooBuilds
 import emod_api.campaign as camp
 import emodpy_malaria.interventions.treatment_seeking as ts
-
+from emodpy_malaria.interventions.outbreak import add_outbreak_individual
 parent = Path(__file__).resolve().parent
 sys.path.append(parent)
 
@@ -41,7 +41,8 @@ class TestHealthSeeking(unittest.TestCase):
 
     def build_camp_1(self, targets):
         camp.schema_path = str(self.schema_path)
-        ts.add(camp, targets=targets)
+        ts.add_treatment_seeking(camp, targets=targets)
+        add_outbreak_individual(campaign=camp)
         return camp
 
     def build_camp_2(self, start_day, drug, targets):
@@ -52,6 +53,7 @@ class TestHealthSeeking(unittest.TestCase):
             camp.add(ret_event, first=first)
             if first:
                 first = False
+        add_outbreak_individual(campaign=camp)
 
         return camp
 
@@ -168,4 +170,3 @@ class TestHealthSeeking(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
