@@ -16,7 +16,6 @@ from emodpy.utils import EradicationBambooBuilds
 from emodpy.bamboo import get_model_files
 
 import manifest
-from set_config import set_param_fn
 
 
 def update_sim_bic(simulation, value):
@@ -88,8 +87,6 @@ def general_sim():
     every time we run an emod experiment. 
     """
 
-    platform = Platform("SLURMStage")
-    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
     platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
     # create EMODTask 

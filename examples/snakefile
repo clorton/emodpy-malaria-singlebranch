@@ -23,9 +23,11 @@ def get_command(path: Path=None, script="example.py"):
 skip_tests = ["download_files",
               "outdoor_rest_kill_male_mosquitoes",
               "burnin_use",
-			  # "migration_spatial_malaria_sim",	# needs vpn connection
-			  # "migration_spatial_vector_sim",		# needs vpn connection
-              "filtered_report"]
+              "filtered_report",
+              ]
+
+# "migration_spatial_malaria_sim",	# needs vpn connection
+# "migration_spatial_vector_sim",	# needs vpn connection
 
 for dir in dirs:
     if os.path.isdir( dir ) and str( dir ).startswith( "." ) == False and os.path.exists( dir + "/example.py" ):
@@ -45,13 +47,13 @@ rule start_here:
     output: Path("start_here", "experiment_id")
     run:
         shell(get_command("start_here"))
-		
+
 rule filtered_report:
     input: 
     output: Path("filtered_report", "experiment_id")
     run:
         shell(get_command("filtered_report"))
-		
+
 rule burnin_create:
     input: 
     output: Path("burnin_create", "experiment_id"),
@@ -61,20 +63,20 @@ rule burnin_create:
             out_200_1 = Path("burnin_create", "serialization_files", "output", "state-00200-001.dtk")           
     run:
         shell(get_command("burnin_create"))
-		
+
 rule burnin_create_infections:
     input: 
     output: Path("burnin_create_infections", "experiment_id"),
             out_050 = Path("burnin_create_infections", "serialization_files", "output", "state-00050.dtk")
     run:
         shell(get_command("burnin_create_infections"))
-		
+
 rule burnin_use:
     input: 
     output: Path("burnin_use", "experiment_id")
     run:
         shell(get_command("burnin_use"))
-		
+
 rule serialization_remove_infections:
     input:  rules.burnin_create_infections.output.out_050
     output: Path("serialization_remove_infections", "output", "state-00050_zeroed.dtk"),
@@ -87,60 +89,61 @@ rule drug_campaign:
     output: Path("drug_campaign","experiment_id")
     run:
         shell(get_command("drug_campaign"))
-		
+
 rule ivermectin:
     input: 
     output: Path("ivermectin", "experiment_id")
     run:        
         shell(get_command("ivermectin"))
-		
+
 rule jonr_1:
     input: 
     output: Path("jonr_1", "experiment_id")
     run:        
         shell(get_command("jonr_1"))
-		
+
 rule kill_only_males_camp_sweep:
     input: 
     output: Path("kill_only_males_camp_sweep", "experiment_id")
     run:        
         shell(get_command("kill_only_males_camp_sweep"))
-		
+
 rule male_vector_fertility_test:
     input: 
     output: Path("male_vector_fertility_test", "experiment_id")
     run:       
         shell(get_command("male_vector_fertility_test"))
-		
+
 rule outdoor_rest_kill_male_mosquitoes:
     input: 
     output: Path("outdoor_rest_kill_male_mosquitoes", "experiment_id")
     run:        
         shell(get_command("outdoor_rest_kill_male_mosquitoes"))
-		
+
 rule simple_sim_template_emodpy:
     input: 
     output: Path("simple-sim-template-emodpy", "experiment_id")
     run:        
         shell(get_command("simple_sim_template_emodpy"))
-		
+
 rule campaign_sweep:
     input: 
     output: Path("campaign_sweep", "experiment_id")
     run:        
         shell(get_command("campaign_sweep"))
-		
+
 rule demographics_sweep:
     input: 
     output: Path("demographics_sweep", "experiment_id")
     run:        
         shell(get_command("demographics_sweep"))
+
 rule input_eir:
     input: 
     output: Path("inputEIR", "experiment_id")
     run:        
         shell(get_command("inputEIR"))
-		
+
 rule vector_basic:
     input: 
     output: Path("vector_basic", "experiment_id")
@@ -156,25 +159,25 @@ rule vgir:
     output: Path("vector_genetics_insecticide_resistance", "experiment_id")
     run:        
         shell(get_command("vector_genetics_insecticide_resistance"))
-		
+
 rule diagnostic_survey:
     input: 
     output: Path("diagnostic_survey", "experiment_id")
     run:        
         shell(get_command("diagnostic_survey"))
-		
+
 rule migration_spatial_vector_sim:
     input: 
     output: Path("migration_spatial_vector_sim", "experiment_id")
     run:        
         shell(get_command("migration_spatial_vector_sim"))
-		
+
 rule migration_spatial_malaria_sim:
     input: 
     output: Path("migration_spatial_malaria_sim", "experiment_id")
     run:        
         shell(get_command("migration_spatial_malaria_sim"))
-		
+
 rule add_reports:
     input: 
     output: Path("add_reports", "experiment_id")
@@ -192,18 +195,30 @@ rule example_template:
     output: Path("example_template", "experiment_id")
     run:        
         shell(get_command("example_template"))
-		
+
 rule fpg_example:
     input:
     output: Path("fpg_example", "experiment_id")
     run:        
         shell(get_command("fpg_example"))
-		
+
 rule download_files:
     input:
     output: Path("download_files", "experiment_id")
     run:        
         shell(get_command("download_files"))
+
+rule rcd_elimination_emodpy:
+    input: 
+    output: Path("rcd_elimination_emodpy", "experiment_id")
+    run:        
+        shell(get_command("rcd_elimination_emodpy"))
+
+rule embedded_python_post_processing:
+    input: 
+    output: Path("embedded_python_post_processing", "experiment_id")
+    run:        
+        shell(get_command("embedded_python_post_processing"))
 
 rule rcd_elimination_emodpy:
     input: 

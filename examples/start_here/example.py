@@ -110,10 +110,8 @@ def run():
     print_params()
 
     # Set platform
-    platform = Platform("SLURMStage")   # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    # platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
+    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
 
-    # pl = RequirementsToAssetCollection( platform, requirements_path=manifest.requirements )
     # create EMODTask 
     print("Creating EMODTask (from files)...")
 
