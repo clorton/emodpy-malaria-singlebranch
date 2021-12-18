@@ -55,7 +55,7 @@ def _get_events(
             camp,
             Event_Name="Treatment_Seeking_Behaviour",
             Start_Day=start_day,
-            Nodeset_Config=utils.do_nodes(camp.schema_path, node_ids),
+            Node_Ids=node_ids,
             Triggers=[t['trigger']],
             Duration=duration,
             Target_Age_Min=target_age_min,

@@ -158,7 +158,6 @@ def add_diagnostic_survey(
 
     if disqualifying_properties is None:
         disqualifying_properties = []
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids )
 
     received_test_event = BroadcastEvent(camp,Event_Trigger=received_test_event)
 
@@ -229,7 +228,7 @@ def add_diagnostic_survey(
                         camp,
                         Start_Day=start_day+1,
                         Event_Name="Diag_Survey_Now",
-                        Nodeset_Config = utils.do_nodes( camp.schema_path, node_ids=node_ids ),
+                        Node_Ids = node_ids,
                         Triggers=trigger_condition_list,
                         Duration=listening_duration,
                         Intervention_List=[BroadcastEvent( camp, broadcast_event )],
@@ -242,7 +241,7 @@ def add_diagnostic_survey(
             camp,
             Start_Day=start_day+1,
             Event_Name=event_name,
-            Nodeset_Config=nodeset_config,
+            Node_Ids=node_ids,
             Triggers=trigger_condition_list,
             Target_Residents_Only=1,
             Duration=listening_duration,
@@ -261,7 +260,7 @@ def add_diagnostic_survey(
         survey_event = ScheduledCampaignEvent(
             camp,
             Start_Day=start_day+1,
-            Nodeset_Config=nodeset_config, 
+            Node_Ids=node_ids,
             Property_Restrictions=IP_restrictions,
             Number_Repetitions=repetitions,
             Timesteps_Between_Repetitions=tsteps_btwn_repetitions,
@@ -285,7 +284,7 @@ def add_diagnostic_survey(
             camp,
             Start_Day=start_day,
             Event_Name=event_name + "Positive Result Action",
-            Nodeset_Config=nodeset_config,
+            Node_Ids=node_ids,
             Duration=diagnosis_config_listening_duration,
             Property_Restrictions=IP_restrictions,
             Triggers=[tested_positive_tether],
@@ -298,7 +297,7 @@ def add_diagnostic_survey(
             camp,
             Start_Day=start_day,
             Event_Name=event_name + "Negative Result Action",
-            Nodeset_Config=nodeset_config,
+            Node_Ids=node_ids,
             Duration=diagnosis_config_listening_duration,
             Triggers=[tested_negative_tether],
             Intervention_List=negative_diagnosis_configs

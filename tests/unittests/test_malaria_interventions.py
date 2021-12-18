@@ -8,7 +8,7 @@ import schema_path_file
 import random
 
 from emodpy_malaria.interventions.ivermectin import Ivermectin
-from emodpy_malaria.interventions.bednet import Bednet
+from emodpy_malaria.interventions.bednet import Bednet, add_ITN_scheduled, BednetIntervention
 from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
 from emodpy_malaria.interventions.udbednet import UDBednet
 from emodpy_malaria.interventions import drug_campaign
@@ -363,7 +363,7 @@ class TestMalariaInterventions(unittest.TestCase):
                      ):
         if not self.tmp_intervention:
             self.tmp_intervention = Bednet(
-                campaign=self.schema_file
+                  schema_path=self.schema_file.schema_path
                 , start_day=start_day
                 , coverage=coverage
                 , blocking_eff=blocking_eff
@@ -405,7 +405,7 @@ class TestMalariaInterventions(unittest.TestCase):
         specific_day = 39
 
         # call emodpy-malaria code directly
-        self.tmp_intervention = Bednet(campaign=schema_path_file,
+        self.tmp_intervention = Bednet(schema_path=schema_path_file.schema_file,
                                        start_day=specific_day)
 
         self.bednet_build()  # tmp_intervention already set
@@ -413,12 +413,26 @@ class TestMalariaInterventions(unittest.TestCase):
 
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 1.0)
         self.assertEqual(self.start_day, specific_day)
-        for wc in self.all_configs:
-            self.assertEqual(wc[WaningParams.Initial], 1)
-            self.assertEqual(wc[WaningParams.Box_Duration], 365)
-            self.assertEqual(wc[WaningParams.Decay_Time], 0)
-            self.assertEqual(wc[WaningParams.Class], WaningEffects.BoxExp)
 
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Initial_Effect"], 1 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Initial_Effect"], 1 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Initial_Effect"], 1 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["Initial_Effect"], 1 )
+
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Box_Duration"], 365 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Box_Duration"], 365 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Box_Duration"], 365 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["Expected_Discard_Time"], 3650 )
+
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Decay_Time_Constant"], 0 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Decay_Time_Constant"], 0 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Decay_Time_Constant"], 0 )
+
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["class"], "WaningEffectBoxExponential" )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["class"], "WaningEffectBoxExponential" )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["class"], "WaningEffectBoxExponential" )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["class"], "WaningEffectRandomBox" )
+       
         self.assertEqual(self.event_coordinator['Individual_Selection_Type']
                          , "DEMOGRAPHIC_COVERAGE")
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
@@ -535,6 +549,84 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.blocking_config[WaningParams.Decay_Time], 100)
         self.assertEqual(self.blocking_config[WaningParams.Box_Duration], 50)
         return
+
+    def test_add_itn_scheduled(self):
+        camp.reset()
+        start_day = 100
+        coverage = 0.56
+        target_age_min = 0
+        target_age_max = 500
+        repetitions = 3
+        tsteps_btwn_repetitions = 4
+        node_ids = [1,2]
+        add_ITN_scheduled(camp, start_day, [{'min': target_age_min, 'max': target_age_max, 'coverage': coverage}],
+                          repetitions=repetitions, tsteps_btwn_repetitions=tsteps_btwn_repetitions,
+                          node_ids=node_ids)
+
+        itn_event = camp.campaign_dict["Events"][0]
+        self.assertEqual(itn_event["class"], "CampaignEvent")
+        self.assertEqual(itn_event["Start_Day"], start_day)
+
+        event_coordinator_config = itn_event["Event_Coordinator_Config"]
+        self.assertEqual(event_coordinator_config["class"], "StandardInterventionDistributionEventCoordinator")
+        self.assertEqual(event_coordinator_config["Demographic_Coverage"], coverage)
+        self.assertEqual(event_coordinator_config["Target_Age_Max"], target_age_max)
+        self.assertEqual(event_coordinator_config["Target_Age_Min"], target_age_min)
+        self.assertEqual(event_coordinator_config["Number_Repetitions"], repetitions)
+        self.assertEqual(event_coordinator_config["Timesteps_Between_Repetitions"], tsteps_btwn_repetitions)
+
+        intervention_config = event_coordinator_config.get("Intervention_Config")
+        self.assertIsNone(intervention_config.get("Actual_IndividualIntervention_Config"))
+        self.assertEqual(intervention_config["class"], "MultiInterventionDistributor")
+
+        intervention_list_zero = intervention_config.get("Intervention_List")[0]
+        self.assertEqual(intervention_list_zero["class"], "SimpleBednet")
+
+        blocking_config = intervention_list_zero.get("Blocking_Config")
+        self.assertEqual(blocking_config["class"], "WaningEffectBoxExponential")
+
+        killing_config = intervention_list_zero.get("Killing_Config")
+        self.assertEqual(killing_config["class"], "WaningEffectBoxExponential")
+
+        usage_config = intervention_list_zero.get("Usage_Config")
+        self.assertEqual(usage_config["class"], "WaningEffectRandomBox")
+
+        nodeset_config = itn_event["Nodeset_Config"]
+        self.assertEqual(nodeset_config["class"], "NodeSetNodeList")
+        self.assertEqual(nodeset_config["Node_List"], node_ids)
+
+        camp.save("test_add_itn_scheduled.json")
+
+
+    def test_add_itn_scheduled_config(self):
+        camp.reset()
+        start_day = 100
+        coverage = 0.56
+        target_age_min = 0
+        target_age_max = 500
+        blocking_eff = 0.12
+        killing_eff = 0.34
+        repelling_eff = 0.56
+        usage_eff = 0.78
+
+        bednet = BednetIntervention(camp.schema_path, blocking_eff=blocking_eff, killing_eff=killing_eff,
+                                    repelling_eff=repelling_eff, usage_eff=usage_eff)
+        add_ITN_scheduled(camp, start_day, [{'min': target_age_min, 'max': target_age_max, 'coverage': coverage}], itn_bednet=bednet)
+
+        itn_event = camp.campaign_dict["Events"][0]
+        intervention_list_zero = itn_event["Event_Coordinator_Config"]["Intervention_Config"].get("Intervention_List")[0]
+
+        blocking_config = intervention_list_zero.get("Blocking_Config")
+        self.assertEqual(blocking_config["Initial_Effect"], blocking_eff)
+
+        killing_config = intervention_list_zero.get("Killing_Config")
+        self.assertEqual(killing_config["Initial_Effect"], killing_eff)
+
+        usage_config = intervention_list_zero.get("Usage_Config")
+        self.assertEqual(usage_config["Initial_Effect"], usage_eff)
+
+        repelling_config = intervention_list_zero.get("Repelling_Config")
+        self.assertEqual(repelling_config["Initial_Effect"], repelling_eff)
 
     # endregion
 

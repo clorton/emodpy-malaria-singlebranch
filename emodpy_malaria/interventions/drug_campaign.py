@@ -406,7 +406,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
                     camp,
                     Start_Day=start_days[0],
                     Event_Name="MDA_Delayed",
-                    Nodeset_Config=utils.do_nodes(camp.schema_path, node_ids=node_ids),
+                    Node_Ids=node_ids,
                     Triggers=trigger_condition_list,
                     Duration=listening_duration,
                     Intervention_List=[BroadcastEvent(camp, broadcast_event)],
@@ -420,7 +420,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
             camp,
             Start_Day=start_days[0] - 1,
             Event_Name="MDA_Now",
-            Nodeset_Config=nodeset_config,
+            Node_Ids=nodeset_config,
             Target_Age_Min=target_age_min,
             Target_Age_Max=target_age_max,
             Target_Gender=target_sex,
@@ -439,7 +439,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
             drug_event = ScheduledCampaignEvent(
                 camp=camp,
                 Start_Day=start_day,
-                Nodeset_Config=nodeset_config,
+                Node_Ids=nodeset_config,
                 Target_Age_Min=target_age_min,
                 Target_Age_Max=target_age_max,
                 Property_Restrictions=ind_property_restrictions,
@@ -554,8 +554,6 @@ def add_fMDA(
     if node_property_restrictions is None:
         node_property_restrictions = []
 
-    nodeset_config = utils.do_nodes(camp.schema_path, node_ids=node_ids)
-
     # rewritten to give out a unique trigger for the fmda
     fmda_trigger_tether = "Give_Drugs_fMDA_{}".format(random.randint(1, 10000))
     fmda_trigger_event = BroadcastEvent(camp, Event_Trigger="Give_Drugs_fMDA")
@@ -591,7 +589,7 @@ def add_fMDA(
             camp,
             Event_Name="Distribute fMDA",
             Start_Day=start_days[0] - 1,
-            Nodeset_Config=nodeset_config,
+            Node_Ids=node_ids,
             Demographic_Coverage=coverage,
             Blackout_Event_Trigger="fMDA_Blackout_Event_Trigger",
             Blackout_Period=1,
@@ -625,7 +623,7 @@ def add_fMDA(
             camp,
             Event_Name="Distribute fMDA (2)",
             Start_Day=start_days[0] - 1,
-            Nodeset_Config=nodeset_config,
+            Node_Ids=node_ids,
             Demographic_Coverage=coverage,
             Blackout_Event_Trigger="fMDA_Blackout_Event_Trigger",
             Blackout_Period=1,
@@ -664,9 +662,8 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
 
     if disqualifying_properties is None:
         disqualifying_properties = []
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
-    fmda_setup = fmda_cfg(camp, fmda_radius, node_selection_type, event_trigger='')  # no trigger used
+    fmda_setup = fmda_cfg(camp, fmda_radius, node_selection_type)  # default trigger used
     snowball_setup = [deepcopy(fmda_setup) for x in range(snowballs + 1)]
     snowball_trigger = 'Diagnostic_Survey_'
     snowball_setup[0].Event_Trigger = snowball_trigger + "0"
@@ -675,7 +672,7 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
         camp,
         Event_Name="Trigger RCD MSAT",
         Start_Day=start_day,
-        Nodeset_Config=nodeset_config,
+        Node_Ids=node_ids,
         Demographic_Coverage=trigger_coverage,
         Node_Property_Restrictions=node_property_restrictions,
         Duration=listening_duration,
@@ -741,7 +738,6 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
     interventions = drug_configs
     if receiving_drugs_event:
         interventions.append(receiving_drugs_event)
-    nodeset_config = utils.do_nodes(camp.schema_path, node_ids=node_ids)
 
     if disqualifying_properties is None:
         disqualifying_properties = []
@@ -753,7 +749,7 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
         camp,
         Event_Name="Trigger RCD MDA",
         Start_Day=start_day,
-        Nodeset_Config=nodeset_config,
+        Node_Ids=node_ids,
         Demographic_Coverage=trigger_coverage,
         Node_Property_Restrictions=node_property_restrictions,
         Property_Restrictions=ind_property_restrictions,
@@ -777,7 +773,7 @@ def add_rfMDA(camp, start_day: int = 0, coverage: float = 1, drug_configs: list 
         camp,
         Event_Name="Distribute fMDA",
         Start_Day=start_day,
-        Nodeset_Config=nodeset_config,
+        Node_Ids=node_ids,
         Demographic_Coverage=coverage,
         Node_Property_Restrictions=node_property_restrictions,
         Property_Restrictions=ind_property_restrictions,
