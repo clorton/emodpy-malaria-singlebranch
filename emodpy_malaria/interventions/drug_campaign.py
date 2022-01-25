@@ -698,6 +698,7 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
                           trigger_condition_list=[snowball_setup[0].Event_Trigger],
                           event_name='Reactive MSAT level 0',
                           positive_diagnosis_configs=event_config,
+                          listening_duration=listening_duration,
                           IP_restrictions=ind_property_restrictions, NP_restrictions=node_property_restrictions,
                           disqualifying_properties=disqualifying_properties, expire_recent_drugs=expire_recent_drugs)
 
@@ -712,6 +713,7 @@ def add_rfMSAT(camp, start_day: int = 0, coverage: float = 1, drug_configs: list
                               trigger_condition_list=[curr_trigger],
                               event_name='Snowball level ' + str(snowball),
                               positive_diagnosis_configs=event_config,
+                              listening_duration=listening_duration,
                               IP_restrictions=ind_property_restrictions, NP_restrictions=node_property_restrictions,
                               disqualifying_properties=disqualifying_properties,
                               expire_recent_drugs=expire_recent_drugs)
