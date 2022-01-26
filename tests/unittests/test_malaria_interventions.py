@@ -6,6 +6,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 import schema_path_file
 import random
+import pandas as pd
 
 from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet, add_ITN_scheduled, BednetIntervention
@@ -22,6 +23,7 @@ from emodpy_malaria.interventions.irs import add_irs_housing_modification
 from emodpy_malaria.interventions.spacespraying import SpaceSpraying
 from emodpy_malaria.interventions.sugartrap import SugarTrap
 from emodpy_malaria.interventions.community_health_worker import add_community_health_worker
+from emodpy_malaria.interventions.scale_larval_habitats import add_scale_larval_habitats
 
 import emod_api.campaign as camp
 
@@ -363,7 +365,7 @@ class TestMalariaInterventions(unittest.TestCase):
                      ):
         if not self.tmp_intervention:
             self.tmp_intervention = Bednet(
-                  schema_path=self.schema_file.schema_path
+                schema_path=self.schema_file.schema_path
                 , start_day=start_day
                 , coverage=coverage
                 , blocking_eff=blocking_eff
@@ -414,25 +416,29 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 1.0)
         self.assertEqual(self.start_day, specific_day)
 
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Initial_Effect"], 1 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Initial_Effect"], 1 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Initial_Effect"], 1 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["Initial_Effect"], 1 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Initial_Effect"], 1)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Initial_Effect"], 1)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Initial_Effect"], 1)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["Initial_Effect"], 1)
 
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Box_Duration"], 365 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Box_Duration"], 365 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Box_Duration"], 365 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["Expected_Discard_Time"], 3650 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Box_Duration"], 365)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Box_Duration"], 365)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Box_Duration"], 365)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["Expected_Discard_Time"], 3650)
 
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Decay_Time_Constant"], 0 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Decay_Time_Constant"], 0 )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Decay_Time_Constant"], 0 )
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["Decay_Time_Constant"], 0)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["Decay_Time_Constant"], 0)
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["Decay_Time_Constant"], 0)
 
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["class"], "WaningEffectBoxExponential" )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["class"], "WaningEffectBoxExponential" )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["class"], "WaningEffectBoxExponential" )
-        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["class"], "WaningEffectRandomBox" )
-       
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Killing_Config"]["class"],
+                         "WaningEffectBoxExponential")
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Blocking_Config"]["class"],
+                         "WaningEffectBoxExponential")
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Repelling_Config"]["class"],
+                         "WaningEffectBoxExponential")
+        self.assertEqual(self.event_coordinator["Intervention_Config"]["Usage_Config"]["class"],
+                         "WaningEffectRandomBox")
+
         self.assertEqual(self.event_coordinator['Individual_Selection_Type']
                          , "DEMOGRAPHIC_COVERAGE")
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
@@ -558,7 +564,7 @@ class TestMalariaInterventions(unittest.TestCase):
         target_age_max = 500
         repetitions = 3
         tsteps_btwn_repetitions = 4
-        node_ids = [1,2]
+        node_ids = [1, 2]
         add_ITN_scheduled(camp, start_day, [{'min': target_age_min, 'max': target_age_max, 'coverage': coverage}],
                           repetitions=repetitions, tsteps_btwn_repetitions=tsteps_btwn_repetitions,
                           node_ids=node_ids)
@@ -597,7 +603,6 @@ class TestMalariaInterventions(unittest.TestCase):
 
         camp.save("test_add_itn_scheduled.json")
 
-
     def test_add_itn_scheduled_config(self):
         camp.reset()
         start_day = 100
@@ -611,10 +616,12 @@ class TestMalariaInterventions(unittest.TestCase):
 
         bednet = BednetIntervention(camp.schema_path, blocking_eff=blocking_eff, killing_eff=killing_eff,
                                     repelling_eff=repelling_eff, usage_eff=usage_eff)
-        add_ITN_scheduled(camp, start_day, [{'min': target_age_min, 'max': target_age_max, 'coverage': coverage}], itn_bednet=bednet)
+        add_ITN_scheduled(camp, start_day, [{'min': target_age_min, 'max': target_age_max, 'coverage': coverage}],
+                          itn_bednet=bednet)
 
         itn_event = camp.campaign_dict["Events"][0]
-        intervention_list_zero = itn_event["Event_Coordinator_Config"]["Intervention_Config"].get("Intervention_List")[0]
+        intervention_list_zero = itn_event["Event_Coordinator_Config"]["Intervention_Config"].get("Intervention_List")[
+            0]
 
         blocking_config = intervention_list_zero.get("Blocking_Config")
         self.assertEqual(blocking_config["Initial_Effect"], blocking_eff)
@@ -744,8 +751,10 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_usagebednet_only_needs_start_day(self):
         specific_start_day = 131415
+        camp.campaign_dict["Events"] = []   # resetting
         self.tmp_intervention = UDBednet(camp=camp,
                                          start_day=specific_start_day)
+
         self.usagebednet_build()
         self.assertEqual(self.start_day, specific_start_day)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
@@ -881,7 +890,7 @@ class TestMalariaInterventions(unittest.TestCase):
         start_day = 1
         diagnostic_type = 'BLOOD_SMEAR_PARASITES'
         diagnostic_threshold = 40
-        measurement_sensitivity= 0.1
+        measurement_sensitivity = 0.1
         received_test_event = 'Received_Test'
         self.is_debugging = False
 
@@ -918,8 +927,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertIn(malaria_diagnostic['Positive_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
                       "TestedPositive")
         self.assertEqual(broadcast_event['Broadcast_Event'], received_test_event)
-
-
 
     def test_diagnostic_survey_custom(self):
         camp.campaign_dict["Events"] = []
@@ -985,7 +992,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(intervention_config['Target_Age_Max'], agemax)
         self.assertEqual(intervention_config['Target_Gender'], gender)
         self.assertEqual(len(intervention_config['Actual_IndividualIntervention_Config']['Intervention_List']), 2)
-        if intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]["class"] == "MalariaDiagnostic":
+        if intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0][
+            "class"] == "MalariaDiagnostic":
             malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
             broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
         else:
@@ -1700,6 +1708,68 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(coordinator_config['Initial_Amount_Distribution'], "CONSTANT_DISTRIBUTION")
         intervention_config = coordinator_config['Intervention_Config']
         self.assertEqual(intervention_config['class'], "AntimalarialDrug")
+        pass
+
+    def test_scale_larval_habitat(self):
+        # resetting campaign
+        camp.campaign_dict["Events"] = []
+        df = pd.DataFrame({'NodeID':                        [1, 2, 3, 4, 5],
+                           'CONSTANT.arabiensis':           [1, 0, 1, 1, 1],
+                           'TEMPORARY_RAINFALL.arabiensis': [1, 1, 0, 1, 0],
+                           'CONSTANT.funestus':             [1, 0, 1, 1, 1],
+                           'WATER_VEGETATION':              [1, 1, 0, 1, 0]
+                           })
+        npr = [{"Test:Testing"}, {"Test:Checking"}]
+        add_scale_larval_habitats(camp, df=df,
+                                  start_day=35, repetitions=3, timesteps_between_repetitions=36,
+                                  node_property_restrictions=npr)
+        self.assertEqual(len(camp.campaign_dict['Events']), 3)
+        for campaign_event in camp.campaign_dict['Events']:
+            self.assertEqual(campaign_event['Start_Day'], 35)
+            self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+            event_config = campaign_event['Event_Coordinator_Config']
+            self.assertEqual(event_config['Number_Repetitions'], 3)
+            self.assertEqual(event_config['Timesteps_Between_Repetitions'], 36)
+            self.assertEqual(event_config['Demographic_Coverage'], 1)
+            self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+            self.assertEqual(event_config['Target_Gender'], "All")
+            self.assertEqual(event_config['Node_Property_Restrictions'], npr)
+            self.assertEqual(event_config['Intervention_Config']['class'], "ScaleLarvalHabitat")
+            if campaign_event['Nodeset_Config']['Node_List'] == [1, 4]:
+                with open('14.json', 'w') as f:
+                    json.dump(event_config['Intervention_Config']['Larval_Habitat_Multiplier'], f)
+                self.assertIn({"Habitat": "WATER_VEGETATION", "Species": "ALL_SPECIES", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "CONSTANT", "Species": "arabiensis", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "CONSTANT", "Species": "funestus", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "TEMPORARY_RAINFALL", "Species": "arabiensis", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+            elif campaign_event['Nodeset_Config']['Node_List'] == [3, 5]:
+                with open('35.json', 'w') as f:
+                    json.dump(event_config['Intervention_Config']['Larval_Habitat_Multiplier'], f)
+                self.assertIn({"Habitat": "WATER_VEGETATION", "Species": "ALL_SPECIES", "Factor": 0},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "CONSTANT", "Species": "arabiensis", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "CONSTANT", "Species": "funestus", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "TEMPORARY_RAINFALL", "Species": "arabiensis", "Factor": 0},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+            elif campaign_event['Nodeset_Config']['Node_List'] == [2]:
+                with open('2.json', 'w') as f:
+                    json.dump(event_config['Intervention_Config']['Larval_Habitat_Multiplier'], f)
+                self.assertIn({"Habitat": "TEMPORARY_RAINFALL", "Species": "arabiensis", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "WATER_VEGETATION", "Species": "ALL_SPECIES", "Factor": 1},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "CONSTANT", "Species": "arabiensis", "Factor": 0},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                self.assertIn({"Habitat": "CONSTANT", "Species": "funestus", "Factor": 0},
+                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+            else:
+                self.assertTrue(True, "Could not find the correct node combination.")
         pass
 
 

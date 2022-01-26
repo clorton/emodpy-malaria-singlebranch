@@ -97,7 +97,6 @@ def species_params(manifest, species):
         vsp.parameters.Egg_Batch_Size = 70
         vsp.parameters.Indoor_Feeding_Fraction = 0.6
         vsp.parameters.Transmission_Rate = 0.8
-        vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_DAY"
         # adding habitats
         lht1 = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorHabitat"])
         lht1.parameters.Habitat_Type = "WATER_VEGETATION"
@@ -121,7 +120,6 @@ def species_params(manifest, species):
         vsp.parameters.Egg_Batch_Size = 70
         vsp.parameters.Indoor_Feeding_Fraction = 0.01
         vsp.parameters.Transmission_Rate = 0.8
-        vsp.parameters.Vector_Sugar_Feeding_Frequency = "VECTOR_SUGAR_FEEDING_EVERY_DAY"
         # adding habitats
         lht1 = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorHabitat"])
         lht1.parameters.Habitat_Type = "CONSTANT"

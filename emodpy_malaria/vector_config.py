@@ -131,7 +131,7 @@ def add_species(config, manifest, species_to_select):
         config: schema-backed config smart dict
         manifest:
         species_to_select: a list of species or a name of a single species you'd like to set from
-            malaria_vector_species_params.csv
+            malaria_vector_species_params.py
 
     Returns:
         configured config

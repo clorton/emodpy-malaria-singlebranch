@@ -155,7 +155,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Parasitemia_Bins'], [])
         self.assertEqual(self.p_dict['Pretty_Format'], 0)
         self.assertEqual(self.p_dict['Report_Description'], "")
-        self.assertEqual(self.p_dict['Reporting_Interval'], 1000000)
+        self.assertEqual(self.p_dict['Reporting_Interval'], 1)
         self.assertEqual(self.p_dict['Start_Day'], 0)
         pass
 
@@ -306,7 +306,7 @@ class TestMalariaReport(unittest.TestCase):
     def test_malaria_immunity_report_default(self):
         start_day = 0
         duration_days = 365000
-        reporting_interval = 365000
+        reporting_interval = 1
         max_number_reports = 365000
         age_bins = []
         pretty_format = 0
@@ -398,8 +398,9 @@ class TestMalariaReport(unittest.TestCase):
         individual_property_to_collect = ""
         pretty_format = 0
         report_description = ""
-        reporting_interval = 1000000.0
-        self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file, event_trigger_list=event_trigger_list)
+        reporting_interval = 1
+        self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file,
+                                                        event_trigger_list=event_trigger_list)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], start_day)
@@ -633,9 +634,9 @@ class TestMalariaReport(unittest.TestCase):
     def test_spatial_report_malaria_filtered_default(self):
         start_day = 0
         end_day = 365000
-        reporting_interval = 365000
+        reporting_interval = 1
         nodes = []
-        report_filename = "SpatialReportMalariaFiltered.json"
+        report_filename = "SpatialReportMalariaFiltered"
         spatial_output_channels = ["Blood_Smear_Parasite_Prevalence",
                                    "New_Clinical_Cases",
                                    "Population"]
