@@ -24,16 +24,18 @@ class MalariaDemographics(Demog.Demographics):
             creating more complicated demographics files. For example,
             using a single node file to create a multi-node file for spatial
             simulations. 
-        init_prev: The initial malaria prevalence of the population.
+        init_prev: The initial malaria prevalence of the population. Defaults to 0%.
+        include_biting_heterogeneity: variable biting rates. Defaults to on.
 
     Returns: 
         None 
      """
-    def __init__(self, nodes, idref="Gridded world grump2.5arcmin", base_file=None, init_prev=0.2, include_biting_heterogeneity=True):
+    def __init__(self, nodes, idref="Gridded world grump2.5arcmin", base_file=None, init_prev=0.0, include_biting_heterogeneity=True):
         super().__init__( nodes, idref, base_file )
-        #super().SetDefaultProperties()
         super().SetDefaultNodeAttributes(birth=True)
-        # DT.InitPrevUniform( self, init_prev ) # removing because otherwise Enable_Initial_Prevalence is turned on
+        if init_prev > 0:
+            # Do constant intial prevalence as uniform with same min and max.
+            super().SetInitPrevFromUniformDraw( self, init_prev, init_prev, f"Constant Initial Prevalence ({init_prev})"  )
         if include_biting_heterogeneity:
             self.set_risk_lowmedium() # lognormal, default=1.6
 
@@ -126,7 +128,7 @@ def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", s
     nodes = generic_demog.nodes
     return MalariaDemographics(nodes=nodes, idref=site)
 
-def from_csv(input_file, res=30/3600, id_ref="from_csv"):
+def from_csv(input_file, res=30/3600, id_ref="from_csv", init_prev=0.0, include_biting_heterogeneity=True):
     """
     Create a multi-node :py:class:`~emodpy_malaria.demographics.MalariaDemographics`
     instance from a CSV file describing a population.
@@ -135,13 +137,15 @@ def from_csv(input_file, res=30/3600, id_ref="from_csv"):
         input_file: The path to the csv file to ingest.
         res: Resolution.
         id_ref: A string to identify the file, needs to match other input files.
+        init_prev: The initial malaria prevalence of the population. Defaults to 0%.
+        include_biting_heterogeneity: variable biting rates. Defaults to on.
 
     Returns:
         A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance
     """
     generic_demog = Demog.from_csv( input_file, res, id_ref )
     nodes = generic_demog.nodes
-    return MalariaDemographics(nodes=nodes, idref=id_ref)
+    return MalariaDemographics(nodes=nodes, idref=id_ref, init_prev=init_prev, include_biting_heterogeneity=include_biting_heterogeneity)
 
 def from_params(tot_pop=1e6, num_nodes=100, frac_rural=0.3, id_ref="from_params" ):
     """

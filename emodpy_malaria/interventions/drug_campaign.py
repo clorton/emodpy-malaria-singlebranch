@@ -363,7 +363,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
     if not node_property_restrictions:
         node_property_restrictions = []
 
-    nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
+    # nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
     interventions = drug_configs
     if receiving_drugs_event:
@@ -420,7 +420,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
             camp,
             Start_Day=start_days[0] - 1,
             Event_Name="MDA_Now",
-            Node_Ids=nodeset_config,
+            Node_Ids=node_ids,
             Target_Age_Min=target_age_min,
             Target_Age_Max=target_age_max,
             Target_Gender=target_sex,
@@ -439,7 +439,7 @@ def add_MDA(camp, start_days: list = None, coverage: float = 1.0, drug_configs: 
             drug_event = ScheduledCampaignEvent(
                 camp=camp,
                 Start_Day=start_day,
-                Node_Ids=nodeset_config,
+                Node_Ids=node_ids,
                 Target_Age_Min=target_age_min,
                 Target_Age_Max=target_age_max,
                 Property_Restrictions=ind_property_restrictions,
