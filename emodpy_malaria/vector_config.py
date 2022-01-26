@@ -481,6 +481,7 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
             X_SHRED, Y_SHRED -  cannot be used in the same species during one simulation/realization. The driving_allele
             must exist at least once in the genome for shredding to occur. If there is only one, it can exist in either
             half of the genome.
+            DAISY_CHAIN -  can be used for drives that do not drive themselves but can be driven by another allele.
         to_copy: The main allele to be copied **Allele_To_Copy**
         to_replace: The allele that must exist and will be replaced by the copy **Allele_To_Replace**
         likelihood_list: A list of tuples in format: [(**Copy_To_Allele**, **Likelihood**),(),()] to assign to
@@ -512,6 +513,13 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
                                                                     or allele_to_shred_to or allele_shredding_fraction or allele_to_shred_to_surviving_fraction):
         raise ValueError(f"Please do not define any shredding parameters if you're not using 'driver_type' = X_SHRED or"
                          f"Y_SHRED.\n")
+    elif driver_type == "DAISY_CHAIN":
+        for (copy_to_allele, likelihood) in likelihood_list:
+            if copy_to_allele == driving_allele:
+                raise ValueError(f"For DAISY_CHAIN driver_type, you cannot have the Driving_Allele (driving_allele) "
+                                 f"= '{driving_allele}' be the same as any of the Copy_To_Allele (in likelihood_list) = "
+                                 f"'({copy_to_allele}, {likelihood})'.\n")
+
     species_params = get_species_params(config, species)
     gender_allele_required = False
     gender_allele_to_shred = False
