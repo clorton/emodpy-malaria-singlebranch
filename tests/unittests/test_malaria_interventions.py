@@ -1010,17 +1010,52 @@ class TestMalariaInterventions(unittest.TestCase):
                       "TestedPositive")
         self.assertEqual(broadcast_event['Broadcast_Event'], received_test_event)
 
-    def test_common(self):
+    def test_malaria_diagnostic_custom(self):
         self.is_debugging = False
-        malaria_diagnostic = MalariaDiagnostic(camp, 1, 1, "BLOOD_SMEAR_PARASITES")
+        malaria_diagnostic = MalariaDiagnostic(camp, "PCR_PARASITES", 0.5, 1 )
         measures = [malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
 
-        self.assertFalse(any(item != 1 for item in measures), msg="Not all values are 1 when set to 1")
+        self.assertEqual(malaria_diagnostic.Detection_Threshold, 1, msg="Detection Threshold not set properly")
+        self.assertEqual(malaria_diagnostic.Measurement_Sensitivity, 0.5, msg="Measurement Sensitivity not set properly")
+        self.assertEqual("PCR_PARASITES", malaria_diagnostic.Diagnostic_Type)
+
+        antimalarial_drug = AntimalarialDrug(camp, "Malaria")
+        self.assertEqual(antimalarial_drug.Drug_Type, "Malaria")
+        self.assertEqual(antimalarial_drug.Cost_To_Consumer, 1.0)
+
+    def test_malaria_diagnostic_default(self):
+        self.is_debugging = False
+        malaria_diagnostic = MalariaDiagnostic(camp)
+        measures = [0.5, malaria_diagnostic.Detection_Threshold]
+
+        self.assertFalse(any(item == 1 for item in measures), msg="Not all values are 0 when set to 0")
         self.assertEqual("BLOOD_SMEAR_PARASITES", malaria_diagnostic.Diagnostic_Type)
 
         antimalarial_drug = AntimalarialDrug(camp, "Malaria")
         self.assertEqual(antimalarial_drug.Drug_Type, "Malaria")
         self.assertEqual(antimalarial_drug.Cost_To_Consumer, 1.0)
+
+    def test_malaria_diagnostic_error(self):
+        with self.assertRaises(ValueError) as context:
+            diag = MalariaDiagnostic(camp, "BANANA")
+
+        with self.assertRaises(ValueError) as context:
+            MalariaDiagnostic(camp, "BLOOD_SMEAR_PARASITES", -1, 0)
+
+        with self.assertRaises(ValueError) as context:
+            MalariaDiagnostic(camp, "BLOOD_SMEAR_PARASITES", 0, -1)
+
+
+    def test_malaria_diagnostic_infection(self):
+        self.is_debugging = False
+        malaria_diagnostic = MalariaDiagnostic(camp, "TRUE_INFECTION_STATUS")
+        
+        self.assertEqual("StandardDiagnostic", malaria_diagnostic.Intervention_Name)
+
+        with self.assertRaises(ValueError) as context:
+            MalariaDiagnostic(camp, "TRUE_INFECTION_STATUS", -1, 0)
+        with self.assertRaises(ValueError) as context:
+            MalariaDiagnostic(camp, "TRUE_INFECTION_STATUS", 0, -1)
 
     def mosquitorelease_build(self
                               , start_day=1

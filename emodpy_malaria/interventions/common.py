@@ -13,9 +13,9 @@ schema_path=None
 
 def MalariaDiagnostic(
         camp,
-        Measurement_Sensitivity,
-        Detection_Threshold,
-        Diagnostic_Type 
+        Diagnostic_Type="BLOOD_SMEAR_PARASITES",
+        Measurement_Sensitivity=0,
+        Detection_Threshold=0
     ):
     """
     Add a malaria diagnostic intervention to your campaign. This is equivalent
@@ -38,14 +38,20 @@ def MalariaDiagnostic(
       The diagnostic intervention event.
     """
     # Shares lots of code with Standard. Not obvious if code minimization maximizes readability.
+    import emod_api.interventions.common as emodapi_com
     global schema_path 
     schema_path = camp.schema_path if camp is not None else schema_path
     # First, get the objects
 
-    intervention = s2c.get_class_with_defaults( "MalariaDiagnostic", schema_path )
-    intervention.Measurement_Sensitivity = Measurement_Sensitivity 
-    intervention.Detection_Threshold = Detection_Threshold 
-    intervention.Diagnostic_Type = Diagnostic_Type 
+    if Diagnostic_Type == "TRUE_INFECTION_STATUS":
+        if Measurement_Sensitivity != 0 or Detection_Threshold != 0:
+            raise ValueError( f"MalariaDiagnostic invoked with 'TRUE_INFECTION_STATUS' and non-default values of either sensitivity or threshold params (or both). Those params are not used for TRUE_INFECTION_STATUS." )
+        intervention = emodapi_com.StandardDiagnostic( camp )
+    else:
+        intervention = s2c.get_class_with_defaults( "MalariaDiagnostic", schema_path )
+        intervention.Measurement_Sensitivity = Measurement_Sensitivity 
+        intervention.Detection_Threshold = Detection_Threshold 
+        intervention.Diagnostic_Type = Diagnostic_Type 
 
     return intervention
 

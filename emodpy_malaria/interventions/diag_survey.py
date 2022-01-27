@@ -166,17 +166,11 @@ def add_diagnostic_survey(
     tested_positive_tether = "TestedPositive_{}".format(random.randint(1, 100000))
     tested_negative_tether = "TestedNegative_{}".format(random.randint(1, 100000))
 
-    if diagnostic_type == "TRUE_INFECTION_STATUS":
-        intervention_cfg = StandardDiagnostic(
-            Days_To_Diagnosis=0,
-            Treatment_Fraction=1)
-
-    else:
-        intervention_cfg = MalariaDiagnostic(
-            camp,
-            Measurement_Sensitivity=measurement_sensitivity,
-            Detection_Threshold=diagnostic_threshold,
-            Diagnostic_Type=diagnostic_type)
+    intervention_cfg = MalariaDiagnostic(
+        camp,
+        Measurement_Sensitivity=measurement_sensitivity,
+        Detection_Threshold=diagnostic_threshold,
+        Diagnostic_Type=diagnostic_type)
 
     bcast = BroadcastEvent(camp,Event_Trigger=tested_positive_tether)
     mid = MultiInterventionDistributor( camp, Intervention_List=[tested_positive, bcast] )
