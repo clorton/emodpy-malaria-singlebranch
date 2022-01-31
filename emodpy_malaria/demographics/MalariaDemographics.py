@@ -3,7 +3,7 @@ This module contains the classes and functions for creating demographics files
 for malaria simulations. For more information on |EMOD_s| demographics files,
 see :doc:`emod-malaria:software-demographics`. 
 """
-
+import os
 import emod_api.demographics.Demographics as Demog
 from emod_api.demographics import DemographicsTemplates as DT
 import emod_api.config.default_from_schema_no_validation as dfs
@@ -35,7 +35,7 @@ class MalariaDemographics(Demog.Demographics):
         super().SetDefaultNodeAttributes(birth=True)
         if init_prev > 0:
             # Do constant intial prevalence as uniform with same min and max.
-            super().SetInitPrevFromUniformDraw( self, init_prev, init_prev, f"Constant Initial Prevalence ({init_prev})"  )
+            super().SetInitPrevFromUniformDraw( init_prev, init_prev, f"Constant Initial Prevalence ({init_prev})"  )
         if include_biting_heterogeneity:
             self.set_risk_lowmedium() # lognormal, default=1.6
 
@@ -124,8 +124,11 @@ def from_pop_csv( pop_filename_in, pop_filename_out="spatial_gridded_pop_dir", s
     Returns:
         A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance
     """
+    if os.path.exists( pop_filename_in ) == False:
+        raise ValueError( f"Can't find input data file {pop_filename_in}" )
+
     generic_demog = Demog.from_pop_csv( pop_filename_in, pop_filename_out, site )
-    nodes = generic_demog.nodes
+    nodes = generic_demog._nodes
     return MalariaDemographics(nodes=nodes, idref=site)
 
 def from_csv(input_file, res=30/3600, id_ref="from_csv", init_prev=0.0, include_biting_heterogeneity=True):
@@ -143,8 +146,11 @@ def from_csv(input_file, res=30/3600, id_ref="from_csv", init_prev=0.0, include_
     Returns:
         A :py:class:`~emodpy_malaria.demographics.MalariaDemographics` instance
     """
+    if os.path.exists( input_file ) == False:
+        raise ValueError( f"Can't find input data file {input_file}" )
+
     generic_demog = Demog.from_csv( input_file, res, id_ref )
-    nodes = generic_demog.nodes
+    nodes = generic_demog._nodes
     return MalariaDemographics(nodes=nodes, idref=id_ref, init_prev=init_prev, include_biting_heterogeneity=include_biting_heterogeneity)
 
 def from_params(tot_pop=1e6, num_nodes=100, frac_rural=0.3, id_ref="from_params" ):
