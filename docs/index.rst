@@ -1,6 +1,6 @@
-===========================
-Welcome to |EMODPY_malaria|
-===========================
+==============================
+|EMODPY_malaria| documentation
+==============================
 
 |EMODPY_malaria| is a collection of Python scripts and utilities created to
 streamline user interactions with |EMOD_s| and |IT_s| for modeling malaria.
@@ -20,6 +20,16 @@ disease transmission model.
    :titlesonly:
 
    installation
+   modules
    faq
-   emodpy_malaria_index
 
+.. toctree::
+   :maxdepth: 3
+   :titlesonly:
+   :caption: Related documentation
+
+   emodpy Jupyter notebooks <https://docs.idmod.org/projects/jupyter-notebooks-emodpy/en/latest/>
+   EMOD malaria <https://docs.idmod.org/projects/emod-malaria/en/latest/>
+   emod-api <https://docs.idmod.org/projects/emod-api/en/latest/>
+   emodpy <https://docs.idmod.org/projects/emodpy/en/latest/>
+   idmtools <https://docs.idmod.org/projects/idmtools/en/latest/>

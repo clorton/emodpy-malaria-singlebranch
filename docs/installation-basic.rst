@@ -38,10 +38,6 @@ Follow the steps below to install |EMODPY_malaria|.
 
         pip install emodpy_malaria
 
-    If you are on Python 3.6, also run::
-
-        pip install dataclasses
-
     If you are on Linux, also run::
 
         pip install keyrings.alt

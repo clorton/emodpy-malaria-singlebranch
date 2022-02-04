@@ -3,10 +3,15 @@ Frequently asked questions
 ==========================
 
 As you get started with |EMODPY_malaria|, you may have questions. The most common
-questions are answered below. The most common questions are answered below. For
-questions related to functionality in related packages, see :doc:`idmtools:faq`
-for |IT_s|, :doc:`emod_api:faq` for |emod_api|, and :doc:`emodpy:faq` for
-|EMODPY_s|.
+questions are answered below. The most common questions are answered below. 
+For questions related to functionality in related packages, see the
+following documentation:
+
+* :doc:`emod-malaria:faq` for |EMOD_s|
+* :doc:`idmtools:faq` for |IT_s|
+* :doc:`emod_api:faq` for |emod_api|
+* :doc:`emodpy:faq` for |EMODPY_s|  
+
 
 How do I set configuration parameters?
    Define your own parameter-setting function such as ``set_param_fn`` and pass
