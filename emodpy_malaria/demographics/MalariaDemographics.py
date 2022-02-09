@@ -91,6 +91,57 @@ class MalariaDemographics(Demog.Demographics):
             lhm_dict.append( lhm.parameters )
             self.get_node(node_id).node_attributes.larval_habitat_multiplier = lhm_dict
 
+    def add_initial_vector_species( self, init_vector_species, node_ids=None ):
+        """
+        Add an InitialVectorsForSpecies configuration for all nodes or just a set of nodes.
+
+        Args:
+            init_vector_species: Dictionary of vector species (strings) to initial populations. There is no 
+                checking for coherence of species named in other input settings.
+            node_ids: Array of node ids. Defaults to None for all nodes.
+
+        Returns:
+            N/A.
+
+        """
+        if node_ids is None:
+            ivs_dict = dict()
+            ivs_dict["InitialVectorsForSpecies"] = init_vector_species
+            self.SetNodeDefaultFromTemplate( ivs_dict, setter_fn = None )
+        else:
+            for node_id in node_ids:
+                self.get_node(node_id).node_attributes.add_parameter( "InitialVectorsForSpecies", init_vector_species )
+
+        # no implicits
+
+    def add_initial_vector_species_from_csv( self, csv_path ):
+        """
+            Add initial vector species population to 'demographics' nodes from a csv file.
+
+        Args:
+            csv_path: Path to CSV file with the initial vector species populations for each node.
+
+        Returns:
+            N/A.
+
+        """
+        import csv
+        if os.path.exists( csv_path ) == False:
+            raise ValueError( f"File not found at {csv_path}." )
+
+        with open( csv_path ) as csv_file:
+            reader = csv.DictReader(csv_file)
+            for line in reader:
+                # collect all the initial vector species values for a given node.
+                node = int(line["node_id"])
+                ivps = dict()
+                for species in line:
+                    if species != "node_id":
+                        ivps[species] = float(line[species]) # int?
+                self.add_initial_vector_species( ivps, [node] )
+
+
+
 def from_template_node(lat=0, lon=0, pop=1e6, name=1, forced_id=1, init_prev=0.2, include_biting_heterogeneity=True):
     """
     Create a single-node :py:class:`~emodpy_malaria.demographics.MalariaDemographics`
