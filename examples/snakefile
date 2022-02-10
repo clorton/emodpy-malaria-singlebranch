@@ -213,6 +213,13 @@ rule rcd_elimination_emodpy:
     output: Path("rcd_elimination_emodpy", "experiment_id")
     run:        
         shell(get_command("rcd_elimination_emodpy"))
+		
+rule scale_larval_habitats:
+    input: 
+    output: Path("scale_larval_habitats", "experiment_id")
+    run:        
+        shell(get_command("scale_larval_habitats"))
+
 
 rule embedded_python_post_processing:
     input: 
