@@ -22,6 +22,7 @@ from emodpy_malaria.interventions.vaccine import *
 from emodpy_malaria.interventions.irs import add_irs_housing_modification
 from emodpy_malaria.interventions.spacespraying import SpaceSpraying
 from emodpy_malaria.interventions.sugartrap import SugarTrap
+from emodpy_malaria.interventions.larvicide import add_larvicide
 from emodpy_malaria.interventions.community_health_worker import add_community_health_worker
 from emodpy_malaria.interventions.scale_larval_habitats import add_scale_larval_habitats
 
@@ -91,6 +92,8 @@ class TestMalariaInterventions(unittest.TestCase):
             self.intervention_config = self.intervention_config["Intervention_List"][0]
         if "Killing_Config" in self.intervention_config:
             self.killing_config = self.intervention_config["Killing_Config"]
+        if "Larval_Killing_Config" in self.intervention_config:
+            self.killing_config = self.intervention_config["Larval_Killing_Config"]
         if "Blocking_Config" in self.intervention_config:
             self.blocking_config = self.intervention_config["Blocking_Config"]
         if "Repelling_Config" in self.intervention_config:
@@ -1635,6 +1638,51 @@ class TestMalariaInterventions(unittest.TestCase):
         self.parse_intervention_parts()
         self.assertEqual(self.start_day, start_day)
         self.assertEqual(self.intervention_config.Insecticide_Name, insecticide)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / decay_rate)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
+        pass
+
+    def test_default_larvicide(self):
+        start_day = 1 # TBD: these should all really be loaded from schema.
+        killing_effect = 1
+        box_duration = 100
+        camp.campaign_dict["Events"] = []
+        add_larvicide( camp )
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.start_day, start_day)
+        self.assertNotIn("Insecticide_Name", self.intervention_config)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        pass
+
+    def test_custom_larvicide(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 235
+        killing_effect = 0.52
+        insecticide = "KillVectors"
+        spray_coverage = 0.44
+        box_duration = 51
+        decay_rate = 0.02
+        node_ids = [2, 3, 6]
+        camp.campaign_dict["Events"] = []
+        add_larvicide( camp, start_day=start_day, spray_coverage=spray_coverage,
+                       killing_effect=killing_effect, insecticide=insecticide,
+                       box_duration=box_duration, decay_time_constant=1/decay_rate, 
+                       node_ids=node_ids)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.intervention_config.Insecticide_Name, insecticide)
+        self.assertEqual(self.intervention_config.Spray_Coverage, spray_coverage)
+        self.assertIsNotNone(self.killing_config)
         self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / decay_rate)
         self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
         self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
