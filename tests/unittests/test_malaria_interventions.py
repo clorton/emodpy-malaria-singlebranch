@@ -1855,6 +1855,54 @@ class TestMalariaInterventions(unittest.TestCase):
                 self.assertTrue(True, "Could not find the correct node combination.")
         pass
 
+    def test_adherent_drug(self):
+        import emodpy_malaria.interventions.adherentdrug as ad
+        camp.set_schema( schema_path_file.schema_file )
+        doses = [["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'], ['Amodiaquine'], ['Amodiaquine'], ['Pyrimethamine']] # use doses value that is different from the default
+        dose_interval = 2
+        non_adherence_options = ['Stop']
+        non_adherence_distribution = [1]
+        values = [1, 0.6, 0.4, 0.1]
+        adherent_drug = ad.adherent_drug(camp,
+                                         doses=doses,
+                                         dose_interval=dose_interval,
+                                         non_adherence_options=non_adherence_options,
+                                         non_adherence_distribution=non_adherence_distribution,
+                                         adherence_values=values
+                                        )
+        times = [1.0, 2.0, 3.0, 4.0 ]
+        self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Times"], times)
+        self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Values"], values)
+        self.assertEqual(adherent_drug["Doses"], doses)
+        self.assertEqual(adherent_drug["Dose_Interval"], dose_interval)
+        self.assertEqual(adherent_drug["Non_Adherence_Distribution"], non_adherence_distribution)
+        self.assertEqual(adherent_drug["Non_Adherence_Options"], non_adherence_options)
+        pass
+
+    def test_adherent_drug_defaults(self):
+        import emodpy_malaria.interventions.adherentdrug as ad
+        camp.set_schema( schema_path_file.schema_file )
+        adherent_drug = ad.adherent_drug(camp
+                                         #doses=doses,
+                                         #dose_interval=dose_interval,
+                                         #non_adherence_options=non_adherence_options,
+                                         ##non_adherence_distribution=non_adherence_distribution,
+                                         #adherence_values=values
+                                        )
+        default_doses = [["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'], ['Amodiaquine'], ['Amodiaquine']]
+        default_dose_interval = 1
+        default_non_adherence_options = ['NEXT_UPDATE']
+        default_non_adherence_distribution = [1]
+        default_values = [1, 1, 1] # we just happen to know this
+        default_times = [1.0, 2.0, 3.0]
+        self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Times"], default_times)
+        self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Values"], default_values)
+        self.assertEqual(adherent_drug["Doses"], default_doses)
+        self.assertEqual(adherent_drug["Dose_Interval"], default_dose_interval)
+        self.assertEqual(adherent_drug["Non_Adherence_Distribution"], default_non_adherence_distribution)
+        self.assertEqual(adherent_drug["Non_Adherence_Options"], default_non_adherence_options)
+        pass
+
 
 # Uncomment below if you would like to run test suite with different schema
 # class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
