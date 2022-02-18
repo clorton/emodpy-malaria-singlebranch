@@ -287,7 +287,7 @@ def UDBednet(
         delay_intervention = s2c.get_class_with_defaults( "DelayedIntervention", schema_path )
         meta_intervention.Actual_IndividualIntervention_Config = delay_intervention
         delay_intervention.Actual_IndividualIntervention_Configs = [ intervention ]
-        meta_intervention.Trigger_Condition_List.extend( triggers )
+        meta_intervention.Trigger_Condition_List = [camp.get_recv_trigger(trigger, old=True) for trigger in triggers]
         if triggered_campaign_delay is None:
             triggered_campaign_delay = dict()
             triggered_campaign_delay[ "Delay_Period_Constant" ] = 7 
