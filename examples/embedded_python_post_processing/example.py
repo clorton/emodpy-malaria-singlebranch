@@ -79,7 +79,7 @@ def general_sim():
     platform = Platform("SLURM", node_group="idm_48cores", priority="Highest") 
 
     task = EMODTask.from_default2(eradication_path=manifest.eradication_path, campaign_builder=build_camp, demog_builder=build_demog, schema_path=manifest.schema_file, param_custom_cb=set_param_fn, ep4_custom_cb=ep4_fn, config_path="config.json" )
-    pathed_asset = Asset( "stash/schema.json", relative_path="python")
+    pathed_asset = Asset( manifest.schema_file, relative_path="python")
     task.common_assets.add_asset(pathed_asset)
     task.set_sif( manifest.sif )
 
