@@ -38,6 +38,8 @@ class MalariaInterventionFileTest(unittest.TestCase):
         self.event = self.campaign['Events'][0]
         self.start_day = self.event['Start_Day']
         self.intervention_class = self.event['Event_Coordinator_Config']['Intervention_Config']['class']
+        if self.intervention_class == "MultiInterventionDistributor":
+            self.intervention_class = self.event['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]['class']
         return
 
     def file_is_there(self):
@@ -60,12 +62,12 @@ class MalariaInterventionFileTest(unittest.TestCase):
         self.assertFalse(self.file_is_there())
 
         if self.file_path:
-            self.method_under_test(camp
-                                   , start_day=self.specific_start_day
-                                   , filename=self.file_path)
+            self.method_under_test(camp,
+                                   start_day=self.specific_start_day,
+                                   filename=self.file_path)
         else:
-            self.method_under_test(camp
-                                   , start_day=self.specific_start_day)
+            self.method_under_test(camp,
+                                   start_day=self.specific_start_day)
         if not self.file_path:
             self.file_path = f"{self.expected_intervention_class}.json"
         self.load_event()

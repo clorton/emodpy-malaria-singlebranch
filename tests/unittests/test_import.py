@@ -50,7 +50,8 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import irs
 
         self.expected_items = [
-            "add_irs_housing_modification", "utils"
+            "add_triggered_irs_housing_modification", "add_scheduled_irs_housing_modification",
+            "irs_configuration"
         ]
         self.verify_expected_items_present(namespace=irs)
         return
@@ -112,13 +113,13 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=diag_survey)
 
-    def test_common_imports(self):
-        from emodpy_malaria.interventions import common
-        self.expected_items = [
-            "AntimalarialDrug", "MalariaDiagnostic"
-        ]
-
-        self.verify_expected_items_present(namespace=common)
+    # def test_common_imports(self):
+    #     from emodpy_malaria.interventions import common
+    #     self.expected_items = [
+    #         "add_campaign_event", "malaria_diagnostic"
+    #     ]
+    #
+    #     self.verify_expected_items_present(namespace=common)
 
     # endregion
 

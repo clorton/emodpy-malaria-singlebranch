@@ -19,7 +19,7 @@ from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
 from emodpy_malaria.interventions.inputeir import InputEIR
 from emodpy_malaria.interventions.outbreak import *
 from emodpy_malaria.interventions.vaccine import *
-from emodpy_malaria.interventions.irs import add_irs_housing_modification
+from emodpy_malaria.interventions.irs import *
 from emodpy_malaria.interventions.spacespraying import SpaceSpraying
 from emodpy_malaria.interventions.sugartrap import SugarTrap
 from emodpy_malaria.interventions.larvicide import add_larvicide
@@ -1506,7 +1506,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
         self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
 
-    # test IRSHousindModification
+        # test IRSHousindModification
+
     def test_add_irs_housing_modification_custom(self):
         camp.campaign_dict["Events"] = []  # resetting
         specific_start_day = 123
@@ -1519,18 +1520,20 @@ class TestMalariaInterventions(unittest.TestCase):
         specific_repelling_exponential_decay_time = 41
         specific_nodes = [1, 2, 3, 5, 8, 13, 21, 34]
         specific_coverage = 0.78
+        intervention_name = "IRSTest1"
 
-        add_irs_housing_modification(camp,
-                                     start_day=specific_start_day,
-                                     coverage=specific_coverage,
-                                     insecticide=specific_insecticide_name,
-                                     killing_initial_effect=specific_killing_effect,
-                                     repelling_initial_effect=specific_repelling_effect,
-                                     killing_box_duration_days=specific_killing_box_duration,
-                                     killing_exponential_decay_constant_days=specific_killing_exponential_decay_time,
-                                     repelling_box_duration_days=specific_repelling_box_duration,
-                                     repelling_exponential_decay_constant_days=specific_repelling_exponential_decay_time,
-                                     node_ids=specific_nodes)
+        add_scheduled_irs_housing_modification(camp,
+                                               start_day=specific_start_day,
+                                               demographic_coverage=specific_coverage,
+                                               insecticide=specific_insecticide_name,
+                                               killing_initial_effect=specific_killing_effect,
+                                               repelling_initial_effect=specific_repelling_effect,
+                                               killing_box_duration=specific_killing_box_duration,
+                                               killing_decay_time_constant=specific_killing_exponential_decay_time,
+                                               repelling_box_duration=specific_repelling_box_duration,
+                                               repelling_decay_time_constant=specific_repelling_exponential_decay_time,
+                                               node_ids=specific_nodes,
+                                               intervention_name=intervention_name)
         self.tmp_intervention = camp.campaign_dict['Events'][0]
         self.parse_intervention_parts()
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], specific_coverage)
@@ -1545,15 +1548,16 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.BoxExp)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], specific_nodes)
+        self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
         return
 
     def test_add_irs_housing_modification_default(self):
         camp.campaign_dict["Events"] = []  # resetting
-        add_irs_housing_modification(camp)
+        add_scheduled_irs_housing_modification(camp)
         self.tmp_intervention = camp.campaign_dict['Events'][0]
         self.parse_intervention_parts()
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 1)
-        self.assertNotIn("Insecticide_Name", self.intervention_config)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], "")
         self.assertEqual(self.killing_config[WaningParams.Decay_Time], 90)
         self.assertEqual(self.killing_config[WaningParams.Box_Duration], 0)
         self.assertEqual(self.killing_config[WaningParams.Initial], 1)
@@ -1564,6 +1568,60 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.BoxExp)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
 
+        return
+
+    def test_add_triggered_irs_housing_modification_custom(self):
+        camp.campaign_dict["Events"] = []  # resetting
+        specific_start_day = 123
+        specific_insecticide_name = "Vinegar"
+        specific_killing_effect = 0.15
+        specific_repelling_effect = 0.93
+        specific_killing_box_duration = 100
+        specific_killing_exponential_decay_time = 35
+        specific_repelling_box_duration = 5
+        specific_repelling_exponential_decay_time = 41
+        specific_nodes = [1, 2, 3, 5, 8, 13, 21, 34]
+        specific_coverage = 0.78
+        intervention_name = "IRSTest1"
+        trigger_list = ["HappyBirthday"]
+
+        add_triggered_irs_housing_modification(camp,
+                                               trigger_condition_list=trigger_list,
+                                               start_day=specific_start_day,
+                                               demographic_coverage=specific_coverage,
+                                               insecticide=specific_insecticide_name,
+                                               killing_initial_effect=specific_killing_effect,
+                                               repelling_initial_effect=specific_repelling_effect,
+                                               killing_box_duration=specific_killing_box_duration,
+                                               killing_decay_time_constant=specific_killing_exponential_decay_time,
+                                               repelling_box_duration=specific_repelling_box_duration,
+                                               repelling_decay_time_constant=specific_repelling_exponential_decay_time,
+                                               node_ids=specific_nodes,
+                                               intervention_name=intervention_name)
+        self.tmp_intervention = camp.campaign_dict['Events'][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.event_coordinator["Intervention_Config"]['Demographic_Coverage'], specific_coverage)
+        self.assertEqual(self.intervention_config["Actual_IndividualIntervention_Config"]
+                         ["Actual_IndividualIntervention_Configs"][0]['Insecticide_Name'],
+                         specific_insecticide_name)
+        self.killing_config = self.intervention_config["Actual_IndividualIntervention_Config"][
+            "Actual_IndividualIntervention_Configs"][0]["Killing_Config"]
+        self.repelling_config = self.intervention_config["Actual_IndividualIntervention_Config"][
+            "Actual_IndividualIntervention_Configs"][0]["Repelling_Config"]
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], specific_killing_exponential_decay_time)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], specific_killing_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], specific_killing_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], specific_repelling_exponential_decay_time)
+        self.assertEqual(self.repelling_config[WaningParams.Box_Duration], specific_repelling_box_duration)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], specific_repelling_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], specific_nodes)
+        self.assertEqual(
+            self.intervention_config["Actual_IndividualIntervention_Config"]["Actual_IndividualIntervention_Configs"][
+                0]['Intervention_Name'],
+            intervention_name)
         return
 
     def test_default_space_spraying(self):
