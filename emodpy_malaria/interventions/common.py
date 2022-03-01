@@ -2,8 +2,9 @@
 This module contains functionality common to many interventions.
 """
 
-import emod_api.interventions.utils as utils
+from typing import List
 from emod_api import schema_to_class as s2c
+import emod_api.interventions.common as common
 
 schema_path=None
 
@@ -105,3 +106,99 @@ def triggered_campaign_delay_event( camp, start_day, trigger, delay, interventio
     return event
 
 
+def ScheduledCampaignEvent(
+        camp,
+        Start_Day: int,
+        Node_Ids = None,
+        Nodeset_Config = None,
+        Number_Repetitions: int = 1,
+        Timesteps_Between_Repetitions: int = -1,
+        Target_Num_Individuals: int = None,
+        Event_Name: str = "Scheduled_Campaign_Event", # not set, doesn't exist in schema
+        Property_Restrictions = None,
+        Demographic_Coverage:float = 1.0,
+        Target_Age_Min=0,
+        Target_Age_Max=125*365,
+        Target_Gender:str = "All",
+        Intervention_List=None):
+    """
+        Wrapper function to create and return a ScheduledCampaignEvent intervention.
+        The alternative to a ScheduledCampaignEvent is a TriggeredCampaignEvent.
+        This function accepts the same parameters like :func:`emod_api.interventions.common.ScheduledCampaignEvent`
+        with an additional malaria specific parameter Target_Num_Individual.
+
+        Args:
+            Target_Num_Individuals: Number of individuals to target with this intervention.
+
+        Returns:
+            ReadOnlyDict: Schema-based smart dictionary representing a new
+            ScheduledCampaignEvent intervention ready to be added to a campaign.
+    """
+    event = common.ScheduledCampaignEvent(camp, Start_Day, Node_Ids=Node_Ids, Nodeset_Config=Nodeset_Config,
+                                          Number_Repetitions=Number_Repetitions, Timesteps_Between_Repetitions=Timesteps_Between_Repetitions,
+                                          Event_Name=Event_Name, Property_Restrictions=Property_Restrictions,
+                                          Demographic_Coverage=Demographic_Coverage, Target_Age_Min=Target_Age_Min,
+                                          Target_Age_Max=Target_Age_Max, Target_Gender=Target_Gender,
+                                          Intervention_List=Intervention_List)
+    event.Event_Coordinator_Config.Target_Num_Individuals = Target_Num_Individuals
+    return event
+
+
+def TriggeredCampaignEvent(
+        camp,
+        Start_Day: int,
+        Event_Name: str,
+        Triggers: List[str],
+        Intervention_List: List[dict],
+        Node_Ids=None,
+        Nodeset_Config=None,
+        Node_Property_Restrictions=None,
+        Property_Restrictions=None,
+        Number_Repetitions: int = 1,
+        Timesteps_Between_Repetitions: int = -1,
+        Demographic_Coverage: float=1.0,
+        Target_Age_Min=0,
+        Target_Age_Max=125*365,
+        Target_Gender: str ="All",
+        Target_Residents_Only=1,
+        Target_Num_Individuals: int = None,
+        Duration=-1,
+        Blackout_Event_Trigger: str=None,
+        Blackout_Period=0,
+        Blackout_On_First_Occurrence=0,
+        Disqualifying_Properties=None,
+        Delay=None):
+    """
+        Wrapper function to create and return a ScheduledCampaignEvent intervention.
+        The alternative to a TriggeredCampaignEvent is a ScheduledCampaignEvent.
+        This function accepts the same parameters like :func:`emod_api.interventions.common.TriggeredCampaignEvent`
+        with an additional malaria specific parameter Target_Num_Individual.
+
+        Args:
+            Target_Num_Individuals: Number of individuals to target with this intervention.
+
+        Returns:
+            ReadOnlyDict: Schema-based smart dictionary representing a new
+            ScheduledCampaignEvent intervention ready to be added to a campaign.
+    """
+    event = common.TriggeredCampaignEvent(camp, Start_Day=Start_Day, Event_Name=Event_Name, Triggers=Triggers,
+                                          Intervention_List=Intervention_List,
+                                          Node_Ids=Node_Ids,
+                                          Nodeset_Config=Nodeset_Config,
+                                          Node_Property_Restrictions=Node_Property_Restrictions,
+                                          Property_Restrictions=Property_Restrictions,
+                                          Number_Repetitions=Number_Repetitions,
+                                          Timesteps_Between_Repetitions=Timesteps_Between_Repetitions,
+                                          Demographic_Coverage=Demographic_Coverage,
+                                          Target_Age_Min=Target_Age_Min,
+                                          Target_Age_Max=Target_Age_Max,
+                                          Target_Gender=Target_Gender,
+                                          Target_Residents_Only=Target_Residents_Only,
+                                          Duration=Duration,
+                                          Blackout_Event_Trigger=Blackout_Event_Trigger,
+                                          Blackout_Period=Blackout_Period,
+                                          Blackout_On_First_Occurrence=Blackout_On_First_Occurrence,
+                                          Disqualifying_Properties=Disqualifying_Properties,
+                                          Delay=Delay)
+    event.Event_Coordinator_Config.Target_Num_Individuals = Target_Num_Individuals
+    return event
