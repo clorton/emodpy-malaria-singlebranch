@@ -27,7 +27,7 @@ def set_team_defaults(config, manifest):
     # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
     config.parameters.Enable_Vector_Species_Report = 0
     config.parameters.Vector_Sampling_Type = "VECTOR_COMPARTMENTS_NUMBER"
-    config.parameters.Mosquito_Weight = 1
+    # config.parameters.Mosquito_Weight = 1 # If this parameter is set, config.parameters.Vector_Sampling_Type is automatically changed to "SAMPLE_IND_VECTORS"
 
     config.parameters.Enable_Vector_Aging = 0
     config.parameters.Enable_Vector_Mortality = 1
