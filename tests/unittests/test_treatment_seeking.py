@@ -123,7 +123,7 @@ class TreatmentSeekingTest(unittest.TestCase):
         targets = [
             {'trigger': 'NewClinicalCase', 'coverage': 0.1, 'agemin': 15, 'agemax': 70, 'seek': 0.4, 'rate': 0.3},
             {'trigger': 'NewSevereCase', 'coverage': 0.8, 'seek': 0.6, 'rate': 0.5}]
-        broadcast_event_name = 'Received_Treatment'
+        broadcast_event_name = 'ReceivedTreatment'
 
         self.assertEqual(len(camp.campaign_dict['Events']), len(targets))
         for event in camp.campaign_dict["Events"]:
