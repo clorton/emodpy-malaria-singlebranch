@@ -27,6 +27,7 @@ from emodpy_malaria.interventions.community_health_worker import add_community_h
 from emodpy_malaria.interventions.scale_larval_habitats import add_scale_larval_habitats
 
 import emod_api.campaign as camp
+camp.unsafe = True
 
 drug_codes = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
 
