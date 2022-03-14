@@ -50,7 +50,7 @@ class TreatmentSeekingTest(unittest.TestCase):
         start_day = 10
         drug = ['drug_1', 'drug_2', 'drug_3', 'drug4']
         targets = [
-            {'trigger': 'NewInfection', 'coverage': 0.7, 'seek': 0.9, 'rate': 0.9},
+            {'trigger': 'NewInfectionEvent', 'coverage': 0.7, 'seek': 0.9, 'rate': 0.9},
             {'trigger': 'Births', 'coverage': 0.3, 'seek': 0.2, 'rate': 1.6}
         ]
         broadcast_event_name = 'Test_event'
@@ -91,7 +91,7 @@ class TreatmentSeekingTest(unittest.TestCase):
                 else:
                     self.assertTrue(False, msg="Wrong event in intervention.")
 
-            if event['Event_Coordinator_Config']['Intervention_Config']["Trigger_Condition_List"] == ["NewInfection"]:
+            if event['Event_Coordinator_Config']['Intervention_Config']["Trigger_Condition_List"] == ["NewInfectionEvent"]:
                 self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']["Demographic_Coverage"], 0.7 * 0.9)
                 self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']["Target_Age_Min"], 0)
                 self.assertEqual(event['Event_Coordinator_Config']['Intervention_Config']["Target_Age_Max"], 125)

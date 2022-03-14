@@ -952,7 +952,7 @@ class TestMalariaInterventions(unittest.TestCase):
         IP_restrictions = [{"IndividualProperty1": "PropertyValue1"}, {"IndividualProperty2": "PropertyValue2"}]
         NP_restrictions = []
         disqualifying_properties = [{"IndividualProperty3": "PropertyValue2"}]
-        trigger_condition_list = ["NewInfection"]
+        trigger_condition_list = ["NewInfectionEvent"]
         listening_duration = 50
         triggered_campaign_delay = 0
         check_eligibility_at_trigger = False
