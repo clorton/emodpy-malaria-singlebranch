@@ -82,12 +82,13 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=sugartrap)
 
-    def test_intervention_udbednet(self):
-        from emodpy_malaria.interventions import udbednet
+    def test_intervention_usage_dependent_bednet(self):
+        from emodpy_malaria.interventions import usage_dependent_bednet
         self.expected_items = [
-            "UDBednet", "_get_seasonal_times_and_values", "_get_age_times_and_values"
+            "add_scheduled_usage_dependent_bednet", "add_triggered_usage_dependent_bednet",
+            "_get_seasonal_times_and_values", "_get_age_times_and_values"
         ]
-        self.verify_expected_items_present(namespace=udbednet)
+        self.verify_expected_items_present(namespace=usage_dependent_bednet)
 
     def test_drug_campaign(self):
         from emodpy_malaria.interventions import drug_campaign

@@ -8,7 +8,7 @@ from emodpy_malaria.interventions.drug import new_intervention_as_file as drug_f
 from emodpy_malaria.interventions.irs import new_intervention_as_file as irs_file
 from emodpy_malaria.interventions.spacespraying import new_intervention_as_file as spacespray_file
 from emodpy_malaria.interventions.sugartrap import new_intervention_as_file as sugartrap_file
-from emodpy_malaria.interventions.udbednet import new_intervention_as_file as rei_bednet
+from emodpy_malaria.interventions.usage_dependent_bednet import new_intervention_as_file as rei_bednet
 from emodpy_malaria.interventions.inputeir import new_intervention_as_file as inputeir
 from emodpy_malaria.interventions.vaccine import new_intervention_as_file as simple_vaccine
 
@@ -60,7 +60,7 @@ class MalariaInterventionFileTest(unittest.TestCase):
 
     def run_test(self):
         self.assertFalse(self.file_is_there())
-
+        camp.campaign_dict["Events"] = []  # resetting
         if self.file_path:
             self.method_under_test(camp,
                                    start_day=self.specific_start_day,
@@ -73,6 +73,7 @@ class MalariaInterventionFileTest(unittest.TestCase):
         self.load_event()
         self.assertEqual(self.start_day, self.specific_start_day)
         self.assertEqual(self.intervention_class, self.expected_intervention_class)
+
         return
 
     def test_bednet_file(self):

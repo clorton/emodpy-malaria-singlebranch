@@ -11,7 +11,8 @@ import pandas as pd
 from emodpy_malaria.interventions.ivermectin import Ivermectin
 from emodpy_malaria.interventions.bednet import Bednet, add_ITN_scheduled, BednetIntervention
 from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
-from emodpy_malaria.interventions.udbednet import UDBednet
+from emodpy_malaria.interventions.usage_dependent_bednet import add_scheduled_usage_dependent_bednet, \
+    add_triggered_usage_dependent_bednet
 from emodpy_malaria.interventions import drug_campaign
 from emodpy_malaria.interventions import diag_survey
 from emodpy_malaria.interventions.common import *
@@ -680,208 +681,578 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.nodeset[NodesetParams.Node_List], specific_nodes)
         return
 
-    # endregion
+        # endregion
 
-    # region UsageDependentBednet
-    def usagebednet_build(self
-                          , start_day=1
-                          , coverage=1.0
-                          , discard_config=None
-                          , property_restrictions=None
-                          , blocking_eff=1.0
-                          , blocking_decay_rate=0.0
-                          , blocking_predecay_duration=365
-                          , killing_eff=0.6
-                          , killing_decay_rate=0.0
-                          , killing_predecay_duration=0
-                          , repelling_eff=1.0
-                          , repelling_decay_rate=0.0
-                          , repelling_predecay_duration=365
-                          , intervention_name=None
-                          , age_dependence: dict = None
-                          , seasonal_dependence: dict = None
-                          , insecticide: str = None
-                          , node_ids: list = None
-                          , triggered_campaign_delay: dict = None
-                          , triggers: list = None
-                          , duration: int = -1
-                          , check_eligibility_at_trigger: bool = False
-                          ):
-        if not self.tmp_intervention:
-            if intervention_name is None:
-                self._testMethodName
-            self.tmp_intervention = UDBednet(
-                camp=camp
-                , iv_name=intervention_name
-                , start_day=start_day
-                , coverage=coverage
-                , discard_config=discard_config
-                , ind_property_restrictions=property_restrictions
-                , blocking_eff=blocking_eff
-                , blocking_decay_rate=blocking_decay_rate
-                , blocking_constant_duration=blocking_predecay_duration
-                , killing_eff=killing_eff
-                , killing_decay_rate=killing_decay_rate
-                , killing_constant_duration=killing_predecay_duration
-                , repelling_eff=repelling_eff
-                , repelling_decay_rate=repelling_decay_rate
-                , repelling_constant_duration=repelling_predecay_duration
-                , age_dependence=age_dependence
-                , seasonal_dependence=seasonal_dependence
-                , insecticide=insecticide
-                , node_ids=node_ids
-                , triggered_campaign_delay=triggered_campaign_delay
-                , triggers=triggers
-                , duration=duration
-                , check_eligibility_at_trigger=check_eligibility_at_trigger
-            )
-        self.parse_intervention_parts()
-        if triggers:
-            self.delay_intervention = self.intervention_config['Actual_IndividualIntervention_Config']
-            self.delay_intervention_distro = self.delay_intervention['Delay_Period_Distribution']
-            self.intervention_config = \
-                self.delay_intervention['Actual_IndividualIntervention_Configs'][0]
-        self.killing_config = self.intervention_config['Killing_Config']
-        self.blocking_config = self.intervention_config['Blocking_Config']
-        self.repelling_config = self.intervention_config['Repelling_Config']
-        self.usage_config = self.intervention_config['Usage_Config_List']
-        self.all_configs = [
-            self.killing_config
-            , self.blocking_config
-            , self.repelling_config
-            , self.usage_config
-        ]
-        return
-
-    def test_usagebednet_only_needs_start_day(self):
-        specific_start_day = 131415
-        camp.campaign_dict["Events"] = []   # resetting
-        self.tmp_intervention = UDBednet(camp=camp,
-                                         start_day=specific_start_day)
-
-        self.usagebednet_build()
-        self.assertEqual(self.start_day, specific_start_day)
-        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
-        self.assertEqual(self.event_coordinator['Individual_Selection_Type'],
-                         "DEMOGRAPHIC_COVERAGE")
-        self.assertEqual(self.event_coordinator['Demographic_Coverage'],
-                         1.0)
-        self.assertEqual(self.intervention_config['Discard_Event'],
-                         'Bednet_Discarded')
-        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'],
-                         'EXPONENTIAL_DISTRIBUTION')
-
-        # checking that this is finalized appropriately
-        camp.add(self.tmp_intervention)
-        camp.save("test_campaign.json")
-        with open('test_campaign.json') as file:
-            campaign = json.load(file)
-        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
-        os.remove("test_campaign.json")
-
-        return
-
-    def test_usagebednet_trigger_distribution(self):
-        self.is_debugging = False
-        specific_triggers = ["ColdOutside", "HeavyMosquitoPresence"]
-        self.usagebednet_build(triggers=specific_triggers)
-        nlhtiv_config = self.event_coordinator['Intervention_Config']
-
-        for trigger_condition in specific_triggers:
-            self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
-        return
-
-    def test_usagebednet_trigger_delay_constant(self):
-        specific_triggers = ["WetOutside", "ReceivesBednet"]
-        specific_delay_param = 'Delay_Period_Constant'
-        specific_delay_value = 9
-        specific_delay_dict = {specific_delay_param: specific_delay_value}
-        specific_distribution = "CONSTANT_DISTRIBUTION"
-        self.usagebednet_build(triggers=specific_triggers,
-                               triggered_campaign_delay=specific_delay_dict)
-        nlhtiv_config = self.event_coordinator['Intervention_Config']
-        for trigger_condition in specific_triggers:
-            self.assertIn(trigger_condition, nlhtiv_config['Trigger_Condition_List'])
-
-        self.assertEqual(self.delay_intervention_distro, specific_distribution)
-        self.assertEqual(self.delay_intervention[specific_delay_param],
-                         specific_delay_value)
-        return
-
-    def test_usagebednet_seasonal_dependence_timesvalues(self):
-        self.is_debugging = False
+        # region UsageDependentBednet
+    def test_scheduled_usage_dependent_bednet_default(self):
+        camp.campaign_dict["Events"] = []  # resetting
+        start_day = 1
+        demographic_coverage = 1
+        target_num_individuals = None
+        node_ids = None
+        ind_property_restrictions = []
+        node_property_restrictions = []
+        intervention_name = "UsageDependentBednet"
+        expiration_period = 10 * 365
+        discard_config = {"Expiration_Period_Exponential": expiration_period}
+        insecticide = ""
+        repelling_initial_effect = 0
+        repelling_box_duration = 0
+        repelling_decay_time_constant = 1460
+        blocking_initial_effect = 0.9
+        blocking_box_duration = 0
+        blocking_decay_time_constant = 730
+        killing_initial_effect = 0
+        killing_box_duration = 0
+        killing_decay_time_constant = 1460
+        age_dependence_times = [1, 1]
+        age_dependence_values = [0, 125]
         specific_times = [0, 90, 180, 270]
         specific_values = [10, 50, 15, 75]
         specific_seasonality = {
             'Times': specific_times,
             'Values': specific_values
         }
-        self.usagebednet_build(seasonal_dependence=specific_seasonality)
+        add_scheduled_usage_dependent_bednet(campaign=camp, seasonal_dependence=specific_seasonality)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
         usage_configs = self.intervention_config['Usage_Config_List']
         found_seasonal = False
+        found_age = False
         for durability in usage_configs:
             if durability['class'] == 'WaningEffectMapLinearSeasonal':
                 found_seasonal = True
-                map = durability['Durability_Map']
-                self.assertEqual(map['Times'], specific_times)
-                self.assertEqual(map['Values'], specific_values)
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], specific_times)
+                self.assertEqual(durability_map['Values'], specific_values)
+            elif durability['class'] == "WaningEffectMapLinearAge":
+                found_age = True
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], age_dependence_times)
+                self.assertEqual(durability_map['Values'], age_dependence_values)
+            else:
+                self.assertTrue(False, "There shouldn't be a third option for WaningEffectMap.\n")
+        self.assertTrue(found_age)
         self.assertTrue(found_seasonal)
-        pass
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config_List']
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        self.assertEqual(self.event_coordinator['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(self.event_coordinator['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(self.event_coordinator['Property_Restrictions'], ind_property_restrictions)
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
+        self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], insecticide)
+        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'], "EXPONENTIAL_DISTRIBUTION")
+        self.assertEqual(self.intervention_config['Expiration_Period_Exponential'], expiration_period)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], killing_decay_time_constant)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], killing_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], blocking_decay_time_constant)
+        self.assertEqual(self.blocking_config[WaningParams.Box_Duration], blocking_box_duration)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], blocking_initial_effect)
+        self.assertEqual(self.blocking_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], repelling_decay_time_constant)
+        self.assertEqual(self.repelling_config[WaningParams.Box_Duration], repelling_box_duration)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], repelling_initial_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.BoxExp)
 
-    def test_usagebednet_seasonal_dependence_minmax_coverage(self):
-        self.is_debugging = False
+        # checking that this is finalized appropriately
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+        camp.campaign_dict["Events"] = []  # resetting
+        return
+
+    def test_triggered_usage_dependent_bednet_default(self):
+        camp.campaign_dict["Events"] = []  # resetting
+        start_day = 1
+        demographic_coverage = 1
+        duration = -1
+        delay = 0
+        triggers = ["HappyBirthday"]
+        ind_property_restrictions = []
+        node_property_restrictions = []
+        intervention_name = "UsageDependentBednet"
+        expiration_period = 10 * 365
+        discard_config = {"Expiration_Period_Exponential": expiration_period}
+        insecticide = ""
+        repelling_initial_effect = 0
+        repelling_box_duration = 0
+        repelling_decay_time_constant = 1460
+        blocking_initial_effect = 0.9
+        blocking_box_duration = 0
+        blocking_decay_time_constant = 730
+        killing_initial_effect = 0
+        killing_box_duration = 0
+        killing_decay_time_constant = 1460
+        age_dependence_times = [0, 125]
+        age_dependence_values = [1, 1]
+        specific_times = [0, 90, 180, 270]
+        specific_values = [10, 50, 15, 75]
+        specific_seasonality = {
+            'Times': specific_times,
+            'Values': specific_values
+        }
+        add_triggered_usage_dependent_bednet(campaign=camp, trigger_condition_list=triggers,
+                                             seasonal_dependence=specific_seasonality)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        node_level_triggered_intervention = self.intervention_config
+        self.intervention_config = self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"][
+            "Actual_IndividualIntervention_Config"]
+        usage_configs = self.intervention_config['Usage_Config_List']
+        found_seasonal = False
+        found_age = False
+        for durability in usage_configs:
+            if durability['class'] == 'WaningEffectMapLinearSeasonal':
+                found_seasonal = True
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], specific_times)
+                self.assertEqual(durability_map['Values'], specific_values)
+            elif durability['class'] == "WaningEffectMapLinearAge":
+                found_age = True
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], age_dependence_times)
+                self.assertEqual(durability_map['Values'], age_dependence_values)
+            else:
+                self.assertTrue(False, "There shouldn't be a third option for WaningEffectMap.\n")
+        self.assertTrue(found_age)
+        self.assertTrue(found_seasonal)
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        self.assertEqual(node_level_triggered_intervention['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(node_level_triggered_intervention['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(node_level_triggered_intervention['Property_Restrictions'], ind_property_restrictions)
+        self.assertEqual(node_level_triggered_intervention['Trigger_Condition_List'], triggers)
+        self.assertEqual(node_level_triggered_intervention['Duration'], duration)
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
+        self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], insecticide)
+        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'], "EXPONENTIAL_DISTRIBUTION")
+        self.assertEqual(self.intervention_config['Expiration_Period_Exponential'], expiration_period)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], killing_decay_time_constant)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], killing_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], blocking_decay_time_constant)
+        self.assertEqual(self.blocking_config[WaningParams.Box_Duration], blocking_box_duration)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], blocking_initial_effect)
+        self.assertEqual(self.blocking_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], repelling_decay_time_constant)
+        self.assertEqual(self.repelling_config[WaningParams.Box_Duration], repelling_box_duration)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], repelling_initial_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.BoxExp)
+
+        # checking that this is finalized appropriately
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+        camp.campaign_dict["Events"] = []  # resetting
+        return
+
+    def test_scheduled_usage_dependent_bednet_custom(self):
+        camp.campaign_dict["Events"] = []  # resetting
+        start_day = 1
+        demographic_coverage = 1
+        target_num_individuals = 33
+        node_ids = [2, 435]
+        ind_property_restrictions = [
+            {
+                "Place": "URBAN",
+                "Risk": "MED"
+            },
+            {
+                "Place": "RURAL",
+                "Risk": "LOW"
+            }
+        ]
+        node_property_restrictions = [
+            {
+                "Place": "URBAN",
+                "Risk": "MED"
+            },
+            {
+                "Place": "RURAL",
+                "Risk": "LOW"
+            }
+        ]
+        intervention_name = "TestingName"
+        gaussian = "GAUSSIAN_DISTRIBUTION"
+        g_mean = 22
+        g_dev = 44
+        discard_config = {"Expiration_Period_Distribution": gaussian,
+                          "Expiration_Period_Gaussian_Mean": g_mean,
+                          "Expiration_Period_Gaussian_Std_Dev": g_dev}
+        insecticide = "SpraySpray"
+        repelling_initial_effect = 0.11
+        repelling_box_duration = -1
+        repelling_decay_time_constant = 0
+        blocking_initial_effect = 0.34
+        blocking_box_duration = 8527
+        blocking_decay_time_constant = 200
+        killing_initial_effect = 0.51
+        killing_box_duration = 55
+        killing_decay_time_constant = 250
+        age_dependence_times = [0, 2.9, 12.9, 13]
+        age_dependence_values = [1, 1, 0.7, 0.7, 1]
+        age_dependence = {"Times": age_dependence_times, "Values": age_dependence_values}
         specific_min_val = 0.1
         specific_max_day = 73  # March 14 in non leap years
-        specific_seasonality = {
+        seasonal_dependence = {
             'min_cov': specific_min_val,
             'max_day': specific_max_day
         }
-        self.usagebednet_build(seasonal_dependence=specific_seasonality)
+        add_scheduled_usage_dependent_bednet(camp,
+                                             start_day=start_day,
+                                             demographic_coverage=demographic_coverage,
+                                             target_num_individuals=target_num_individuals,
+                                             node_ids=node_ids,
+                                             ind_property_restrictions=ind_property_restrictions,
+                                             node_property_restrictions=node_property_restrictions,
+                                             intervention_name=intervention_name,
+                                             discard_config=discard_config,
+                                             insecticide=insecticide,
+                                             repelling_initial_effect=repelling_initial_effect,
+                                             repelling_box_duration=repelling_box_duration,
+                                             repelling_decay_time_constant=repelling_decay_time_constant,
+                                             blocking_initial_effect=blocking_initial_effect,
+                                             blocking_box_duration=blocking_box_duration,
+                                             blocking_decay_time_constant=blocking_decay_time_constant,
+                                             killing_initial_effect=killing_initial_effect,
+                                             killing_box_duration=killing_box_duration,
+                                             killing_decay_time_constant=killing_decay_time_constant,
+                                             age_dependence=age_dependence,
+                                             seasonal_dependence=seasonal_dependence
+                                             )
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config_List']
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
+        self.assertEqual(self.event_coordinator['Individual_Selection_Type'], "TARGET_NUM_INDIVIDUALS")
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(self.event_coordinator['Target_Num_Individuals'], target_num_individuals)
+        self.assertEqual(self.event_coordinator['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(self.event_coordinator['Property_Restrictions_Within_Node'], ind_property_restrictions)
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
+        self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], insecticide)
+        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'], gaussian)
+        self.assertEqual(self.intervention_config['Expiration_Period_Gaussian_Mean'], g_mean)
+        self.assertEqual(self.intervention_config['Expiration_Period_Gaussian_Std_Dev'], g_dev)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], killing_decay_time_constant)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], killing_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], blocking_decay_time_constant)
+        self.assertEqual(self.blocking_config[WaningParams.Box_Duration], blocking_box_duration)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], blocking_initial_effect)
+        self.assertEqual(self.blocking_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], repelling_initial_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.Constant)
+        found_seasonal = False
+        found_age = False
+        for durability in self.usage_config:
+            if durability['class'] == 'WaningEffectMapLinearSeasonal':
+                found_seasonal = True
+                durability_map = durability['Durability_Map']
+                actual_min = min(durability_map['Values'])
+                actual_min_diff = abs(actual_min - specific_min_val)
+                self.assertLessEqual(actual_min_diff, 0.02)
+                target_index = -1
+                next_index = target_index + 1  # Find out the index that contains the max_day
+                while durability_map['Times'][next_index] < specific_max_day:  # So until the next index is too high...
+                    target_index += 1
+                    next_index += 1
+                actual_max_index = durability_map['Values'].index(
+                    max(durability_map['Values']))  # Get the index of the actually highest day
+                self.assertEqual(target_index, actual_max_index,
+                                 msg=f"Expected value in bucket {target_index}"
+                                     f": {durability_map['Values'][target_index]} to be max, "
+                                     f"but index {actual_max_index}: {durability_map['Values'][actual_max_index]} "
+                                     f"was higher.")
+            elif durability['class'] == "WaningEffectMapLinearAge":
+                found_age = True
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], age_dependence_times)
+                self.assertEqual(durability_map['Values'], age_dependence_values)
+            else:
+                self.assertTrue(False, "There shouldn't be a third option for WaningEffectMap.\n")
+
+        self.assertTrue(found_seasonal)
+        self.assertTrue(found_age)
+        # checking that this is finalized appropriately
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+        camp.campaign_dict["Events"] = []  # resetting
+        return
+
+    def test_triggered_usage_dependent_bednet_custom(self):
+        camp.campaign_dict["Events"] = []  # resetting
+        triggers = ["HappyBirthday"]
+        delay = 55
+        duration = 123
+        start_day = 1
+        demographic_coverage = 1
+        node_ids = [2, 435]
+        ind_property_restrictions = [
+            {
+                "Place": "URBAN",
+                "Risk": "MED"
+            },
+            {
+                "Place": "RURAL",
+                "Risk": "LOW"
+            }
+        ]
+        node_property_restrictions = [
+            {
+                "Place": "URBAN",
+                "Risk": "MED"
+            },
+            {
+                "Place": "RURAL",
+                "Risk": "LOW"
+            }
+        ]
+        intervention_name = "TestingName"
+        gaussian = "GAUSSIAN_DISTRIBUTION"
+        g_mean = 22
+        g_dev = 44
+        discard_config = {"Expiration_Period_Distribution": gaussian,
+                          "Expiration_Period_Gaussian_Mean": g_mean,
+                          "Expiration_Period_Gaussian_Std_Dev": g_dev}
+        insecticide = "SpraySpray"
+        repelling_initial_effect = 0.11
+        repelling_box_duration = -1
+        repelling_decay_time_constant = 0
+        blocking_initial_effect = 0.34
+        blocking_box_duration = 8527
+        blocking_decay_time_constant = 200
+        killing_initial_effect = 0.51
+        killing_box_duration = 55
+        killing_decay_time_constant = 250
+        age_dependence_times = [0, 2.9, 3, 12.9, 13]
+        age_dependence_values = [1, 1, 0.7, 0.7, 1]
+        age_dependence = {"youth_cov": 0.7, "youth_min_age": 3, "youth_max_age": 13}
+        specific_min_val = 0.1
+        specific_max_day = 73  # March 14 in non leap years
+        seasonal_dependence = {
+            'min_cov': specific_min_val,
+            'max_day': specific_max_day
+        }
+        add_triggered_usage_dependent_bednet(camp,
+                                             start_day=start_day,
+                                             trigger_condition_list=triggers,
+                                             triggered_campaign_delay=delay,
+                                             listening_duration=duration,
+                                             demographic_coverage=demographic_coverage,
+                                             node_ids=node_ids,
+                                             ind_property_restrictions=ind_property_restrictions,
+                                             node_property_restrictions=node_property_restrictions,
+                                             intervention_name=intervention_name,
+                                             discard_config=discard_config,
+                                             insecticide=insecticide,
+                                             repelling_initial_effect=repelling_initial_effect,
+                                             repelling_box_duration=repelling_box_duration,
+                                             repelling_decay_time_constant=repelling_decay_time_constant,
+                                             blocking_initial_effect=blocking_initial_effect,
+                                             blocking_box_duration=blocking_box_duration,
+                                             blocking_decay_time_constant=blocking_decay_time_constant,
+                                             killing_initial_effect=killing_initial_effect,
+                                             killing_box_duration=killing_box_duration,
+                                             killing_decay_time_constant=killing_decay_time_constant,
+                                             age_dependence=age_dependence,
+                                             seasonal_dependence=seasonal_dependence
+                                             )
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        node_level_triggered_intervention = self.intervention_config
+        self.intervention_config = self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"][
+            "Actual_IndividualIntervention_Config"]["Actual_IndividualIntervention_Configs"][0]
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config_List']
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
+        self.assertEqual(node_level_triggered_intervention['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(node_level_triggered_intervention['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(node_level_triggered_intervention['Property_Restrictions_Within_Node'],
+                         ind_property_restrictions)
+        self.assertEqual(node_level_triggered_intervention['Trigger_Condition_List'], triggers)
+        self.assertEqual(node_level_triggered_intervention['Duration'], duration)
+        self.assertEqual(
+            node_level_triggered_intervention["Actual_IndividualIntervention_Config"]["Delay_Period_Constant"], delay)
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
+        self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], insecticide)
+        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'], gaussian)
+        self.assertEqual(self.intervention_config['Expiration_Period_Gaussian_Mean'], g_mean)
+        self.assertEqual(self.intervention_config['Expiration_Period_Gaussian_Std_Dev'], g_dev)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], killing_decay_time_constant)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], killing_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], blocking_decay_time_constant)
+        self.assertEqual(self.blocking_config[WaningParams.Box_Duration], blocking_box_duration)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], blocking_initial_effect)
+        self.assertEqual(self.blocking_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], repelling_initial_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.Constant)
+        found_seasonal = False
+        found_age = False
+        for durability in self.usage_config:
+            if durability['class'] == 'WaningEffectMapLinearSeasonal':
+                found_seasonal = True
+                durability_map = durability['Durability_Map']
+                actual_min = min(durability_map['Values'])
+                actual_min_diff = abs(actual_min - specific_min_val)
+                self.assertLessEqual(actual_min_diff, 0.02)
+                target_index = -1
+                next_index = target_index + 1  # Find out the index that contains the max_day
+                while durability_map['Times'][next_index] < specific_max_day:  # So until the next index is too high...
+                    target_index += 1
+                    next_index += 1
+                actual_max_index = durability_map['Values'].index(
+                    max(durability_map['Values']))  # Get the index of the actually highest day
+                self.assertEqual(target_index, actual_max_index,
+                                 msg=f"Expected value in bucket {target_index}"
+                                     f": {durability_map['Values'][target_index]} to be max, "
+                                     f"but index {actual_max_index}: {durability_map['Values'][actual_max_index]} "
+                                     f"was higher.")
+            elif durability['class'] == "WaningEffectMapLinearAge":
+                found_age = True
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], age_dependence_times)
+                self.assertEqual(durability_map['Values'], age_dependence_values)
+            else:
+                self.assertTrue(False, "There shouldn't be a third option for WaningEffectMap.\n")
+        self.assertTrue(found_age)
+        self.assertTrue(found_seasonal)
+
+        # checking that this is finalized appropriately
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+        camp.campaign_dict["Events"] = []  # resetting
+        return
+
+    def test_scheduled_usage_dependent_bednet_default(self):
+        camp.campaign_dict["Events"] = []  # resetting
+        start_day = 1
+        demographic_coverage = 1
+        ind_property_restrictions = []
+        node_property_restrictions = []
+        intervention_name = "UsageDependentBednet"
+        expiration_period = 10 * 365
+        discard_config = {"Expiration_Period_Exponential": expiration_period}
+        insecticide = ""
+        repelling_initial_effect = 0
+        repelling_box_duration = 0
+        repelling_decay_time_constant = 1460
+        blocking_initial_effect = 0.9
+        blocking_box_duration = 0
+        blocking_decay_time_constant = 730
+        killing_initial_effect = 0
+        killing_box_duration = 0
+        killing_decay_time_constant = 1460
+        age_dependence = None
+        specific_times = [0, 90, 180, 270]
+        specific_values = [10, 50, 15, 75]
+        specific_seasonality = {
+            'Times': specific_times,
+            'Values': specific_values
+        }
+        add_scheduled_usage_dependent_bednet(campaign=camp, seasonal_dependence=specific_seasonality)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
         usage_configs = self.intervention_config['Usage_Config_List']
         found_seasonal = False
         for durability in usage_configs:
             if durability['class'] == 'WaningEffectMapLinearSeasonal':
                 found_seasonal = True
-                map = durability['Durability_Map']
-                actual_min = min(map['Values'])
-                actual_min_diff = abs(actual_min - specific_min_val)
-                self.assertLessEqual(actual_min_diff, 0.02)
-
-                target_index = -1
-                next_index = target_index + 1  # Find out the index that contains the max_day
-                while map['Times'][next_index] < specific_max_day:  # So until the next index is too high...
-                    target_index += 1
-                    next_index += 1
-                actual_max_index = map['Values'].index(max(map['Values']))  # Get the index of the actually highest day
-                self.assertEqual(target_index, actual_max_index,
-                                 msg=f"Expected value in bucket {target_index}"
-                                     f": {map['Values'][target_index]} to be max, "
-                                     f"but index {actual_max_index}: {map['Values'][actual_max_index]} "
-                                     f"was higher.")
-
+                durability_map = durability['Durability_Map']
+                self.assertEqual(durability_map['Times'], specific_times)
+                self.assertEqual(durability_map['Values'], specific_values)
         self.assertTrue(found_seasonal)
-        pass
+        self.parse_intervention_parts()
+        self.killing_config = self.intervention_config['Killing_Config']
+        self.blocking_config = self.intervention_config['Blocking_Config']
+        self.repelling_config = self.intervention_config['Repelling_Config']
+        self.usage_config = self.intervention_config['Usage_Config_List']
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        self.assertEqual(self.event_coordinator['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(self.event_coordinator['Demographic_Coverage'], demographic_coverage)
+        self.assertEqual(self.event_coordinator['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(self.event_coordinator['Property_Restrictions'], ind_property_restrictions)
+        self.assertEqual(self.intervention_config['Discard_Event'], 'Bednet_Discarded')
+        self.assertEqual(self.intervention_config['Using_Event'], 'Bednet_Using')
+        self.assertEqual(self.intervention_config['Received_Event'], 'Bednet_Got_New_One')
+        self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
+        self.assertEqual(self.intervention_config['Insecticide_Name'], insecticide)
+        self.assertEqual(self.intervention_config['Expiration_Period_Distribution'], "EXPONENTIAL_DISTRIBUTION")
+        self.assertEqual(self.intervention_config['Expiration_Period_Exponential'], expiration_period)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], killing_decay_time_constant)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], killing_box_duration)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.blocking_config[WaningParams.Decay_Time], blocking_decay_time_constant)
+        self.assertEqual(self.blocking_config[WaningParams.Box_Duration], blocking_box_duration)
+        self.assertEqual(self.blocking_config[WaningParams.Initial], blocking_initial_effect)
+        self.assertEqual(self.blocking_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.repelling_config[WaningParams.Decay_Time], repelling_decay_time_constant)
+        self.assertEqual(self.repelling_config[WaningParams.Box_Duration], repelling_box_duration)
+        self.assertEqual(self.repelling_config[WaningParams.Initial], repelling_initial_effect)
+        self.assertEqual(self.repelling_config[WaningParams.Class], WaningEffects.BoxExp)
 
-    @unittest.skip("NYI")
-    def test_usagebednet_seasonal_dependence_minzero_coverage(self):
-        specific_seasonality = {
-            'min_cov': 0.0,
-            'max_day': 185  # July 4 in non leap years
-        }
-        self.usagebednet_build(seasonal_dependence=specific_seasonality)
-        pass
+        # checking that this is finalized appropriately
+        camp.save("test_campaign.json")
+        with open('test_campaign.json') as file:
+            campaign = json.load(file)
+        self.assertTrue('schema' not in campaign, msg="UDBednet contains bits of schema in it")
+        os.remove("test_campaign.json")
+        camp.campaign_dict["Events"] = []  # resetting
+        return
 
-    @unittest.skip("NYI")
-    def test_usagebednet_age_dependence_one(self):
-        pass
-
-    @unittest.skip("NYI")
-    def test_usagebednet_age_dependence_two(self):
-        pass
-
-    @unittest.skip("NYI")
-    def test_usagebednet_age_dependence_three(self):
-        pass
 
     # endregion
 
@@ -1016,11 +1387,12 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_malaria_diagnostic_custom(self):
         self.is_debugging = False
-        malaria_diagnostic = MalariaDiagnostic(camp, "PCR_PARASITES", 0.5, 1 )
+        malaria_diagnostic = MalariaDiagnostic(camp, "PCR_PARASITES", 0.5, 1)
         measures = [malaria_diagnostic.Measurement_Sensitivity, malaria_diagnostic.Detection_Threshold]
 
         self.assertEqual(malaria_diagnostic.Detection_Threshold, 1, msg="Detection Threshold not set properly")
-        self.assertEqual(malaria_diagnostic.Measurement_Sensitivity, 0.5, msg="Measurement Sensitivity not set properly")
+        self.assertEqual(malaria_diagnostic.Measurement_Sensitivity, 0.5,
+                         msg="Measurement Sensitivity not set properly")
         self.assertEqual("PCR_PARASITES", malaria_diagnostic.Diagnostic_Type)
 
         antimalarial_drug = AntimalarialDrug(camp, "Malaria")
@@ -1049,11 +1421,10 @@ class TestMalariaInterventions(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             MalariaDiagnostic(camp, "BLOOD_SMEAR_PARASITES", 0, -1)
 
-
     def test_malaria_diagnostic_infection(self):
         self.is_debugging = False
         malaria_diagnostic = MalariaDiagnostic(camp, "TRUE_INFECTION_STATUS")
-        
+
         self.assertEqual("StandardDiagnostic", malaria_diagnostic.Intervention_Name)
 
         with self.assertRaises(ValueError) as context:
@@ -1706,11 +2077,11 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     def test_default_larvicide(self):
-        start_day = 1 # TBD: these should all really be loaded from schema.
+        start_day = 1  # TBD: these should all really be loaded from schema.
         killing_effect = 1
         box_duration = 100
         camp.campaign_dict["Events"] = []
-        add_larvicide( camp )
+        add_larvicide(camp)
         self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.start_day, start_day)
@@ -1732,10 +2103,10 @@ class TestMalariaInterventions(unittest.TestCase):
         decay_rate = 0.02
         node_ids = [2, 3, 6]
         camp.campaign_dict["Events"] = []
-        add_larvicide( camp, start_day=start_day, spray_coverage=spray_coverage,
-                       killing_effect=killing_effect, insecticide=insecticide,
-                       box_duration=box_duration, decay_time_constant=1/decay_rate, 
-                       node_ids=node_ids)
+        add_larvicide(camp, start_day=start_day, spray_coverage=spray_coverage,
+                      killing_effect=killing_effect, insecticide=insecticide,
+                      box_duration=box_duration, decay_time_constant=1 / decay_rate,
+                      node_ids=node_ids)
         self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.start_day, start_day)
@@ -1855,11 +2226,11 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_scale_larval_habitat(self):
         # resetting campaign
         camp.campaign_dict["Events"] = []
-        df = pd.DataFrame({'NodeID':                        [1, 2, 3, 4, 5],
-                           'CONSTANT.arabiensis':           [1, 0, 1, 1, 1],
+        df = pd.DataFrame({'NodeID': [1, 2, 3, 4, 5],
+                           'CONSTANT.arabiensis': [1, 0, 1, 1, 1],
                            'TEMPORARY_RAINFALL.arabiensis': [1, 1, 0, 1, 0],
-                           'CONSTANT.funestus':             [1, 0, 1, 1, 1],
-                           'WATER_VEGETATION':              [1, 1, 0, 1, 0]
+                           'CONSTANT.funestus': [1, 0, 1, 1, 1],
+                           'WATER_VEGETATION': [1, 1, 0, 1, 0]
                            })
         npr = [{"Test:Testing"}, {"Test:Checking"}]
         add_scale_larval_habitats(camp, df=df,
@@ -1881,43 +2252,44 @@ class TestMalariaInterventions(unittest.TestCase):
                 with open('14.json', 'w') as f:
                     json.dump(event_config['Intervention_Config']['Larval_Habitat_Multiplier'], f)
                 self.assertIn({"Habitat": "WATER_VEGETATION", "Species": "ALL_SPECIES", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "CONSTANT", "Species": "arabiensis", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "CONSTANT", "Species": "funestus", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "TEMPORARY_RAINFALL", "Species": "arabiensis", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
             elif campaign_event['Nodeset_Config']['Node_List'] == [3, 5]:
                 with open('35.json', 'w') as f:
                     json.dump(event_config['Intervention_Config']['Larval_Habitat_Multiplier'], f)
                 self.assertIn({"Habitat": "WATER_VEGETATION", "Species": "ALL_SPECIES", "Factor": 0},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "CONSTANT", "Species": "arabiensis", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "CONSTANT", "Species": "funestus", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "TEMPORARY_RAINFALL", "Species": "arabiensis", "Factor": 0},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
             elif campaign_event['Nodeset_Config']['Node_List'] == [2]:
                 with open('2.json', 'w') as f:
                     json.dump(event_config['Intervention_Config']['Larval_Habitat_Multiplier'], f)
                 self.assertIn({"Habitat": "TEMPORARY_RAINFALL", "Species": "arabiensis", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "WATER_VEGETATION", "Species": "ALL_SPECIES", "Factor": 1},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "CONSTANT", "Species": "arabiensis", "Factor": 0},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
                 self.assertIn({"Habitat": "CONSTANT", "Species": "funestus", "Factor": 0},
-                                 event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
+                              event_config['Intervention_Config']['Larval_Habitat_Multiplier'])
             else:
                 self.assertTrue(True, "Could not find the correct node combination.")
         pass
 
     def test_adherent_drug(self):
         import emodpy_malaria.interventions.adherentdrug as ad
-        camp.set_schema( schema_path_file.schema_file )
-        doses = [["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'], ['Amodiaquine'], ['Amodiaquine'], ['Pyrimethamine']] # use doses value that is different from the default
+        camp.set_schema(schema_path_file.schema_file)
+        doses = [["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'], ['Amodiaquine'], ['Amodiaquine'],
+                 ['Pyrimethamine']]  # use doses value that is different from the default
         dose_interval = 2
         non_adherence_options = ['Stop']
         non_adherence_distribution = [1]
@@ -1928,8 +2300,8 @@ class TestMalariaInterventions(unittest.TestCase):
                                          non_adherence_options=non_adherence_options,
                                          non_adherence_distribution=non_adherence_distribution,
                                          adherence_values=values
-                                        )
-        times = [1.0, 2.0, 3.0, 4.0 ]
+                                         )
+        times = [1.0, 2.0, 3.0, 4.0]
         self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Times"], times)
         self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Values"], values)
         self.assertEqual(adherent_drug["Doses"], doses)
@@ -1940,19 +2312,19 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_adherent_drug_defaults(self):
         import emodpy_malaria.interventions.adherentdrug as ad
-        camp.set_schema( schema_path_file.schema_file )
+        camp.set_schema(schema_path_file.schema_file)
         adherent_drug = ad.adherent_drug(camp
-                                         #doses=doses,
-                                         #dose_interval=dose_interval,
-                                         #non_adherence_options=non_adherence_options,
+                                         # doses=doses,
+                                         # dose_interval=dose_interval,
+                                         # non_adherence_options=non_adherence_options,
                                          ##non_adherence_distribution=non_adherence_distribution,
-                                         #adherence_values=values
-                                        )
+                                         # adherence_values=values
+                                         )
         default_doses = [["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'], ['Amodiaquine'], ['Amodiaquine']]
         default_dose_interval = 1
         default_non_adherence_options = ['NEXT_UPDATE']
         default_non_adherence_distribution = [1]
-        default_values = [1, 1, 1] # we just happen to know this
+        default_values = [1, 1, 1]  # we just happen to know this
         default_times = [1.0, 2.0, 3.0]
         self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Times"], default_times)
         self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Values"], default_values)
