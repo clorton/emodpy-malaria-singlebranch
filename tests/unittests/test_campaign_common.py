@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import unittest
-
-from emodpy_malaria.interventions.common import *
+from emodpy_malaria.interventions.common import add_campaign_event
 import emod_api.campaign as campaign
 
 from pathlib import Path
@@ -21,6 +20,7 @@ class CommonInterventionTest(unittest.TestCase):
         super().setUpClass()
 
     def test_scheduled_campaign_event(self):
+        campaign.campaign_dict["Events"] = []
         target_num_individuals = 123
         campaign.schema_path = schema_path_file.schema_file
         add_campaign_event(campaign,
@@ -30,5 +30,4 @@ class CommonInterventionTest(unittest.TestCase):
                            individual_intervention=["some_intervention"]
                            )
         event = campaign.campaign_dict["Events"][0]
-
         self.assertEqual(event.Event_Coordinator_Config.Target_Num_Individuals, target_num_individuals)

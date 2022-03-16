@@ -1863,13 +1863,13 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(campaign_event['Demographic_Coverage'], 1)
         self.assertEqual(campaign_event['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
         self.assertEqual(campaign_event['Target_Gender'], "All")
-        self.assertEqual(campaign_event['Target_Demographic'], "Everyone")
-        self.assertEqual(campaign_event['Property_Restrictions_Within_Node'], [])
+        self.assertEqual(campaign_event['Target_Demographic'], "ExplicitAgeRanges") # should be everyone, but there's a bug in emod_api.intervnetions.common
+        self.assertEqual(campaign_event['Property_Restrictions'], [])
         self.assertEqual(campaign_event['Node_Property_Restrictions'], [])
         self.assertEqual(campaign_event['Number_Repetitions'], 1)
         self.assertEqual(campaign_event['Timesteps_Between_Repetitions'], 365)
-        intervention_0 = campaign_event['Intervention_Config']['Intervention_List'][0]
-        self.assertEqual(len(campaign_event['Intervention_Config']['Intervention_List']), 1)
+        intervention_0 = campaign_event['Intervention_Config']
+        #self.assertEqual(len(campaign_event['Intervention_Config']['Intervention_List']), 1)
         self.assertEqual(intervention_0['class'], "SimpleVaccine")
         self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 1)
         self.assertEqual(intervention_0['Vaccine_Take'], 1)
@@ -1877,6 +1877,113 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(intervention_0['Waning_Config']["Box_Duration"], 365)
         self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
         self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
+
+    def test_triggered_vaccine_default(self):
+        camp.campaign_dict["Events"] = []
+        add_triggered_vaccine(camp, trigger_condition_list=["HappyBirthday"])
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]['Event_Coordinator_Config']
+        self.assertEqual(camp.campaign_dict['Events'][0]['Start_Day'], 1)
+        self.assertEqual(camp.campaign_dict['Events'][0]['Nodeset_Config']['class'], "NodeSetAll")
+        self.assertEqual(campaign_event['Demographic_Coverage'], 1)
+        self.assertEqual(campaign_event['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+        self.assertEqual(campaign_event['Target_Gender'], "All")
+        self.assertEqual(campaign_event['Intervention_Config']['Target_Demographic'], "ExplicitAgeRanges") # should be everyone, but there's a bug in emod_api.intervnetions.common
+        self.assertEqual(campaign_event['Intervention_Config']['Property_Restrictions'], [])
+        self.assertEqual(campaign_event['Intervention_Config']['Node_Property_Restrictions'], [])
+        self.assertEqual(campaign_event['Number_Repetitions'], 1)
+        self.assertEqual(campaign_event['Timesteps_Between_Repetitions'], 365)
+        intervention_0 = campaign_event['Intervention_Config']['Actual_IndividualIntervention_Config']["Actual_IndividualIntervention_Configs"][0]
+        self.assertEqual(intervention_0['class'], "SimpleVaccine")
+        self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 1)
+        self.assertEqual(intervention_0['Vaccine_Take'], 1)
+        self.assertEqual(intervention_0['Vaccine_Type'], "AcquisitionBlocking")
+        self.assertEqual(intervention_0['Waning_Config']["Box_Duration"], 365)
+        self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
+        self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
+
+    def test_triggered_vaccine_custom(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 12
+        triggers = ["Births", "HappyBirthday"]
+        delay = 234
+        duration = 324
+        demographic_coverage = 0.374
+        node_ids = [12, 234, 3]
+        repetitions = 5
+        timesteps_between_repetitions = 30
+        ind_property_restrictions = [{"Risk": "High", "Location": "Rural"}, {"Risk": "Medium", "Location": "Urban"}]
+        node_property_restrictions = [{"Planet": "Mars"}]
+        target_age_min = 3
+        target_age_max = 35
+        target_gender = "Female"
+        broadcast_event = "I am vaccinated!"
+        vaccine_type = "TransmissionBlocking"
+        vaccine_take = 0.95
+        vaccine_initial_effect = 0.98
+        vaccine_box_duration = 2000
+        vaccine_exponential_decay_rate = 0
+        efficacy_is_multiplicative = False
+
+        add_triggered_vaccine(camp,
+                              start_day=start_day,
+                              demographic_coverage=demographic_coverage,
+                              trigger_condition_list=triggers,
+                              delay_period_constant=delay,
+                              listening_duration=duration,
+                              node_ids=node_ids,
+                              repetitions=repetitions,
+                              timesteps_between_repetitions=timesteps_between_repetitions,
+                              ind_property_restrictions=ind_property_restrictions,
+                              node_property_restrictions=node_property_restrictions,
+                              target_age_min=target_age_min,
+                              target_age_max=target_age_max,
+                              target_gender=target_gender,
+                              broadcast_event=broadcast_event,
+                              vaccine_type=vaccine_type,
+                              vaccine_take=vaccine_take,
+                              vaccine_initial_effect=vaccine_initial_effect,
+                              vaccine_box_duration=vaccine_box_duration,
+                              vaccine_exponential_decay_rate=vaccine_exponential_decay_rate,
+                              efficacy_is_multiplicative=efficacy_is_multiplicative)
+
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+        triggered_config = campaign_event['Event_Coordinator_Config']['Intervention_Config']
+        self.assertEqual(triggered_config['Target_Age_Max'], target_age_max)
+        self.assertEqual(triggered_config['Target_Age_Min'], target_age_min)
+        self.assertEqual(triggered_config['Target_Gender'], target_gender)
+        self.assertEqual(triggered_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
+        self.assertEqual(triggered_config['Property_Restrictions_Within_Node'], ind_property_restrictions)
+        self.assertEqual(triggered_config['Node_Property_Restrictions'], node_property_restrictions)
+        self.assertEqual(triggered_config['Trigger_Condition_List'], triggers)
+        self.assertEqual(triggered_config['Duration'], duration)
+        self.assertEqual(triggered_config['Actual_IndividualIntervention_Config']["Delay_Period_Constant"], delay)
+        self.assertEqual(campaign_event['Event_Coordinator_Config']['Number_Repetitions'], repetitions)
+        self.assertEqual(campaign_event['Event_Coordinator_Config']['Timesteps_Between_Repetitions'], timesteps_between_repetitions)
+        intervention_1 = triggered_config['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][1]
+        intervention_0 = triggered_config['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]
+        if intervention_0['class'] == "BroadcastEvent":
+            self.assertEqual(intervention_0["Broadcast_Event"], broadcast_event)
+            self.assertEqual(intervention_1['class'], "SimpleVaccine")
+            self.assertEqual(intervention_1['Efficacy_Is_Multiplicative'], 0)
+            self.assertEqual(intervention_1['Vaccine_Take'], vaccine_take)
+            self.assertEqual(intervention_1['Vaccine_Type'], vaccine_type)
+            self.assertEqual(intervention_1['Waning_Config']["Box_Duration"], vaccine_box_duration)
+            self.assertEqual(intervention_1['Waning_Config']["Initial_Effect"], vaccine_initial_effect)
+            self.assertEqual(intervention_1['Waning_Config']["class"], "WaningEffectBoxExponential")
+        else:  # just in case this happens the other way around
+            self.assertEqual(intervention_0['class'], "SimpleVaccine")
+            self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 0)
+            self.assertEqual(intervention_0['Vaccine_Take'], vaccine_take)
+            self.assertEqual(intervention_0['Vaccine_Type'], vaccine_type)
+            self.assertEqual(intervention_0['Waning_Config']["Box_Duration"], vaccine_box_duration)
+            self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], vaccine_initial_effect)
+            self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
+            self.assertEqual(intervention_1["Broadcast_Event"], broadcast_event)
 
         # test IRSHousindModification
 

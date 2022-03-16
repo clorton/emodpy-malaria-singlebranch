@@ -215,8 +215,8 @@ class MalariaInterventionFileTest(unittest.TestCase):
                 self.method_under_test(camp, start_day=self.specific_start_day)
             self.load_event()
             self.assertEqual(self.start_day, self.specific_start_day)
-            self.assertEqual(self.event['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0]
-                             ["class"], self.expected_intervention_class)
+            self.assertEqual(self.event['Event_Coordinator_Config']['Intervention_Config']
+                    ["class"], self.expected_intervention_class)
         run_test()
         return
 

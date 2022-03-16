@@ -207,7 +207,6 @@ def add_triggered_campaign_delay_event(campaign,
                                               Intervention_List=individual_intervention if isinstance(
                                                   individual_intervention, list) else [individual_intervention],
                                               Node_Ids=node_ids,
-                                              Property_Restrictions=ind_property_restrictions,
                                               Node_Property_Restrictions=node_property_restrictions,
                                               Timesteps_Between_Repetitions=timesteps_between_repetitions,
                                               Number_Repetitions=repetitions,
@@ -222,7 +221,13 @@ def add_triggered_campaign_delay_event(campaign,
                                               Blackout_Event_Trigger=blackout_event_trigger,
                                               Blackout_On_First_Occurrence=blackout_on_first_occurrence
                                               )
-        event.Event_Coordinator_Config.Intervention_Config.Node_Property_Restrictions = node_property_restrictions
+        triggered_event = event.Event_Coordinator_Config.Intervention_Config
+        triggered_event.Node_Property_Restrictions = node_property_restrictions
+        individual_restrictions = utils._convert_prs(ind_property_restrictions)
+        if len(individual_restrictions) > 0 and type(individual_restrictions[0]) is dict:
+            triggered_event["Property_Restrictions_Within_Node"] = individual_restrictions
+        else:
+            triggered_event.Property_Restrictions = individual_restrictions
         campaign.add(event)
 
     else:
@@ -266,9 +271,7 @@ def add_triggered_campaign_delay_event(campaign,
             triggered_intervention.Target_Gender = target_gender
             triggered_intervention.Target_Demographic = "ExplicitAgeRangesAndGender"
 
-        triggered_intervention.Actual_NodeIntervention_Config = node_intervention if isinstance(node_intervention,
-                                                                                                list) else [
-            node_intervention]
+        triggered_intervention.Actual_NodeIntervention_Config = node_intervention
         coordinator.Intervention_Config = triggered_intervention
         campaign.add(event)
 

@@ -82,6 +82,13 @@ class MalariaTestImports(unittest.TestCase):
         ]
         self.verify_expected_items_present(namespace=sugartrap)
 
+    def test_intervention_vaccine(self):
+        from emodpy_malaria.interventions import vaccine
+        self.expected_items = [
+            "add_scheduled_vaccine", "utils", "add_triggered_vaccine", "_simple_vaccine"
+        ]
+        self.verify_expected_items_present(namespace=vaccine)
+
     def test_intervention_usage_dependent_bednet(self):
         from emodpy_malaria.interventions import usage_dependent_bednet
         self.expected_items = [
