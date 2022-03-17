@@ -55,7 +55,7 @@ def set_team_defaults(config, manifest):
     # Other defaults from dtk-tools transition  #fixme very likely needs pruning
     config.parameters.Egg_Saturation_At_Oviposition = "SATURATION_AT_OVIPOSITION"
     config.parameters.Enable_Demographics_Reporting = 0
-    config.parameters.Enable_Rainfall_Stochasticity = 1
+    # config.parameters.Enable_Rainfall_Stochasticity = 1
     config.parameters.Node_Grid_Size = 0.042
     # config.parameters.Population_Density_C50 = 30
     config.parameters.Population_Scale_Type = "FIXED_SCALING"
