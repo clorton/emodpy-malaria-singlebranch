@@ -28,6 +28,11 @@ skip_tests = ["download_files",
               "outdoor_rest_kill_male_mosquitoes",
               "burnin_use",
               "filtered_report",
+			  "jonr_1", #431
+			  "migration_spatial_vector_sim", #432
+			  "migration_spatial_malaria_sim", #432
+			  "add_reports", #433
+			  "embedded_python_post_processing" #434
               ]
 
 # "migration_spatial_malaria_sim",	# needs vpn connection
@@ -147,6 +152,12 @@ rule input_eir:
     output: Path("inputEIR", "experiment_id")
     run:        
         shell(get_command("inputEIR", python_version=config['python_version']))
+
+rule irs:
+    input: 
+    output: Path("irs", "experiment_id")
+    run:        
+        shell(get_command("irs", python_version=config['python_version']))
 
 rule vector_basic:
     input: 
