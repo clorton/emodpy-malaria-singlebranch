@@ -110,7 +110,7 @@ class MalariaTestImports(unittest.TestCase):
     def test_ivermectin(self):
         from emodpy_malaria.interventions import ivermectin
         self.expected_items = [
-            "Ivermectin"
+            "_ivermectin", "add_triggered_ivermectin", "add_scheduled_ivermectin"
         ]
         self.verify_expected_items_present(namespace=ivermectin)
 

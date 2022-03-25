@@ -96,7 +96,7 @@ def general_sim():
     # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
     platform = Platform("Calculon", node_group="idm_48cores")
 
-    experiment_name = "irs_template"
+    experiment_name = "irs_example"
 
     # create EMODTask
     print("Creating EMODTask (from files)...")

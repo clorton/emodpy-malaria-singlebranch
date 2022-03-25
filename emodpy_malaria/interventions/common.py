@@ -145,8 +145,7 @@ def add_triggered_campaign_delay_event(campaign,
                                        blackout_event_trigger: str = None,
                                        blackout_period: float = 0,
                                        blackout_on_first_occurrence: bool = 0,
-                                       individual_intervention: any = None,
-                                       node_intervention: any = None):
+                                       individual_intervention: any = None):
     """
         Create and add campaign event that responds to a trigger after an optional delay with an intervention.
 
@@ -184,96 +183,43 @@ def add_triggered_campaign_delay_event(campaign,
             occurrence of an event in the **Trigger_Condition_List***.
         individual_intervention: Individual intervention or a list of individual interventions to be distributed
             by this event
-        node_intervention: Node intervention or a list of node interventions to be distributed
-            by this event
+
     Returns:
         Nothing
 
     """
-    schema_path = campaign.schema_path
-
     if not trigger_condition_list:
         raise ValueError(f"Please define trigger_condition_list.\n")
-    if individual_intervention and node_intervention:
-        raise ValueError(f"You cannot define both individual_intervention and node_intervention, only one.\n")
-    elif not individual_intervention and not node_intervention:
-        raise ValueError(f"Please pass in either individual_intervention or node_intervention.\n")
 
-    if individual_intervention:
-        event = common.TriggeredCampaignEvent(camp=campaign,
-                                              Start_Day=start_day,
-                                              Event_Name="TriggeredEvent",
-                                              Triggers=trigger_condition_list,
-                                              Intervention_List=individual_intervention if isinstance(
-                                                  individual_intervention, list) else [individual_intervention],
-                                              Node_Ids=node_ids,
-                                              Node_Property_Restrictions=node_property_restrictions,
-                                              Timesteps_Between_Repetitions=timesteps_between_repetitions,
-                                              Number_Repetitions=repetitions,
-                                              Target_Gender=target_gender,
-                                              Target_Age_Max=target_age_max,
-                                              Target_Age_Min=target_age_min,
-                                              Duration=listening_duration,
-                                              Demographic_Coverage=demographic_coverage,
-                                              Delay=delay_period_constant,
-                                              Disqualifying_Properties=disqualifying_properties,
-                                              Blackout_Period=blackout_period,
-                                              Blackout_Event_Trigger=blackout_event_trigger,
-                                              Blackout_On_First_Occurrence=blackout_on_first_occurrence
-                                              )
-        triggered_event = event.Event_Coordinator_Config.Intervention_Config
-        triggered_event.Node_Property_Restrictions = node_property_restrictions
-        individual_restrictions = utils._convert_prs(ind_property_restrictions)
-        if len(individual_restrictions) > 0 and type(individual_restrictions[0]) is dict:
-            triggered_event["Property_Restrictions_Within_Node"] = individual_restrictions
-        else:
-            triggered_event.Property_Restrictions = individual_restrictions
-        campaign.add(event)
-
+    event = common.TriggeredCampaignEvent(camp=campaign,
+                                          Start_Day=start_day,
+                                          Event_Name="TriggeredEvent",
+                                          Triggers=trigger_condition_list,
+                                          Intervention_List=individual_intervention if isinstance(
+                                              individual_intervention, list) else [individual_intervention],
+                                          Node_Ids=node_ids,
+                                          Node_Property_Restrictions=node_property_restrictions,
+                                          Timesteps_Between_Repetitions=timesteps_between_repetitions,
+                                          Number_Repetitions=repetitions,
+                                          Target_Gender=target_gender,
+                                          Target_Age_Max=target_age_max,
+                                          Target_Age_Min=target_age_min,
+                                          Duration=listening_duration,
+                                          Demographic_Coverage=demographic_coverage,
+                                          Delay=delay_period_constant,
+                                          Disqualifying_Properties=disqualifying_properties,
+                                          Blackout_Period=blackout_period,
+                                          Blackout_Event_Trigger=blackout_event_trigger,
+                                          Blackout_On_First_Occurrence=blackout_on_first_occurrence
+                                          )
+    triggered_event = event.Event_Coordinator_Config.Intervention_Config
+    triggered_event.Node_Property_Restrictions = node_property_restrictions
+    individual_restrictions = utils._convert_prs(ind_property_restrictions)
+    if len(individual_restrictions) > 0 and type(individual_restrictions[0]) is dict:
+        triggered_event["Property_Restrictions_Within_Node"] = individual_restrictions
     else:
-        if delay_period_constant > 0:
-            raise ValueError(f"Cannot do a triggered and delayed node intervention distribution. Triggered with no"
-                             f"delay only.\n")
-        elif isinstance(node_intervention, list):
-            multi_intervention_distributor = s2c.get_class_with_defaults("MultiNodeInterventionDistributor",
-                                                                         schema_path)
-            multi_intervention_distributor.Node_Intervention_List = node_intervention
-            node_intervention = multi_intervention_distributor
-
-        event = s2c.get_class_with_defaults("CampaignEvent", schema_path)
-        event.Start_Day = start_day
-        event.Nodeset_Config = utils.do_nodes(schema_path, node_ids)
-
-        coordinator = s2c.get_class_with_defaults("StandardEventCoordinator", schema_path)
-        coordinator.Number_Repetitions = repetitions
-        coordinator.Timesteps_Between_Repetitions = timesteps_between_repetitions
-        event.Event_Coordinator_Config = coordinator
-
-        # configuring the coordinator
-        triggered_intervention = s2c.get_class_with_defaults("NodeLevelHealthTriggeredIV", schema_path)
-        triggered_intervention.Demographic_Coverage = demographic_coverage
-        triggered_intervention.Trigger_Condition_List = trigger_condition_list
-        triggered_intervention.Duration = listening_duration
-        triggered_intervention.Node_Property_Restrictions = node_property_restrictions if node_property_restrictions else []
-        triggered_intervention.Property_Restrictions_Within_Node = ind_property_restrictions if ind_property_restrictions else []
-        triggered_intervention.Property_Restrictions = []  # not using; Property_Restrictions_Within_Node are more flexible
-        triggered_intervention.Disqualifying_Properties = disqualifying_properties
-        if blackout_period:
-            if not blackout_event_trigger:
-                raise ValueError("Please define 'blackout_event_trigger' when using 'blackout_period'.\n")
-            triggered_intervention.Blackout_Period = blackout_period
-            triggered_intervention.Blackout_Event_Trigger = blackout_event_trigger if blackout_event_trigger else ""
-        triggered_intervention.Blackout_On_First_Occurrence = blackout_on_first_occurrence if blackout_on_first_occurrence else 0
-        if target_age_min > 0 or target_age_max < 125:
-            triggered_intervention.Target_Age_Min = target_age_min
-            triggered_intervention.Target_Age_Max = target_age_max
-        if target_gender != "All":
-            triggered_intervention.Target_Gender = target_gender
-            triggered_intervention.Target_Demographic = "ExplicitAgeRangesAndGender"
-
-        triggered_intervention.Actual_NodeIntervention_Config = node_intervention
-        coordinator.Intervention_Config = triggered_intervention
-        campaign.add(event)
+        triggered_event.Property_Restrictions = individual_restrictions
+    campaign.add(event)
 
 
 def add_campaign_event(campaign,

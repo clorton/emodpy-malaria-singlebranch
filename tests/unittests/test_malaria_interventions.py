@@ -8,7 +8,7 @@ import schema_path_file
 import random
 import pandas as pd
 
-from emodpy_malaria.interventions.ivermectin import Ivermectin
+from emodpy_malaria.interventions.ivermectin import add_scheduled_ivermectin, add_triggered_ivermectin
 from emodpy_malaria.interventions.bednet import Bednet, add_ITN_scheduled, BednetIntervention
 from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
 from emodpy_malaria.interventions.usage_dependent_bednet import add_scheduled_usage_dependent_bednet, \
@@ -112,31 +112,37 @@ class TestMalariaInterventions(unittest.TestCase):
 
     # region Ivermectin
 
-    def ivermectin_build(self
-                         , start_day=0
-                         , target_coverage=1.0
-                         , target_num_individuals=None
-                         , killing_effect=1.0
-                         , killing_duration_box=0
-                         , killing_exponential_rate=0.0):
-        self.tmp_intervention = Ivermectin(
-            schema_path_container=self.schema_file
-            , start_day=start_day
-            , demographic_coverage=target_coverage
-            , target_num_individuals=target_num_individuals
-            , killing_initial_effect=killing_effect
-            , killing_box_duration=killing_duration_box
-            , killing_exponential_decay_rate=killing_exponential_rate
-        )
+    def ivermectin_build(self,
+                         start_day=0,
+                         target_coverage=1.0,
+                         target_num_individuals=None,
+                         node_ids=None,
+                         ind_property_restrictions=None,
+                         node_property_restrictions=None,
+                         killing_initial_effect=1.0,
+                         killing_duration_box=0,
+                         killing_decay_time_constant=0.0,
+                         insecticide="",
+                         cost=1,
+                         intervention_name="Ivermectin"):
+        camp.campaign_dict["Events"] = []  # resetting
+        add_scheduled_ivermectin(campaign=camp,
+                                 start_day=start_day,
+                                 demographic_coverage=target_coverage,
+                                 target_num_individuals=target_num_individuals,
+                                 node_ids=node_ids,
+                                 ind_property_restrictions=ind_property_restrictions,
+                                 node_property_restrictions=node_property_restrictions,
+                                 killing_initial_effect=killing_initial_effect,
+                                 killing_box_duration=killing_duration_box,
+                                 killing_decay_time_constant=killing_decay_time_constant,
+                                 insecticide=insecticide,
+                                 cost=cost,
+                                 intervention_name=intervention_name
+                                 )
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.killing_config = self.intervention_config['Killing_Config']
-        return
-
-    @unittest.skip("FIXED")
-    def test_ivermectin_default_throws_exception(self):
-        with self.assertRaises(TypeError) as context:
-            Ivermectin(schema_path_container=schema_path_file)
-        self.assertIn("killing_effect", str(context.exception))
         return
 
     def test_ivermectin_box_default(self):
@@ -155,7 +161,7 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_ivermectin_exponential_default(self):
         self.is_debugging = False
-        self.ivermectin_build(killing_exponential_rate=0.1)
+        self.ivermectin_build(killing_decay_time_constant=10)
         self.assertEqual(self.killing_config[WaningParams.Initial], 1.0)
         self.assertEqual(self.killing_config[WaningParams.Decay_Time], 10)
         self.assertIn('Box_Duration', self.killing_config)
@@ -165,26 +171,21 @@ class TestMalariaInterventions(unittest.TestCase):
 
     def test_ivermectin_boxexponential_default(self):
         self.is_debugging = False
-        self.ivermectin_build(killing_exponential_rate=0.25,
+        self.ivermectin_build(killing_decay_time_constant=4,
                               killing_duration_box=3,
-                              killing_effect=0.8)
+                              killing_initial_effect=0.8)
         self.assertEqual(self.killing_config[WaningParams.Initial], 0.8)
         self.assertEqual(self.killing_config[WaningParams.Decay_Time], 4)
         self.assertEqual(self.killing_config[WaningParams.Box_Duration], 3)
-        self.assertEqual(self.killing_config['class'], WaningEffects.BoxExp)
-        self.assertEqual(self.killing_config['Initial_Effect'], 0.8)
-        self.assertEqual(self.killing_config['Decay_Time_Constant'], 4)
-        self.assertEqual(self.killing_config['Box_Duration'], 3)
-        self.assertEqual(self.killing_config['class'], 'WaningEffectBoxExponential')
         pass
 
     def test_ivermectin_custom_everything(self):
         self.ivermectin_build(
             start_day=123,
             target_coverage=0.87,
-            killing_effect=0.76,
+            killing_initial_effect=0.76,
             killing_duration_box=12,
-            killing_exponential_rate=0.2
+            killing_decay_time_constant=5
         )
         self.assertEqual(self.start_day, 123)
         self.assertEqual(self.event_coordinator['Demographic_Coverage'], 0.87)
@@ -197,13 +198,62 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_ivermectin_num_individuals(self):
         self.is_debugging = False
         self.ivermectin_build(target_num_individuals=354,
-                              killing_duration_box=3)
+                              killing_duration_box=3,
+                              insecticide="testtest",
+                              cost=234,
+                              )
         self.assertEqual(self.event_coordinator['Target_Num_Individuals'], 354)
         self.assertIn('Individual_Selection_Type', self.event_coordinator)
         self.assertEqual(self.event_coordinator['Individual_Selection_Type'], 'TARGET_NUM_INDIVIDUALS')
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], 3)
         # self.assertNotIn('Demographic_Coverage', self.event_coordinator)
         # TODO: uncomment that assertion later
         pass
+
+    def test_triggered_ivermectin(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 21
+        triggers = ["Testing", "123"]
+        duration = 34
+        delay = 5
+        demog_cov = 0.75
+        ind_prop = ["Risk:High"]
+        init_eff = 0.88
+        box = 33
+        decay = 55
+        name = "Yuppers"
+        insecticide = "BugSpray"
+        cost = 1.5
+        nodes = [23, 12, 3]
+        add_triggered_ivermectin(campaign=camp, start_day=start_day,
+                                 trigger_condition_list=triggers,
+                                 listening_duration=duration, delay_period_constant=delay,
+                                 demographic_coverage=demog_cov, node_ids=nodes,
+                                 ind_property_restrictions=ind_prop, killing_initial_effect=init_eff,
+                                 killing_box_duration=box, killing_decay_time_constant=decay,
+                                 intervention_name=name,
+                                 insecticide=insecticide, cost=cost)
+        campaign_event = camp.campaign_dict['Events'][0]
+        self.assertEqual(campaign_event['Start_Day'], start_day)
+        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], nodes)
+        triggered_intervention = campaign_event['Event_Coordinator_Config']['Intervention_Config']
+        self.assertEqual(triggered_intervention['Demographic_Coverage'], demog_cov)
+        self.assertEqual(triggered_intervention['Duration'], duration)
+        self.assertEqual(triggered_intervention['Trigger_Condition_List'], triggers)
+        self.assertEqual(triggered_intervention['Property_Restrictions'], ind_prop)
+        self.assertEqual(triggered_intervention['Node_Property_Restrictions'], [])
+        delayed_intervention = triggered_intervention["Actual_IndividualIntervention_Config"]
+        self.assertEqual(delayed_intervention['Delay_Period_Constant'], delay)
+        self.assertEqual(delayed_intervention['Delay_Period_Distribution'], "CONSTANT_DISTRIBUTION")
+        ivermectin = delayed_intervention["Actual_IndividualIntervention_Configs"][0]
+        self.assertEqual(ivermectin['Insecticide_Name'], insecticide)
+        self.assertEqual(ivermectin['Intervention_Name'], name)
+        self.assertEqual(ivermectin['Cost_To_Consumer'], cost)
+        self.killing_config = ivermectin['Killing_Config']
+        self.assertEqual(self.killing_config[WaningParams.Initial], init_eff)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], decay)
 
     # endregion
 

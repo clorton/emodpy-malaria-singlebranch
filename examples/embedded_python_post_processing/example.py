@@ -76,7 +76,8 @@ def ep4_fn( task ):
 def general_sim():
     # Create a platform
     # Show how to dynamically set priority and node_group
-    platform = Platform("SLURM", node_group="idm_48cores", priority="Highest") 
+    # platform = Platform("SLURM", node_group="idm_48cores", priority="Highest")
+    platform = Platform("Calculon", node_group="idm_48cores")
 
     task = EMODTask.from_default2(eradication_path=manifest.eradication_path, campaign_builder=build_camp, demog_builder=build_demog, schema_path=manifest.schema_file, param_custom_cb=set_param_fn, ep4_custom_cb=ep4_fn, config_path="config.json" )
     pathed_asset = Asset( manifest.schema_file, relative_path="python")
