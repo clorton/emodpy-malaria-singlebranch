@@ -22,7 +22,7 @@ from emodpy_malaria.interventions.outbreak import *
 from emodpy_malaria.interventions.vaccine import *
 from emodpy_malaria.interventions.irs import *
 from emodpy_malaria.interventions.spacespraying import SpaceSpraying
-from emodpy_malaria.interventions.sugartrap import SugarTrap
+from emodpy_malaria.interventions.sugartrap import add_scheduled_sugar_trap
 from emodpy_malaria.interventions.larvicide import add_larvicide
 from emodpy_malaria.interventions.community_health_worker import add_community_health_worker
 from emodpy_malaria.interventions.scale_larval_habitats import add_scale_larval_habitats
@@ -2192,39 +2192,75 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
         pass
 
-    def test_default_sugar_trap(self):
+    def test_default_scheduled_sugar_trap(self):
+        camp.campaign_dict["Events"] = []
         start_day = 0
-        killing_effect = 1
-        box_duration = 100
-        self.tmp_intervention = SugarTrap(camp)
+        repetitions = 1
+        timesteps_between_repetitions = 365
+        node_property_restrictions = []
+        cost_to_consumer = 0
+        expiration_constant = 30
+        insecticide = ""
+        intervention_name = "SugarTrap"
+        killing_initial_effect = 1
+        add_scheduled_sugar_trap(campaign=camp)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.start_day, start_day)
-        self.assertNotIn("Insecticide_Name", self.intervention_config)
-        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
-        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
-        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
-        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.intervention_config["Expiration_Constant"], expiration_constant)
+        self.assertEqual(self.intervention_config["Expiration_Distribution"], "CONSTANT_DISTRIBUTION")
+        self.assertEqual(self.intervention_config["Cost_To_Consumer"], cost_to_consumer)
+        self.assertEqual(self.intervention_config["Insecticide_Name"], insecticide)
+        self.assertEqual(self.intervention_config["Intervention_Name"], intervention_name)
+        self.assertEqual(self.event_coordinator["Number_Repetitions"], repetitions)
+        self.assertEqual(self.event_coordinator["Timesteps_Between_Repetitions"], timesteps_between_repetitions)
+        self.assertEqual(self.event_coordinator["Node_Property_Restrictions"], node_property_restrictions)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.Constant)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
         pass
 
-    def test_custom_sugar_trap(self):
+    def test_custom_scheduled_sugar_trap(self):
         camp.campaign_dict["Events"] = []
-        start_day = 235
-        killing_effect = 0.52
-        insecticide = "KillVectors"
-        box_duration = 51
-        decay_rate = 0.02
-        node_ids = [2, 3, 6]
-        self.tmp_intervention = SugarTrap(camp, start_day=start_day,
-                                          killing_effect=killing_effect, insecticide=insecticide,
-                                          box_duration=box_duration, decay_rate=decay_rate, node_ids=node_ids)
+        start_day = 345
+        node_ids = [234, 11, 42]
+        repetitions = 8
+        timesteps_between_repetitions = 3
+        node_property_restrictions = [{"Place": "Urban"}]
+        cost_to_consumer = 1.15
+        expiration_config = {"Expiration_Distribution": "GAUSSIAN_DISTRIBUTION",
+                             "Expiration_Gaussian_Mean": 20, "Expiration_Gaussian_Std_Dev": 10}
+        expiration_constant = 33
+        insecticide = "EatMe"
+        intervention_name = "SugarTrapEatMe"
+        killing_initial_effect = 0.89
+        killing_box_duration = 256
+        killing_decay_time_constant = 500
+        add_scheduled_sugar_trap(campaign=camp, start_day=start_day,
+                                 node_ids=node_ids, repetitions=repetitions,
+                                 timesteps_between_repetitions=timesteps_between_repetitions,
+                                 node_property_restrictions=node_property_restrictions,
+                                 cost_to_consumer=cost_to_consumer, expiration_config=expiration_config,
+                                 expiration_constant=expiration_constant, insecticide=insecticide,
+                                 intervention_name=intervention_name, killing_initial_effect=killing_initial_effect,
+                                 killing_box_duration=killing_box_duration,
+                                 killing_decay_time_constant=killing_decay_time_constant)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
-        self.assertEqual(self.start_day, start_day)
-        self.assertEqual(self.intervention_config.Insecticide_Name, insecticide)
-        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / decay_rate)
-        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
-        self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
+        self.assertEqual(self.tmp_intervention["Start_Day"], start_day)
+        self.assertEqual(self.intervention_config["Expiration_Gaussian_Mean"], 20)
+        self.assertEqual(self.intervention_config["Expiration_Distribution"], "GAUSSIAN_DISTRIBUTION")
+        self.assertEqual(self.intervention_config["Expiration_Gaussian_Std_Dev"], 10)
+        self.assertEqual(self.intervention_config["Cost_To_Consumer"], cost_to_consumer)
+        self.assertEqual(self.intervention_config["Insecticide_Name"], insecticide)
+        self.assertEqual(self.intervention_config["Intervention_Name"], intervention_name)
+        self.assertEqual(self.event_coordinator["Number_Repetitions"], repetitions)
+        self.assertEqual(self.event_coordinator["Timesteps_Between_Repetitions"], timesteps_between_repetitions)
+        self.assertEqual(self.event_coordinator["Node_Property_Restrictions"], node_property_restrictions)
+        self.assertEqual(self.killing_config[WaningParams.Initial], killing_initial_effect)
         self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], killing_decay_time_constant)
+        self.assertEqual(self.killing_config[WaningParams.Box_Duration], killing_box_duration)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
         pass

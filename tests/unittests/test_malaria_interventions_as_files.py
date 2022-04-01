@@ -148,16 +148,20 @@ class MalariaInterventionFileTest(unittest.TestCase):
 
 
     def test_sugartrap_file(self):
+        camp.campaign_dict["Events"] = []
         self.method_under_test = sugartrap_file
         self.expected_intervention_class = "SugarTrap"
         self.run_test()
+        camp.campaign_dict["Events"] = []
         return
 
     def test_sugartrap_file_nofilename(self):
+        camp.campaign_dict["Events"] = []
         self.method_under_test = sugartrap_file
         self.expected_intervention_class = "SugarTrap"
         self.file_path = None
         self.run_test()
+        camp.campaign_dict["Events"] = []
         return
 
     def test_udbednet_file(self):

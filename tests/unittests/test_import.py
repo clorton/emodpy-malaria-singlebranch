@@ -78,7 +78,7 @@ class MalariaTestImports(unittest.TestCase):
     def test_intervention_sugartrap(self):
         from emodpy_malaria.interventions import sugartrap
         self.expected_items = [
-            "SugarTrap", "utils"
+            "add_scheduled_sugar_trap", "utils", "_sugar_trap"
         ]
         self.verify_expected_items_present(namespace=sugartrap)
 
