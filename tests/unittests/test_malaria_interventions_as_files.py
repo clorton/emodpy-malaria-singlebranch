@@ -11,6 +11,7 @@ from emodpy_malaria.interventions.sugartrap import new_intervention_as_file as s
 from emodpy_malaria.interventions.usage_dependent_bednet import new_intervention_as_file as rei_bednet
 from emodpy_malaria.interventions.inputeir import new_intervention_as_file as inputeir
 from emodpy_malaria.interventions.vaccine import new_intervention_as_file as simple_vaccine
+from emodpy_malaria.interventions.mosquitorelease import new_intervention_as_file as mosquito_release_file
 
 import emod_api.campaign as camp
 camp.schema_path = schema_path_file.schema_file
@@ -129,6 +130,22 @@ class MalariaInterventionFileTest(unittest.TestCase):
         self.file_path = None
         self.run_test()
         return
+
+    def test_mosquito_release_file(self):
+        camp.campaign_dict["Events"] = []
+        self.method_under_test = mosquito_release_file
+        self.expected_intervention_class = "MosquitoRelease"
+        self.run_test()
+        return
+
+    def test_mosquito_release_file_nofilename(self):
+        camp.campaign_dict["Events"] = []
+        self.method_under_test = mosquito_release_file
+        self.expected_intervention_class = "MosquitoRelease"
+        self.file_path = None
+        self.run_test()
+        return
+
 
     def test_sugartrap_file(self):
         self.method_under_test = sugartrap_file

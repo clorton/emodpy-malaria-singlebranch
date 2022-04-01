@@ -16,7 +16,7 @@ from emodpy_malaria.interventions.usage_dependent_bednet import add_scheduled_us
 from emodpy_malaria.interventions import drug_campaign
 from emodpy_malaria.interventions import diag_survey
 from emodpy_malaria.interventions.common import *
-from emodpy_malaria.interventions.mosquitorelease import MosquitoRelease
+from emodpy_malaria.interventions.mosquitorelease import add_scheduled_mosquito_release
 from emodpy_malaria.interventions.inputeir import InputEIR
 from emodpy_malaria.interventions.outbreak import *
 from emodpy_malaria.interventions.vaccine import *
@@ -1482,75 +1482,7 @@ class TestMalariaInterventions(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             MalariaDiagnostic(camp, "TRUE_INFECTION_STATUS", 0, -1)
 
-    def mosquitorelease_build(self
-                              , start_day=1
-                              , number=10_000
-                              , fraction=None
-                              , infectious=0.0
-                              , species='arabiensis'
-                              , genome=None
-                              , node_ids=None):
-        camp.schema_path = os.path.join(file_dir, "./old_schemas/latest_schema.json")
-        if not genome:
-            genome = [['X', 'X']]
-        if not self.tmp_intervention:
-            self.tmp_intervention = MosquitoRelease(
-                campaign=self.schema_file
-                , start_day=start_day
-                , released_fraction=fraction
-                , released_number=number
-                , released_infectious=infectious
-                , released_species=species
-                , released_genome=genome
-                , node_ids=node_ids
-            )
-        self.parse_intervention_parts()
-        return
 
-    # def test_mosquitorelease_only_needs_startday(self):
-    #     specific_start_day = 125
-    #     self.tmp_intervention = MosquitoRelease(
-    #         campaign=schema_path_file
-    #         , released_number=100
-    #         , start_day=specific_start_day)
-    #     self.mosquitorelease_build() # parse intervention parts
-    #
-    #     self.assertIsNotNone(self.tmp_intervention)
-    #     self.assertEqual(self.start_day, specific_start_day)
-    #     self.assertEqual(self.intervention_config['class'], 'MosquitoRelease')
-    #     return
-
-    def test_mosquitorelease_default(self):
-        self.mosquitorelease_build()
-
-        self.assertEqual(self.start_day, 1)
-        self.assertEqual(self.nodeset[NodesetParams.Class]
-                         , NodesetParams.SetAll)  # default is nodesetall
-        self.assertEqual(self.intervention_config['Released_Type'],
-                         'FIXED_NUMBER')
-        self.assertEqual(self.intervention_config['Released_Number'],
-                         10_000)
-        self.assertEqual(self.intervention_config['Released_Infectious'],
-                         0)
-        self.assertEqual(self.intervention_config['Released_Species'],
-                         'arabiensis')
-        self.assertEqual(self.intervention_config['Released_Genome'],
-                         [['X', 'X']])
-        return
-
-    def test_mosquitorelease_custom(self):
-        specific_start_day = 13
-        specific_genome = [['X', 'Y']]
-        specific_fraction = 0.14
-        specific_infectious_fraction = 0.28
-        specific_species = 'SillySkeeter'
-        specific_nodes = [3, 5, 8, 13, 21]
-        self.mosquitorelease_build(
-            start_day=specific_start_day
-            , number=None
-            , fraction=specific_fraction
-            , infectious=specific_infectious_fraction
-        )
 
     def test_inputeir_default(self):
         eir = [random.randint(0, 50) for x in range(12)]
@@ -1574,7 +1506,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.start_day, 2)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], [2, 3])
-
         pass
 
     def test_daily_inputeir(self):
@@ -1590,8 +1521,73 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.start_day, 2)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], [2, 3])
-
         pass
+
+    def test_default_scheduled_mosquito_release(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 0
+        repetitions = 1
+        timesteps_between_repetitions = 365
+        node_property_restrictions = []
+        intervention_name = "MosquitoRelease"
+        released_number = 203847
+        released_fraction = None
+        released_infectious = 0
+        released_species = "arabiensis"
+        released_genome = [["X", "X"]]
+        add_scheduled_mosquito_release(campaign=camp, released_number=203847)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.intervention_config["Intervention_Name"], intervention_name)
+        self.assertEqual(self.intervention_config["Released_Type"], "FIXED_NUMBER")
+        self.assertEqual(self.intervention_config["Released_Number"], released_number)
+        self.assertEqual(self.intervention_config["Released_Infectious"], released_infectious)
+        self.assertEqual(self.intervention_config["Released_Species"], released_species)
+        self.assertEqual(self.intervention_config["Released_Genome"], released_genome)
+        self.assertEqual(self.event_coordinator["Number_Repetitions"], repetitions)
+        self.assertEqual(self.event_coordinator["Timesteps_Between_Repetitions"], timesteps_between_repetitions)
+        self.assertEqual(self.event_coordinator["Node_Property_Restrictions"], node_property_restrictions)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
+        pass
+
+    def test_custom_scheduled_mosquito_release(self):
+        camp.campaign_dict["Events"] = []
+        start_day = 2098
+        repetitions = 978
+        timesteps_between_repetitions = 41
+        node_property_restrictions = [{"Trees": "Palms"}]
+        intervention_name = "MosquitoReleaseTesting"
+        released_fraction = 0.88
+        released_infectious = 0.33
+        released_species = "funestus"
+        released_genome = [["s", "S"]]
+        node_ids = [234, 4356, 54]
+        add_scheduled_mosquito_release(campaign=camp, start_day=start_day, repetitions=repetitions,
+                                       timesteps_between_repetitions=timesteps_between_repetitions,
+                                       node_property_restrictions=node_property_restrictions,
+                                       node_ids=node_ids,
+                                       intervention_name=intervention_name,
+                                       released_fraction=released_fraction,
+                                       released_infectious=released_infectious,
+                                       released_species=released_species,
+                                       released_genome=released_genome)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
+        self.parse_intervention_parts()
+        self.assertEqual(self.start_day, start_day)
+        self.assertEqual(self.intervention_config["Intervention_Name"], intervention_name)
+        self.assertEqual(self.intervention_config["Released_Type"], "FRACTION")
+        self.assertEqual(self.intervention_config["Released_Fraction"], released_fraction)
+        self.assertEqual(self.intervention_config["Released_Infectious"], released_infectious)
+        self.assertEqual(self.intervention_config["Released_Species"], released_species)
+        self.assertEqual(self.intervention_config["Released_Genome"], released_genome)
+        self.assertEqual(self.event_coordinator["Number_Repetitions"], repetitions)
+        self.assertEqual(self.event_coordinator["Timesteps_Between_Repetitions"], timesteps_between_repetitions)
+        self.assertEqual(self.event_coordinator["Node_Property_Restrictions"], node_property_restrictions)
+        self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
+        self.assertEqual(self.nodeset[NodesetParams.Node_List], node_ids)
+        pass
+
 
     def test_default_add_outbreak_individual(self):
         # resetting campaign
