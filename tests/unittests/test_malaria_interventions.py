@@ -10,7 +10,7 @@ import pandas as pd
 
 from emodpy_malaria.interventions.ivermectin import add_scheduled_ivermectin, add_triggered_ivermectin
 from emodpy_malaria.interventions.bednet import Bednet, add_ITN_scheduled, BednetIntervention
-from emodpy_malaria.interventions.outdoorrestkill import add_OutdoorRestKill
+from emodpy_malaria.interventions.outdoorrestkill import add_outdoorrestkill
 from emodpy_malaria.interventions.usage_dependent_bednet import add_scheduled_usage_dependent_bednet, \
     add_triggered_usage_dependent_bednet
 from emodpy_malaria.interventions import drug_campaign
@@ -696,13 +696,15 @@ class TestMalariaInterventions(unittest.TestCase):
     def test_outdoorrestkill_default(self):
         # correct setting for WaningParams are tested elsewhere here
         camp.campaign_dict["Events"] = []  # resetting
-        add_OutdoorRestKill(camp)
+        add_outdoorrestkill(campaign=camp)
         self.tmp_intervention = camp.campaign_dict['Events'][0]
         self.parse_intervention_parts()
-        self.assertEqual(self.event_coordinator["Demographic_Coverage"], 1)
+        print(f"{self.killing_config}")
         self.assertEqual(self.start_day, 1)
         self.assertEqual(self.intervention_config["class"], "OutdoorRestKill")
-        self.assertEqual(self.killing_config["class"], WaningEffects.BoxExp)
+        self.assertEqual(self.killing_config["class"], WaningEffects.Constant)
+
+        camp.campaign_dict["Events"] = []  # resetting
         return
 
     def test_outdoorrestkill_all_custom(self):
@@ -711,24 +713,25 @@ class TestMalariaInterventions(unittest.TestCase):
         specific_insecticide_name = "Vinegar"
         specific_killing_effect = 0.15
         specific_box_duration = 100
-        specific_decay_rate = 0.05
+        specific_decay_time = 145
         specific_nodes = [1, 2, 3, 5, 8, 13, 21, 34]
-        add_OutdoorRestKill(camp,
+        add_outdoorrestkill(camp,
                             start_day=specific_start_day,
-                            insecticide_name=specific_insecticide_name,
+                            insecticide=specific_insecticide_name,
                             killing_initial_effect=specific_killing_effect,
                             killing_box_duration=specific_box_duration,
-                            killing_exponential_decay_rate=specific_decay_rate,
+                            killing_decay_time_constant=specific_decay_time,
                             node_ids=specific_nodes)
         self.tmp_intervention = camp.campaign_dict['Events'][0]
         self.parse_intervention_parts()
         self.assertEqual(self.intervention_config['Insecticide_Name'], specific_insecticide_name)
-        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / specific_decay_rate)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], specific_decay_time)
         self.assertEqual(self.killing_config[WaningParams.Box_Duration], specific_box_duration)
         self.assertEqual(self.killing_config[WaningParams.Initial], specific_killing_effect)
         self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetList)
         self.assertEqual(self.nodeset[NodesetParams.Node_List], specific_nodes)
+        camp.campaign_dict["Events"] = []  # resetting
         return
 
         # endregion
