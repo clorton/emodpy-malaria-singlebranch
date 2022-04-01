@@ -17,7 +17,7 @@ from emodpy_malaria.interventions import drug_campaign
 from emodpy_malaria.interventions import diag_survey
 from emodpy_malaria.interventions.common import *
 from emodpy_malaria.interventions.mosquitorelease import add_scheduled_mosquito_release
-from emodpy_malaria.interventions.inputeir import InputEIR
+from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
 from emodpy_malaria.interventions.outbreak import *
 from emodpy_malaria.interventions.vaccine import *
 from emodpy_malaria.interventions.irs import *
@@ -1428,8 +1428,10 @@ class TestMalariaInterventions(unittest.TestCase):
 
 
     def test_inputeir_default(self):
+        camp.campaign_dict["Events"] = []
         eir = [random.randint(0, 50) for x in range(12)]
-        self.tmp_intervention = InputEIR(camp, eir)
+        add_scheduled_input_eir(campaign=camp, monthly_eir=eir)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)
         self.assertEqual(self.intervention_config.Age_Dependence, "OFF")
@@ -1439,9 +1441,11 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     def test_inputeir(self):
+        camp.campaign_dict["Events"] = []
         eir = [random.randint(0, 50) for x in range(12)]
-        self.tmp_intervention = InputEIR(camp, monthly_eir=eir, start_day=2, node_ids=[2, 3],
-                                         age_dependence='LINEAR', scaling_factor=0.24)
+        add_scheduled_input_eir(camp, monthly_eir=eir, start_day=2, node_ids=[2, 3],
+                                age_dependence='LINEAR', scaling_factor=0.24)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.intervention_config.Monthly_EIR, eir)
         self.assertEqual(self.intervention_config.Age_Dependence, "LINEAR")
@@ -1452,11 +1456,12 @@ class TestMalariaInterventions(unittest.TestCase):
         pass
 
     def test_daily_inputeir(self):
+        camp.campaign_dict["Events"] = []
         daily_eir = [random.randint(0, 50) for x in range(365)]
-        self.tmp_intervention = InputEIR(camp, daily_eir=daily_eir, start_day=2, node_ids=[2, 3],
-                                         age_dependence='SURFACE_AREA_DEPENDENT', scaling_factor=0.67)
+        add_scheduled_input_eir(camp, daily_eir=daily_eir, start_day=2, node_ids=[2, 3],
+                                age_dependence='SURFACE_AREA_DEPENDENT', scaling_factor=0.67)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
-
         self.assertEqual(self.intervention_config.Daily_EIR, daily_eir)
         self.assertEqual(self.intervention_config.EIR_Type, "DAILY")
         self.assertEqual(self.intervention_config.Age_Dependence, "SURFACE_AREA_DEPENDENT")

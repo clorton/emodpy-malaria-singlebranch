@@ -180,6 +180,7 @@ class MalariaInterventionFileTest(unittest.TestCase):
         return
 
     def inputeir_file_test(self):
+        camp.campaign_dict["Events"] = []
         self.is_debugging = False
         self.method_under_test = inputeir
         self.expected_intervention_class = "InputEIR"
@@ -206,16 +207,21 @@ class MalariaInterventionFileTest(unittest.TestCase):
             self.assertEqual(self.event['Event_Coordinator_Config']['Intervention_Config']['Monthly_EIR'], eir)
             self.assertEqual(self.intervention_class, self.expected_intervention_class)
         run_test(eir)
+        camp.campaign_dict["Events"] = []
         return
 
     def test_inputeir_file_nofilename(self):
+        camp.campaign_dict["Events"] = []
         self.file_path = None
         self.inputeir_file_test()
+        camp.campaign_dict["Events"] = []
         return
 
     def test_inputeir_file(self):
+        camp.campaign_dict["Events"] = []
         self.file_path = 'inputeir_filename'
         self.inputeir_file_test()
+        camp.campaign_dict["Events"] = []
         return
 
     def test_add_vaccine_file_nofilename(self):
