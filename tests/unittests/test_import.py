@@ -69,7 +69,7 @@ class MalariaTestImports(unittest.TestCase):
         from emodpy_malaria.interventions import spacespraying
 
         self.expected_items = [
-            "SpaceSpraying", "utils"
+            "add_scheduled_space_spraying", "utils", "_space_spraying"
         ]
 
         self.verify_expected_items_present(namespace=spacespraying)

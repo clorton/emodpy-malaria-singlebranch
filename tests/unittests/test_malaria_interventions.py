@@ -21,7 +21,7 @@ from emodpy_malaria.interventions.inputeir import InputEIR
 from emodpy_malaria.interventions.outbreak import *
 from emodpy_malaria.interventions.vaccine import *
 from emodpy_malaria.interventions.irs import *
-from emodpy_malaria.interventions.spacespraying import SpaceSpraying
+from emodpy_malaria.interventions.spacespraying import add_scheduled_space_spraying
 from emodpy_malaria.interventions.sugartrap import add_scheduled_sugar_trap
 from emodpy_malaria.interventions.larvicide import add_larvicide
 from emodpy_malaria.interventions.community_health_worker import add_community_health_worker
@@ -1918,7 +1918,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(campaign_event['Number_Repetitions'], 1)
         self.assertEqual(campaign_event['Timesteps_Between_Repetitions'], 365)
         intervention_0 = campaign_event['Intervention_Config']
-        #self.assertEqual(len(campaign_event['Intervention_Config']['Intervention_List']), 1)
         self.assertEqual(intervention_0['class'], "SimpleVaccine")
         self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 1)
         self.assertEqual(intervention_0['Vaccine_Take'], 1)
@@ -2153,21 +2152,18 @@ class TestMalariaInterventions(unittest.TestCase):
         return
 
     def test_default_space_spraying(self):
+        camp.campaign_dict["Events"] = []
         start_day = 1
         spray_coverage = 1
         killing_effect = 1
-        insecticide = None
         box_duration = 0
-        decay_rate = 0
-        self.tmp_intervention = SpaceSpraying(camp)
+        add_scheduled_space_spraying(campaign=camp)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.intervention_config.Spray_Coverage, spray_coverage)
         self.assertEqual(self.start_day, start_day)
-        self.assertNotIn("Insecticide_Name", self.intervention_config)
-        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 0)
-        self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
         self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
-        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
+        self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.Constant)
         self.assertEqual(self.nodeset[NodesetParams.Class], NodesetParams.SetAll)
         pass
 
@@ -2178,16 +2174,35 @@ class TestMalariaInterventions(unittest.TestCase):
         killing_effect = 0.52
         insecticide = "KillVectors"
         box_duration = 51
-        decay_rate = 0.02
+        decay_constant = 2324
+        repetitions = 3
+        intervention_name = "TestingSpaceSpraying"
+        timesteps_between_repetitions = 32
         node_ids = [2, 3, 6]
-        self.tmp_intervention = SpaceSpraying(camp, start_day=start_day, spray_coverage=spray_coverage,
-                                              killing_effect=killing_effect, insecticide=insecticide,
-                                              box_duration=box_duration, decay_rate=decay_rate, node_ids=node_ids)
+        cost = 22
+        node_property_restrictions = [{"Risk": "High", "Location": "Rural"}, {"Risk": "Medium", "Location": "Urban"}]
+        add_scheduled_space_spraying(campaign=camp, start_day=start_day,
+                                     node_ids=node_ids, repetitions=repetitions,
+                                     timesteps_between_repetitions=timesteps_between_repetitions,
+                                     node_property_restrictions=node_property_restrictions,
+                                     spray_coverage=spray_coverage,
+                                     insecticide=insecticide,
+                                     intervention_name=intervention_name,
+                                     killing_initial_effect=killing_effect,
+                                     killing_box_duration=box_duration,
+                                     killing_decay_time_constant=decay_constant,
+                                     cost_to_consumer=cost)
+        self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
+        self.assertEqual(self.event_coordinator.Number_Repetitions, repetitions)
+        self.assertEqual(self.event_coordinator.Node_Property_Restrictions, node_property_restrictions)
+        self.assertEqual(self.event_coordinator.Timesteps_Between_Repetitions, timesteps_between_repetitions)
         self.assertEqual(self.intervention_config.Spray_Coverage, spray_coverage)
         self.assertEqual(self.start_day, start_day)
         self.assertEqual(self.intervention_config.Insecticide_Name, insecticide)
-        self.assertEqual(self.killing_config[WaningParams.Decay_Time], 1 / decay_rate)
+        self.assertEqual(self.intervention_config.Intervention_Name, intervention_name)
+        self.assertEqual(self.intervention_config.Cost_To_Consumer, cost)
+        self.assertEqual(self.killing_config[WaningParams.Decay_Time], decay_constant)
         self.assertEqual(self.killing_config[WaningParams.Box_Duration], box_duration)
         self.assertEqual(self.killing_config[WaningParams.Initial], killing_effect)
         self.assertEqual(self.killing_config[WaningParams.Class], WaningEffects.BoxExp)
