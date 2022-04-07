@@ -1871,6 +1871,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
         self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
 
+
     def test_triggered_vaccine_default(self):
         camp.campaign_dict["Events"] = []
         add_triggered_vaccine(camp, trigger_condition_list=["HappyBirthday"])

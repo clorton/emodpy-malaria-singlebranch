@@ -224,28 +224,28 @@ class MalariaInterventionFileTest(unittest.TestCase):
         camp.campaign_dict["Events"] = []
         return
 
-    def test_add_vaccine_file_nofilename(self):
-        if self.file_is_there():
-            os.unlink(self.file_path)
-        self.is_debugging = False
-        self.method_under_test = simple_vaccine
-        self.expected_intervention_class = "SimpleVaccine"
-        self.file_path = None
-        camp.campaign_dict["Events"] = []
-
-        def run_test():
-            self.assertFalse(self.file_is_there())
-            if self.file_path:
-                self.method_under_test(camp, start_day=self.specific_start_day, filename=self.file_path)
-            else:
-                self.file_path = f"{self.expected_intervention_class}.json"
-                self.method_under_test(camp, start_day=self.specific_start_day)
-            self.load_event()
-            self.assertEqual(self.start_day, self.specific_start_day)
-            self.assertEqual(self.event['Event_Coordinator_Config']['Intervention_Config']
-                    ["class"], self.expected_intervention_class)
-        run_test()
-        return
+    # def test_add_vaccine_file_nofilename(self):
+    #     if self.file_is_there():
+    #         os.unlink(self.file_path)
+    #     self.is_debugging = False
+    #     self.method_under_test = simple_vaccine
+    #     self.expected_intervention_class = "SimpleVaccine"
+    #     self.file_path = None
+    #     camp.campaign_dict["Events"] = []
+    #
+    #     def run_test():
+    #         self.assertFalse(self.file_is_there())
+    #         if self.file_path:
+    #             self.method_under_test(camp, start_day=self.specific_start_day, filename=self.file_path)
+    #         else:
+    #             self.file_path = f"{self.expected_intervention_class}.json"
+    #             self.method_under_test(camp, start_day=self.specific_start_day)
+    #         self.load_event()
+    #         self.assertEqual(self.start_day, self.specific_start_day)
+    #         self.assertEqual(self.event['Event_Coordinator_Config']['Intervention_Config']
+    #                 ["class"], self.expected_intervention_class)
+    #     run_test()
+    #     return
 
 
 if __name__ == '__main__':
