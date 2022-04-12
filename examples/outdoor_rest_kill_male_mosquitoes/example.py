@@ -97,7 +97,7 @@ def build_camp(actual_start_day=90, current_insecticide="only_kill_male_funestus
                killing_effectiveness=0.5):
     import emod_api.campaign as campaign
     from emodpy_malaria.interventions.outdoorrestkill import add_outdoorrestkill
-    campaign.schema_path = manifest.schema_file
+    campaign.set_schema(manifest.schema_file)
     add_outdoorrestkill(campaign, start_day=actual_start_day,
                         insecticide=current_insecticide,
                         killing_initial_effect=killing_effectiveness,

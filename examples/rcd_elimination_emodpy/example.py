@@ -46,7 +46,7 @@ def build_campaign(u5_hs_rate=0.02, days_between_followups=7, max_distance_to_ot
     import emod_api.campaign as campaign
 
     # passing in manifest
-    campaign.schema_path = manifest.schema_file
+    campaign.set_schema(manifest.schema_file)
     o5_hs_rate = u5_hs_rate * 0.5
 
     def create_target_list(u5_hs_rate, o5_hs_rate):

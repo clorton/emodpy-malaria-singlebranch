@@ -37,7 +37,7 @@ def build_campaign(start_day=1, coverage=1.0, killing_effect=0):
     import emod_api.campaign as campaign
     import emodpy_malaria.interventions.spacespraying as spray
 
-    campaign.schema_path = manifest.schema_file
+    campaign.set_schema(manifest.schema_file)
 
     # adding SpaceSpraying from emodpy_malaria.interventions.spacespraying
     spray.add_scheduled_space_spraying(campaign, start_day=start_day, spray_coverage=coverage,

@@ -36,7 +36,7 @@ def build_campaign():
     from emodpy_malaria.interventions.inputeir import add_scheduled_input_eir
 
     # we need to give the campaign the schema path, so it can check our campaign format
-    campaign.schema_path = manifest.schema_file
+    campaign.set_schema(manifest.schema_file)
 
     # this creates a scheduled campaign with InputEIR intervention and adds it, after creating, to campaign.json file
     monthly_eir = [21, 234, 535, 687, 874, 761, 513, 459, 371, 51, 45, 3]

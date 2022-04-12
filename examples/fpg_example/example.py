@@ -33,7 +33,7 @@ def build_campaign():
     import emodpy_malaria.interventions.spacespraying as space_spray
 
     # passing in schema file to verify that everything is correct.
-    campaign.schema_path = manifest.schema_file
+    campaign.set_schema(manifest.schema_file)
 
     # set up outbreak
     allele_frequencies = [[1.00, 0.00, 0.00, 0.00], [0.00, 1.00, 0.00, 0.00], [0.00, 0.00, 1.00, 0.00],

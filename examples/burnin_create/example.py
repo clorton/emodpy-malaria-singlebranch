@@ -49,7 +49,7 @@ def build_camp():
     import emod_api.campaign as campaign
     from emodpy_malaria.interventions.bednet import add_itn_scheduled
 
-    campaign.schema_path = manifest.schema_file
+    campaign.set_schema(manifest.schema_file)
 
     add_itn_scheduled(campaign,
                       start_day=100,
