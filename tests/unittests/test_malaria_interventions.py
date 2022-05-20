@@ -1741,7 +1741,7 @@ class TestMalariaInterventions(unittest.TestCase):
         vaccine_take = 0.95
         vaccine_initial_effect = 0.98
         vaccine_box_duration = 2000
-        vaccine_exponential_decay_rate = 0
+        vaccine_decay_time_constant = 135
         efficacy_is_multiplicative = False
 
         add_scheduled_vaccine(camp,
@@ -1759,7 +1759,7 @@ class TestMalariaInterventions(unittest.TestCase):
                               vaccine_take=vaccine_take,
                               vaccine_initial_effect=vaccine_initial_effect,
                               vaccine_box_duration=vaccine_box_duration,
-                              vaccine_exponential_decay_rate=vaccine_exponential_decay_rate,
+                              vaccine_decay_time_constant=vaccine_decay_time_constant,
                               efficacy_is_multiplicative=efficacy_is_multiplicative)
 
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
@@ -1866,7 +1866,7 @@ class TestMalariaInterventions(unittest.TestCase):
         vaccine_take = 0.95
         vaccine_initial_effect = 0.98
         vaccine_box_duration = 2000
-        vaccine_exponential_decay_rate = 0
+        vaccine_decay_time_constant = 549
         efficacy_is_multiplicative = False
 
         add_triggered_vaccine(camp,
@@ -1887,7 +1887,7 @@ class TestMalariaInterventions(unittest.TestCase):
                               vaccine_take=vaccine_take,
                               vaccine_initial_effect=vaccine_initial_effect,
                               vaccine_box_duration=vaccine_box_duration,
-                              vaccine_exponential_decay_rate=vaccine_exponential_decay_rate,
+                              vaccine_decay_time_constant=vaccine_decay_time_constant,
                               efficacy_is_multiplicative=efficacy_is_multiplicative)
 
         self.assertEqual(len(camp.campaign_dict['Events']), 1)

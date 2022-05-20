@@ -97,7 +97,6 @@ def add_drug_campaign(campaign,
                       node_ids: list = None,
                       target_group: any = 'Everyone',
                       drug_ineligibility_duration: int = 0,
-                      node_property_restrictions: list = None,
                       ind_property_restrictions: list = None,
                       disqualifying_properties: list = None,
                       trigger_condition_list: list = None,
@@ -202,9 +201,6 @@ def add_drug_campaign(campaign,
             is reverted. This property value prevents people from receiving drugs too
             frequently, but they can still receive diagnostics during this period.
             For more information, see :doc:`emod-malaria:model-targeted-interventions`.
-        node_property_restrictions: The setting for **Node_Property_Restrictions**
-            in :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`
-            that nodes must have to receive the diagnostic intervention.
         ind_property_restrictions: The setting for **Property_Restrictions_Within_Node**
             in :doc:`emod-malaria:parameter-campaign-event-triggeredeventcoordinator`
             that individuals must have to receive the diagnostic intervention.
@@ -238,8 +234,6 @@ def add_drug_campaign(campaign,
         drug_configs = adherent_drug_configs
     else:
         drug_configs = drug_configs_from_code(campaign, drug_code=drug_code)
-    if not node_property_restrictions:
-        node_property_restrictions = []
     if not ind_property_restrictions:
         ind_property_restrictions = []
     if not disqualifying_properties:
@@ -268,7 +262,7 @@ def add_drug_campaign(campaign,
         add_MDA(campaign, start_days=start_days, coverage=coverage, drug_configs=drug_configs,
                 receiving_drugs_event=receiving_drugs_event, repetitions=repetitions,
                 tsteps_btwn_repetitions=tsteps_btwn_repetitions, node_ids=node_ids,
-                expire_recent_drugs=expire_recent_drugs, node_property_restrictions=node_property_restrictions,
+                expire_recent_drugs=expire_recent_drugs,
                 ind_property_restrictions=ind_property_restrictions, disqualifying_properties=disqualifying_properties,
                 target_group=target_group, trigger_condition_list=trigger_condition_list,
                 listening_duration=listening_duration, triggered_campaign_delay=triggered_campaign_delay,
@@ -281,7 +275,7 @@ def add_drug_campaign(campaign,
                  diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
                  measurement_sensitivity=measurement_sensitivity,
                  node_ids=node_ids,
-                 expire_recent_drugs=expire_recent_drugs, node_property_restrictions=node_property_restrictions,
+                 expire_recent_drugs=expire_recent_drugs,
                  ind_property_restrictions=ind_property_restrictions, disqualifying_properties=disqualifying_properties,
                  target_group=target_group, trigger_condition_list=trigger_condition_list,
                  triggered_campaign_delay=triggered_campaign_delay, listening_duration=listening_duration,
@@ -295,7 +289,6 @@ def add_drug_campaign(campaign,
                  measurement_sensitivity=measurement_sensitivity,
                  fmda_radius=fmda_radius,
                  node_selection_type=node_selection_type, node_ids=node_ids, expire_recent_drugs=expire_recent_drugs,
-                 node_property_restrictions=node_property_restrictions,
                  ind_property_restrictions=ind_property_restrictions,
                  disqualifying_properties=disqualifying_properties, target_group=target_group,
                  trigger_condition_list=trigger_condition_list, listening_duration=listening_duration,
@@ -311,7 +304,7 @@ def add_drug_campaign(campaign,
                    measurement_sensitivity=measurement_sensitivity,
                    fmda_radius=fmda_radius,
                    node_selection_type=node_selection_type, snowballs=snowballs, node_ids=node_ids,
-                   expire_recent_drugs=expire_recent_drugs, node_property_restrictions=node_property_restrictions,
+                   expire_recent_drugs=expire_recent_drugs,
                    ind_property_restrictions=ind_property_restrictions,
                    disqualifying_properties=disqualifying_properties)
 
@@ -321,7 +314,6 @@ def add_drug_campaign(campaign,
                   receiving_drugs_event=receiving_drugs_event, listening_duration=listening_duration,
                   treatment_delay=treatment_delay, trigger_coverage=trigger_coverage, fmda_radius=fmda_radius,
                   node_selection_type=node_selection_type, node_ids=node_ids, expire_recent_drugs=expire_recent_drugs,
-                  node_property_restrictions=node_property_restrictions,
                   ind_property_restrictions=ind_property_restrictions,
                   disqualifying_properties=disqualifying_properties)
 
@@ -339,7 +331,6 @@ def add_drug_campaign(campaign,
 def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_configs: list = None,
             receiving_drugs_event: BroadcastEvent = None, repetitions: int = 1, tsteps_btwn_repetitions: int = 60,
             node_ids: list = None, expire_recent_drugs: PropertyValueChanger = None,
-            node_property_restrictions: list = None,
             ind_property_restrictions: list = None, disqualifying_properties: list = None,
             target_group: any = 'Everyone',
             trigger_condition_list: list = None, listening_duration: int = -1, triggered_campaign_delay: int = 0,
@@ -360,10 +351,6 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
                         "malaria.interventions.malaria_drugs import drug_configs_from_code.\n")
     if disqualifying_properties is None:
         disqualifying_properties = []
-    if not node_property_restrictions:
-        node_property_restrictions = []
-
-    # nodeset_config = utils.do_nodes( camp.schema_path, node_ids=node_ids )
 
     interventions = drug_configs
     if receiving_drugs_event:
@@ -394,12 +381,9 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
         if repetitions > 1 or triggered_campaign_delay > 0:
             # create a trigger for each of the delays.
             broadcast_event = "MDA_Now_{}".format(random.randint(1, 10000))
-            trigger_node_property_restrictions = []
             trigger_ind_property_restrictions = []
             if check_eligibility_at_trigger:
-                trigger_node_property_restrictions = node_property_restrictions
                 trigger_ind_property_restrictions = ind_property_restrictions
-                node_property_restrictions = []
                 ind_property_restrictions = []
             for x in range(repetitions):
                 tcde = TriggeredCampaignEvent(
@@ -410,7 +394,6 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
                     Triggers=trigger_condition_list,
                     Duration=listening_duration,
                     Intervention_List=[BroadcastEvent(campaign, broadcast_event)],
-                    Node_Property_Restrictions=trigger_node_property_restrictions,
                     Property_Restrictions=trigger_ind_property_restrictions,
                     Delay=triggered_campaign_delay + (x * tsteps_btwn_repetitions))
                 campaign.add(tcde)
@@ -424,7 +407,6 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
             Target_Age_Min=target_age_min,
             Target_Age_Max=target_age_max,
             Target_Gender=target_sex,
-            Node_Property_Restrictions=node_property_restrictions,
             Property_Restrictions=ind_property_restrictions,
             Demographic_Coverage=coverage,
             Disqualifying_Properties=disqualifying_properties,
@@ -443,7 +425,6 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
                 target_age_min=target_age_min,
                 target_age_max=target_age_max,
                 target_gender=target_sex,
-                node_property_restrictions=node_property_restrictions,
                 ind_property_restrictions=ind_property_restrictions,
                 demographic_coverage=coverage,
                 individual_intervention=interventions,
@@ -455,8 +436,7 @@ def add_MSAT(campaign, start_days: list = None, coverage: float = 1.0, drug_conf
              receiving_drugs_event: BroadcastEvent = None, repetitions: int = 1, tsteps_btwn_repetitions: int = 60,
              treatment_delay: int = 0, diagnostic_type: str = 'BLOOD_SMEAR_PARASITES',
              diagnostic_threshold: float = 40, measurement_sensitivity: float = 0.1, node_ids: list = None,
-             expire_recent_drugs: PropertyValueChanger = None,
-             node_property_restrictions: list = None, ind_property_restrictions: list = None,
+             expire_recent_drugs: PropertyValueChanger = None, ind_property_restrictions: list = None,
              disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
              triggered_campaign_delay: int = 0, listening_duration: int = -1,
              check_eligibility_at_trigger: bool = False):
@@ -500,7 +480,6 @@ def add_MSAT(campaign, start_days: list = None, coverage: float = 1.0, drug_conf
                               measurement_sensitivity=measurement_sensitivity,
                               node_ids=node_ids, positive_diagnosis_configs=msat_cfg,
                               ind_property_restrictions=ind_property_restrictions,
-                              node_property_restrictions=node_property_restrictions,
                               disqualifying_properties=disqualifying_properties,
                               trigger_condition_list=trigger_condition_list,
                               listening_duration=listening_duration, triggered_campaign_delay=triggered_campaign_delay,
@@ -516,7 +495,6 @@ def add_MSAT(campaign, start_days: list = None, coverage: float = 1.0, drug_conf
                                   node_ids=node_ids, positive_diagnosis_configs=msat_cfg,
                                   listening_duration=listening_duration,
                                   ind_property_restrictions=ind_property_restrictions,
-                                  node_property_restrictions=node_property_restrictions,
                                   disqualifying_properties=disqualifying_properties,
                                   expire_recent_drugs=expire_recent_drugs)
 
@@ -535,7 +513,7 @@ def add_fMDA(
         diagnostic_threshold: float = 40,
         measurement_sensitivity: float = 0.1,
         fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', node_ids: list = None,
-        expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
+        expire_recent_drugs: PropertyValueChanger = None,
         ind_property_restrictions: list = None,
         disqualifying_properties: list = None, target_group: any = 'Everyone', trigger_condition_list: list = None,
         listening_duration: int = -1, triggered_campaign_delay: int = 0,
@@ -554,8 +532,6 @@ def add_fMDA(
     if drug_configs is None:
         raise Exception("You have to pass in drug_configs (list of drug configurations) that can be generated with \n"
                         "malaria.interventions.malaria_drugs import drug_configs_from_code.\n")
-    if node_property_restrictions is None:
-        node_property_restrictions = []
 
     # rewritten to give out a unique trigger for the fmda
     fmda_trigger_tether = "Give_Drugs_fMDA_{}".format(random.randint(1, 10000))
@@ -583,7 +559,6 @@ def add_fMDA(
                               measurement_sensitivity=measurement_sensitivity,
                               node_ids=node_ids, positive_diagnosis_configs=fmda_setup,
                               ind_property_restrictions=ind_property_restrictions,
-                              node_property_restrictions=node_property_restrictions,
                               trigger_condition_list=trigger_condition_list,
                               listening_duration=listening_duration, triggered_campaign_delay=triggered_campaign_delay,
                               check_eligibility_at_trigger=check_eligibility_at_trigger,
@@ -599,7 +574,6 @@ def add_fMDA(
             Blackout_Period=1,
             Blackout_On_First_Occurrence=1,
             Target_Residents_Only=1,
-            Node_Property_Restrictions=node_property_restrictions,
             Property_Restrictions=ind_property_restrictions,
             Disqualifying_Properties=disqualifying_properties,
             Duration=listening_duration,
@@ -619,7 +593,6 @@ def add_fMDA(
                                       measurement_sensitivity=measurement_sensitivity,
                                       node_ids=node_ids, positive_diagnosis_configs=fmda_setup,
                                       ind_property_restrictions=ind_property_restrictions,
-                                      node_property_restrictions=node_property_restrictions,
                                       disqualifying_properties=disqualifying_properties,
                                       expire_recent_drugs=expire_recent_drugs)
 
@@ -633,7 +606,6 @@ def add_fMDA(
             Blackout_Period=1,
             Blackout_On_First_Occurrence=1,
             Target_Residents_Only=1,
-            Node_Property_Restrictions=node_property_restrictions,
             Property_Restrictions=ind_property_restrictions,
             Disqualifying_Properties=disqualifying_properties,
             Triggers=[fmda_trigger_tether],
@@ -649,7 +621,7 @@ def add_rfMSAT(campaign, start_day: int = 0, coverage: float = 1, drug_configs: 
                measurement_sensitivity: float = 0.1,
                fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY', snowballs: int = 0,
                node_ids: list = None,
-               expire_recent_drugs: PropertyValueChanger = None, node_property_restrictions: list = None,
+               expire_recent_drugs: PropertyValueChanger = None,
                ind_property_restrictions: list = None, disqualifying_properties: list = None):
     """
     Add a rfMSAT (reactive focal mass screening and treatment) drug intervention to your
@@ -678,7 +650,6 @@ def add_rfMSAT(campaign, start_day: int = 0, coverage: float = 1, drug_configs: 
         Start_Day=start_day,
         Node_Ids=node_ids,
         Demographic_Coverage=trigger_coverage,
-        Node_Property_Restrictions=node_property_restrictions,
         Duration=listening_duration,
         Triggers=["ReceivedTreatment"],
         Intervention_List=[DelayedIntervention(
@@ -704,7 +675,6 @@ def add_rfMSAT(campaign, start_day: int = 0, coverage: float = 1, drug_configs: 
                           positive_diagnosis_configs=event_config,
                           listening_duration=listening_duration,
                           ind_property_restrictions=ind_property_restrictions,
-                          node_property_restrictions=node_property_restrictions,
                           disqualifying_properties=disqualifying_properties, expire_recent_drugs=expire_recent_drugs)
 
     for snowball in range(snowballs):
@@ -720,7 +690,6 @@ def add_rfMSAT(campaign, start_day: int = 0, coverage: float = 1, drug_configs: 
                               positive_diagnosis_configs=event_config,
                               listening_duration=listening_duration,
                               ind_property_restrictions=ind_property_restrictions,
-                              node_property_restrictions=node_property_restrictions,
                               disqualifying_properties=disqualifying_properties,
                               expire_recent_drugs=expire_recent_drugs)
 
@@ -729,7 +698,6 @@ def add_rfMDA(campaign, start_day: int = 0, coverage: float = 1, drug_configs: l
               receiving_drugs_event: BroadcastEvent = None, listening_duration: int = -1, treatment_delay: int = 0,
               trigger_coverage: float = 1, fmda_radius: int = 0, node_selection_type: str = 'DISTANCE_ONLY',
               node_ids: list = None, expire_recent_drugs: PropertyValueChanger = None,
-              node_property_restrictions: list = None,
               ind_property_restrictions: list = None, disqualifying_properties: list = None):
     """
     Add an rfMDA (reactive focal mass drug administration) drug intervention
@@ -759,7 +727,6 @@ def add_rfMDA(campaign, start_day: int = 0, coverage: float = 1, drug_configs: l
         Start_Day=start_day,
         Node_Ids=node_ids,
         Demographic_Coverage=trigger_coverage,
-        Node_Property_Restrictions=node_property_restrictions,
         Property_Restrictions=ind_property_restrictions,
         Triggers=["ReceivedTreatment"],
         Duration=listening_duration,
@@ -783,7 +750,6 @@ def add_rfMDA(campaign, start_day: int = 0, coverage: float = 1, drug_configs: l
         Start_Day=start_day,
         Node_Ids=node_ids,
         Demographic_Coverage=coverage,
-        Node_Property_Restrictions=node_property_restrictions,
         Property_Restrictions=ind_property_restrictions,
         Disqualifying_Properties=disqualifying_properties,
         Duration=listening_duration,

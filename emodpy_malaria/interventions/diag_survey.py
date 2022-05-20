@@ -24,7 +24,6 @@ def add_diagnostic_survey(
         negative_diagnosis_configs: list = None,
         received_test_event: str = 'Received_Test',
         ind_property_restrictions: list = None,
-        node_property_restrictions: list = None,
         disqualifying_properties: list = None,
         trigger_condition_list: list = None,
         listening_duration: int = -1,
@@ -116,12 +115,6 @@ def add_diagnostic_survey(
                 {"IndividualProperty2":"PropertyValue2"}]``. Default is no
                 restrictions.
 
-            node_property_restrictions: List of NodeProperty key:value pairs that nodes must
-                have to receive the diagnostic intervention. For example,
-                ``[{"NodeProperty1":"PropertyValue1"},
-                {"NodeProperty2":"PropertyValue2"}]``. Default is no
-                restrictions.
-
             disqualifying_properties: List of IndividualProperty key:value pairs that
                 cause an intervention to be aborted. For example,
                 ``[{"IndividualProperty1":"PropertyValue1"},
@@ -149,8 +142,6 @@ def add_diagnostic_survey(
     """
 
     if ind_property_restrictions is None:
-        ind_property_restrictions = []
-    if node_property_restrictions is None:
         ind_property_restrictions = []
     if disqualifying_properties is None:
         disqualifying_properties = []
@@ -205,12 +196,9 @@ def add_diagnostic_survey(
         # at pre-determined intervals
         if repetitions > 1 or triggered_campaign_delay > 0:
             # create a trigger for each of the delays.
-            trigger_node_property_restrictions = []
             trigger_ind_property_restrictions = []
             if check_eligibility_at_trigger:
-                trigger_node_property_restrictions = node_property_restrictions
                 trigger_ind_property_restrictions = ind_property_restrictions
-                node_property_restrictions = []
                 ind_property_restrictions = []
             broadcast_event = "Diagnostic_Survey_Now_{}".format(random.randint(1, 100000))
             for x in range(repetitions):
@@ -222,7 +210,6 @@ def add_diagnostic_survey(
                     Triggers=trigger_condition_list,
                     Duration=listening_duration,
                     Intervention_List=[BroadcastEvent(campaign, broadcast_event)],
-                    Node_Property_Restrictions=trigger_node_property_restrictions,
                     Property_Restrictions=trigger_ind_property_restrictions,
                     Delay=triggered_campaign_delay + (x * tsteps_btwn_repetitions))
                 campaign.add(tcde)
@@ -240,7 +227,6 @@ def add_diagnostic_survey(
             Target_Age_Min=age_min,
             Target_Age_Max=age_max,
             Target_Gender=gender,
-            Node_Property_Restrictions=node_property_restrictions,
             Property_Restrictions=ind_property_restrictions,
             Disqualifying_Properties=disqualifying_properties,
             Intervention_List=interventions)
@@ -254,7 +240,6 @@ def add_diagnostic_survey(
             start_day=start_day + 1,
             node_ids=node_ids,
             ind_property_restrictions=ind_property_restrictions,
-            node_property_restrictions=node_property_restrictions,
             repetitions=repetitions,
             timesteps_between_repetitions=tsteps_btwn_repetitions,
             demographic_coverage=coverage,

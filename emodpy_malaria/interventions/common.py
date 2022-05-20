@@ -59,7 +59,6 @@ def add_triggered_campaign_delay_event(campaign,
                                        repetitions: int = 1,
                                        timesteps_between_repetitions: int = 365,
                                        ind_property_restrictions: list = None,
-                                       node_property_restrictions: list = None,
                                        disqualifying_properties: list = None,
                                        target_age_min: float = 0,
                                        target_age_max: float = 125,
@@ -90,9 +89,6 @@ def add_triggered_campaign_delay_event(campaign,
             Sets **Timesteps_Between_Repetitions**
         ind_property_restrictions: A list of dictionaries of IndividualProperties, which are needed for the individual
             to receive the intervention. Sets the **Property_Restrictions_Within_Node**
-        node_property_restrictions: A list of the NodeProperty key:value pairs, as defined in the demographics file,
-            that nodes must have to receive the intervention. Sets **Node_Property_Restrictions**
-            this triggered intervention to be aborted earlier than listening_duration time.
         target_age_min: The lower end of ages targeted for an intervention, in years. Sets **Target_Age_Min**
         target_age_max: The upper end of ages targeted for an intervention, in years. Sets **Target_Age_Max**
         target_gender: The gender targeted for an intervention: All, Male, or Female.
@@ -120,7 +116,6 @@ def add_triggered_campaign_delay_event(campaign,
                                           Intervention_List=individual_intervention if isinstance(
                                               individual_intervention, list) else [individual_intervention],
                                           Node_Ids=node_ids,
-                                          Node_Property_Restrictions=node_property_restrictions,
                                           Timesteps_Between_Repetitions=timesteps_between_repetitions,
                                           Number_Repetitions=repetitions,
                                           Target_Gender=target_gender,
@@ -135,13 +130,13 @@ def add_triggered_campaign_delay_event(campaign,
                                           Blackout_On_First_Occurrence=blackout_on_first_occurrence
                                           )
     triggered_event = event.Event_Coordinator_Config.Intervention_Config
-    triggered_event.Node_Property_Restrictions = node_property_restrictions
     individual_restrictions = utils._convert_prs(ind_property_restrictions)
     if len(individual_restrictions) > 0 and type(individual_restrictions[0]) is dict:
         triggered_event["Property_Restrictions_Within_Node"] = individual_restrictions
     else:
         triggered_event.Property_Restrictions = individual_restrictions
     campaign.add(event)
+
 
 def add_campaign_event(campaign,
                        start_day: int = 1,
@@ -151,7 +146,6 @@ def add_campaign_event(campaign,
                        repetitions: int = 1,
                        timesteps_between_repetitions: int = 365,
                        ind_property_restrictions: list = None,
-                       node_property_restrictions: list = None,
                        target_age_min: float = 0,
                        target_age_max: float = 125,
                        target_gender: str = "All",
@@ -176,8 +170,6 @@ def add_campaign_event(campaign,
             Sets **Timesteps_Between_Repetitions**
         ind_property_restrictions: A list of dictionaries of IndividualProperties, which are needed for the individual
             to receive the intervention. Sets the **Property_Restrictions_Within_Node**
-        node_property_restrictions: A list of the NodeProperty key:value pairs, as defined in the demographics file,
-            that nodes must have to receive the intervention. Sets **Node_Property_Restrictions**
         target_age_min: The lower end of ages targeted for an intervention, in years. Sets **Target_Age_Min**
         target_age_max: The upper end of ages targeted for an intervention, in years. Sets **Target_Age_Max**
         target_gender: The gender targeted for an intervention: All, Male, or Female.
@@ -209,7 +201,6 @@ def add_campaign_event(campaign,
                                                   individual_intervention,
                                                   list) else [
                                                   individual_intervention])
-        event.Event_Coordinator_Config.Node_Property_Restrictions = node_property_restrictions
         event.Event_Coordinator_Config.Target_Num_Individuals = target_num_individuals
         campaign.add(event)
     else:
@@ -233,7 +224,6 @@ def add_campaign_event(campaign,
             coordinator.Demographic_Coverage = demographic_coverage
         coordinator.Number_Repetitions = repetitions
         coordinator.Timesteps_Between_Repetitions = timesteps_between_repetitions
-        coordinator.Node_Property_Restrictions = node_property_restrictions if node_property_restrictions else []
         coordinator.Property_Restrictions_Within_Node = ind_property_restrictions if ind_property_restrictions else []
         coordinator.Property_Restrictions = []  # not using; Property_Restrictions_Within_Node are more flexible
 
