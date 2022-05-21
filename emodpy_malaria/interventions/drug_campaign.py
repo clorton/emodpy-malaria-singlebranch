@@ -118,6 +118,9 @@ def add_drug_campaign(campaign,
     interventions are created with a delay that sends an event to distribute
     drugs.
 
+
+
+
     Args:
         campaign: The :py:obj:`emod_api:emod_api.campaign` object to which the intervention will
             be added. 
@@ -388,7 +391,7 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
             for x in range(repetitions):
                 tcde = TriggeredCampaignEvent(
                     campaign,
-                    Start_Day=start_days[0],
+                    Start_Day=start_days[0] + 1,
                     Event_Name="MDA_Delayed",
                     Node_Ids=node_ids,
                     Triggers=trigger_condition_list,
@@ -401,7 +404,7 @@ def add_MDA(campaign, start_days: list = None, coverage: float = 1.0, drug_confi
 
         drug_event = TriggeredCampaignEvent(
             campaign,
-            Start_Day=start_days[0] - 1,
+            Start_Day=start_days[0],
             Event_Name="MDA_Now",
             Node_Ids=node_ids,
             Target_Age_Min=target_age_min,
@@ -554,7 +557,7 @@ def add_fMDA(
     if trigger_condition_list:
         add_diagnostic_survey(campaign, coverage=trigger_coverage, repetitions=repetitions,
                               tsteps_btwn_repetitions=tsteps_btwn_repetitions,
-                              target=target_group, start_day=start_days[0],
+                              target=target_group, start_day=start_days[0] + 1,
                               diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
                               measurement_sensitivity=measurement_sensitivity,
                               node_ids=node_ids, positive_diagnosis_configs=fmda_setup,
@@ -567,7 +570,7 @@ def add_fMDA(
         fmda_distribute_drugs = TriggeredCampaignEvent(
             campaign,
             Event_Name="Distribute fMDA",
-            Start_Day=start_days[0] - 1,
+            Start_Day=start_days[0],
             Node_Ids=node_ids,
             Demographic_Coverage=coverage,
             Blackout_Event_Trigger="fMDA_Blackout_Event_Trigger",
@@ -588,7 +591,7 @@ def add_fMDA(
             for rep in range(repetitions):
                 add_diagnostic_survey(campaign, coverage=trigger_coverage, repetitions=1,
                                       tsteps_btwn_repetitions=tsteps_btwn_repetitions,
-                                      target=target_group, start_day=start_day + tsteps_btwn_repetitions * rep,
+                                      target=target_group, start_day=start_day + 1 + tsteps_btwn_repetitions * rep,
                                       diagnostic_type=diagnostic_type, diagnostic_threshold=diagnostic_threshold,
                                       measurement_sensitivity=measurement_sensitivity,
                                       node_ids=node_ids, positive_diagnosis_configs=fmda_setup,
@@ -599,7 +602,7 @@ def add_fMDA(
         fmda_distribute_drugs = TriggeredCampaignEvent(
             campaign,
             Event_Name="Distribute fMDA (2)",
-            Start_Day=start_days[0] - 1,
+            Start_Day=start_days[0],
             Node_Ids=node_ids,
             Demographic_Coverage=coverage,
             Blackout_Event_Trigger="fMDA_Blackout_Event_Trigger",
