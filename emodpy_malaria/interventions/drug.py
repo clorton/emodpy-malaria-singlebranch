@@ -15,7 +15,8 @@ def add_scheduled_antimalarial_drug(
         target_age_max: int = 125,
         target_gender: str = "All",
         drug_type: str = None,
-        cost_to_consumer: float = 0
+        cost_to_consumer: float = 0,
+        intervention_name: str = None
 ):
     """
     Add an antimalarial drug intervention to your campaign. This is equivalent to 
@@ -44,13 +45,16 @@ def add_scheduled_antimalarial_drug(
             contained in **Malaria_Drug_Params** in :doc:`emod-malaria:parameter-configuration-drugs`.
             Use :py:meth:`~emodpy_malaria.config.set_team_drug_params` to set those values
         cost_to_consumer: Per-unit cost when drug is distributed
+        intervention_name: The optional name used to refer to this intervention as a means to differentiate it from
+            others that use the same class.  Default is AntimalarialDrug_<drug_type>.
 
     Returns:
         The intervention event.
     """
     antimalarial_drug = _antimalarial_drug(campaign=campaign,
                                            drug_type=drug_type,
-                                           cost_to_consumer=cost_to_consumer)
+                                           cost_to_consumer=cost_to_consumer,
+                                           intervention_name=intervention_name)
     add_campaign_event(campaign=campaign,
                        start_day=start_day, demographic_coverage=demographic_coverage,
                        target_num_individuals=target_num_individuals, node_ids=node_ids,
@@ -62,7 +66,8 @@ def add_scheduled_antimalarial_drug(
 
 def _antimalarial_drug(campaign,
                        drug_type: str = None,
-                       cost_to_consumer: float = 0):
+                       cost_to_consumer: float = 0,
+                       intervention_name: str = None):
     """
         Configures individual-targeted AntimalarialDrug intervention
     Args:
@@ -71,6 +76,8 @@ def _antimalarial_drug(campaign,
             contained in **Malaria_Drug_Params** in :doc:`emod-malaria:parameter-configuration-drugs`.
             Use :py:meth:`~emodpy_malaria.config.set_team_drug_params` to set those values
         cost_to_consumer: Per-unit cost when drug is distributed
+        intervention_name: The optional name used to refer to this intervention as a means to differentiate it from
+            others that use the same class. Default is AntimalarialDrug_<drug_type>.
 
     Returns:
         Configured individual-targeted AntimalarialDrug intervention
@@ -80,6 +87,7 @@ def _antimalarial_drug(campaign,
     intervention = s2c.get_class_with_defaults("AntimalarialDrug", campaign.schema_path)
     intervention.Drug_Type = drug_type
     intervention.Cost_To_Consumer = cost_to_consumer
+    intervention.Intervention_Name = intervention_name if intervention_name else "AntimalarialDrug_" + drug_type
     return intervention
 
 

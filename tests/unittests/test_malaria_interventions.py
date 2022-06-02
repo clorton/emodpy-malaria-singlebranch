@@ -277,7 +277,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(
             camp.campaign_dict['Events'][0]['Event_Coordinator_Config']['Intervention_Config']['Intervention_List'][0][
                 'Intervention_Name'],
-            "AntimalarialDrug")
+            "AntimalarialDrug_Artemether")
 
     def test_drug_campaign_MSAT(self):
         camp.campaign_dict["Events"] = []
@@ -302,7 +302,7 @@ class TestMalariaInterventions(unittest.TestCase):
                 'Intervention_Name'] == "NodeLevelHealthTriggeredIV":
                 self.assertEqual(
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
-                        'Intervention_Name'], "AntimalarialDrug")
+                        'Intervention_Name'], "AntimalarialDrug_Artemether")
             else:
                 self.assertTrue(False, "Unexpected intervention in campaign.")
 
@@ -327,7 +327,7 @@ class TestMalariaInterventions(unittest.TestCase):
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
                         'Intervention_List']), 2)
             elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
-                'Intervention_Name'] == "AntimalarialDrug":
+                'Intervention_Name'] == "AntimalarialDrug_Artemether":
                 self.assertEqual(len(
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
                         'Intervention_List']), 3)
@@ -356,7 +356,7 @@ class TestMalariaInterventions(unittest.TestCase):
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
                         'Actual_IndividualIntervention_Configs'][0]['Max_Distance_To_Other_Nodes_Km'], 6)
             elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
-                'Intervention_Name'] == "AntimalarialDrug":
+                'Intervention_Name'] == "AntimalarialDrug_Artemether":
                 self.assertEqual(len(
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
                         'Intervention_List']), 3)
@@ -385,7 +385,7 @@ class TestMalariaInterventions(unittest.TestCase):
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
                         'Actual_IndividualIntervention_Configs'][0]['Max_Distance_To_Other_Nodes_Km'], 6)
             elif event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
-                'Intervention_Name'] == "AntimalarialDrug":
+                'Intervention_Name'] == "AntimalarialDrug_Artemether":
                 self.assertEqual(len(
                     event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config'][
                         'Intervention_List']), 3)
@@ -1352,6 +1352,8 @@ class TestMalariaInterventions(unittest.TestCase):
         antimalarial_drug = _antimalarial_drug(camp, "Malaria")
         self.assertEqual(antimalarial_drug.Drug_Type, "Malaria")
         self.assertEqual(antimalarial_drug.Cost_To_Consumer, 0)
+        self.assertEqual(antimalarial_drug.Intervention_Name, "AntimalarialDrug_Malaria")
+
 
     def test_malaria_diagnostic_default(self):
         self.is_debugging = False
@@ -1364,6 +1366,7 @@ class TestMalariaInterventions(unittest.TestCase):
         antimalarial_drug = _antimalarial_drug(camp, "Malaria")
         self.assertEqual(antimalarial_drug.Drug_Type, "Malaria")
         self.assertEqual(antimalarial_drug.Cost_To_Consumer, 0)
+        self.assertEqual(antimalarial_drug.Intervention_Name, "AntimalarialDrug_Malaria")
 
     def test_malaria_diagnostic_error(self):
         with self.assertRaises(ValueError) as context:
@@ -2228,7 +2231,9 @@ class TestMalariaInterventions(unittest.TestCase):
         amount_in_shipment = 30
         days_between_shipments = 14
         duration = 780
-        intervention_config = _antimalarial_drug(camp, "malaria_drug")
+        drug_type = "malaria_drug"
+        intervention_name = "fancy_new_drug"
+        intervention_config = _antimalarial_drug(camp, drug_type=drug_type, intervention_name=intervention_name)
         max_distributed_per_day = 3
         max_stock = 65
         waiting_period = 2
@@ -2272,6 +2277,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(coordinator_config['Initial_Amount_Distribution'], "CONSTANT_DISTRIBUTION")
         intervention_config = coordinator_config['Intervention_Config']
         self.assertEqual(intervention_config['class'], "AntimalarialDrug")
+        self.assertEqual(intervention_config['Intervention_Name'], intervention_name)
+        self.assertEqual(intervention_config['Drug_Type'], drug_type)
 
         pass
 
@@ -2284,7 +2291,8 @@ class TestMalariaInterventions(unittest.TestCase):
         amount_in_shipment = 2147480000
         days_between_shipments = 7
         duration = 3.40282e+38
-        intervention_config = _antimalarial_drug(camp, "malaria_drug")
+        drug_type = "malaria_drug"
+        intervention_config = _antimalarial_drug(camp, drug_type=drug_type)
         max_distributed_per_day = 2147480000
         max_stock = 2147480000
         waiting_period = 0
@@ -2310,6 +2318,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(coordinator_config['Initial_Amount_Distribution'], "CONSTANT_DISTRIBUTION")
         intervention_config = coordinator_config['Intervention_Config']
         self.assertEqual(intervention_config['class'], "AntimalarialDrug")
+        self.assertEqual(intervention_config['Intervention_Name'], "AntimalarialDrug_malaria_drug")
+        self.assertEqual(intervention_config['Drug_Type'], drug_type)
         pass
 
     def test_scale_larval_habitat(self):
@@ -2380,12 +2390,14 @@ class TestMalariaInterventions(unittest.TestCase):
         non_adherence_options = ['Stop']
         non_adherence_distribution = [1]
         values = [1, 0.6, 0.4, 0.1]
+        custom_intervention_name = "TryingNewDrugs"
         adherent_drug = ad.adherent_drug(camp,
                                          doses=doses,
                                          dose_interval=dose_interval,
                                          non_adherence_options=non_adherence_options,
                                          non_adherence_distribution=non_adherence_distribution,
-                                         adherence_values=values
+                                         adherence_values=values,
+                                         intervention_name=custom_intervention_name
                                          )
         times = [1.0, 2.0, 3.0, 4.0]
         self.assertEqual(adherent_drug["Adherence_Config"]["Durability_Map"]["Times"], times)
@@ -2394,6 +2406,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(adherent_drug["Dose_Interval"], dose_interval)
         self.assertEqual(adherent_drug["Non_Adherence_Distribution"], non_adherence_distribution)
         self.assertEqual(adherent_drug["Non_Adherence_Options"], non_adherence_options)
+        self.assertEqual(adherent_drug["Intervention_Name"], custom_intervention_name)
         pass
 
     def test_adherent_drug_defaults(self):
@@ -2418,6 +2431,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(adherent_drug["Dose_Interval"], default_dose_interval)
         self.assertEqual(adherent_drug["Non_Adherence_Distribution"], default_non_adherence_distribution)
         self.assertEqual(adherent_drug["Non_Adherence_Options"], default_non_adherence_options)
+        self.assertEqual(adherent_drug["Intervention_Name"], "AdherentDrug_Amodiaquine_Pyrimethamine_Sulfadoxine")
         pass
 
 
