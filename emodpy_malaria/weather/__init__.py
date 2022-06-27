@@ -50,7 +50,8 @@ def generate_weather(platform: Union[str, COMPSPlatform],
                      id_reference: str = None,
                      request_name: str = "",
                      local_dir: Union[str, Path] = None,
-                     data_source: str = None) -> WeatherRequest:
+                     data_source: str = None,
+                     force: bool = False) -> WeatherRequest:
     """
     Generate weather files by submitting a request and downloading generated weather files to a specified dir.
 
@@ -68,6 +69,7 @@ def generate_weather(platform: Union[str, COMPSPlatform],
         request_name: (Optional) Name to be used for the weather SSMT work item.
         local_dir: (Optional) Local dir where files will be downloaded.
         data_source: (Optional) SSMT data source to be used.
+        force: (Optional) Flag ensuring a new weather request is submitted, even if weather files exist in "local_dir".
 
             **Example**::
 
@@ -91,10 +93,8 @@ def generate_weather(platform: Union[str, COMPSPlatform],
                      id_reference=id_reference)
 
     wr = WeatherRequest(platform=platform, local_dir=local_dir, data_source=data_source)
-
-    if not wr.files_exist:
-        wr.generate(weather_args=wa, request_name=request_name)
-        wr.download()
+    wr.generate(weather_args=wa, request_name=request_name, force=force)
+    wr.download(force=force)
 
     return wr
 

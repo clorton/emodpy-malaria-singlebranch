@@ -297,6 +297,7 @@ class WeatherRequest:
         """
         # Skip if files already exist, unless the 'force' flag is set.
         if not force and self.files_exist:
+            print("Skipping weather request, files already exist.")
             return self
 
         self._asset_collection_id: Union[str, None] = None
@@ -342,23 +343,30 @@ class WeatherRequest:
         if local_dir:
             self._local_dir = local_dir
 
+        # Skip if files already exist, unless the 'force' flag is set.
+        if self.files_exist and not force:
+            self.report.download = {"ok": [], "fail": [], "skip": self.files}
+            print("Skipping download, files already exist.")
+            return self
+
         assert len(self._asset_collection_id) == 36, "Invalid 'asset collection id' length."
         make_path(self._local_dir)
-
-        # Skip if files already exist, unless the 'force' flag is set.
-        if not force and self.files_exist:
-            self.report.download = {"ok": [], "fail": [], "skip": self.files}
-            return self
 
         result = {"ok": [], "fail": [], "skip": []}
         for asset, file_path in self._asset_files:
             assert asset.filename == file_path.name, "Asset and file name do not match."
             try:
+                mtime_before = file_path.stat().st_mtime if file_path.is_file() else 0
+                if not file_path.is_file() or force:
+                    asset.download_to_path(str(file_path), force=force)
+
                 if not file_path.is_file():
-                    asset.download_to_path(str(file_path))
-                    key = "ok" if file_path.is_file() else "fail"
+                    key = "fail"
+                elif file_path.stat().st_mtime > mtime_before:
+                    key = "ok"
                 else:
                     key = "skip"
+
             # TODO: More specific exception handling
             except Exception as ex:
                 print(str(ex))

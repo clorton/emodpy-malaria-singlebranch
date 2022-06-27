@@ -98,7 +98,7 @@ class WeatherRequestTests(unittest.TestCase):
         self._validate_file_list(files)
         self._validate_file_read(files)
 
-    @unittest.skipUnless(os.getenv("EMODPY_MALARIA_WEATHER_TESTS_ALL", False), "Long running")
+    @unittest.skipIf(os.environ.get('ignore_comps', False), 'This is a comps dependent test')
     def test_weather_request_generate_download(self):
         wr1 = self._run_generate_test().download()
         self._validate_download_report(wr=wr1)
@@ -110,7 +110,7 @@ class WeatherRequestTests(unittest.TestCase):
         ws2 = WeatherSet.from_files(wr2.local_dir)
         self.assertEqual(ws1, ws2)
 
-    @unittest.skipUnless(os.getenv("EMODPY_MALARIA_WEATHER_TESTS_ALL", False), "Long running")
+    @unittest.skipIf(os.environ.get('ignore_comps', False), 'This is a comps dependent test')
     def test_weather_request_download_existing(self):
         wr = self._run_generate_test()
         report = wr.download(local_dir=self.test_dir).report.download
