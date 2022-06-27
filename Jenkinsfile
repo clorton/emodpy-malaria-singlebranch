@@ -99,6 +99,21 @@ podTemplate(
 				build_ok = false
 				echo e.toString()  
 			}
+
+			try{
+				stage('ReadMe Test') {
+					echo "Running ReadMe Tests"
+					dir('tests/doc_tests') {
+						sh 'pip3 install pytest'
+						sh 'python3 run_tests.py'
+						junit '**/*test*.xml'
+					}
+				}
+			} catch(e) {
+				build_ok = false
+				echo e.toString()  
+			}
+			
 			
 			stage('Run Examples') {		    
 				echo "Running examples"
