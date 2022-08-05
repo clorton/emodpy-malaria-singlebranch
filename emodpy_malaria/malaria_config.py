@@ -455,6 +455,7 @@ def add_microsporidia(config, manifest, species_name: str = None, female_to_male
                       duration_to_disease_acquisition_modification: dict = None, larval_growth_modifier: float = 1,
                       female_mortality_modifier: float = 1, male_mortality_modifier: float = 1):
     """
+        Adds microsporidia parameters to the named species' parameters.
 
     Args:
         config: schema-backed config dictionary, written to config.json
@@ -474,11 +475,10 @@ def add_microsporidia(config, manifest, species_name: str = None, female_to_male
 
              **Example**::
 
-             {
+                {
                     "Times": [    0,   3,   6,   9 ],
                     "Values": [ 1.0, 1.0, 0.5, 0.0 ]
-             }
-
+                }
 
         larval_growth_modifier: **Microsporidia_Larval_Growth_Modifier** A multiplier modifier to the daily, temperature
             dependent, larval growth progress.
