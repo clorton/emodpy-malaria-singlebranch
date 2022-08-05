@@ -36,8 +36,6 @@ def set_team_defaults(config, manifest):
     config.parameters.Min_Adapted_Response = 0
     config.parameters.Infection_Updates_Per_Timestep = 8
     config.parameters.Enable_Superinfection = 1
-    config.parameters.Incubation_Period_Distribution = "CONSTANT_DISTRIBUTION"
-    config.parameters.Incubation_Period_Constant = 7
     config.parameters.Antibody_IRBC_Kill_Rate = 1.596
     config.parameters.RBC_Destruction_Multiplier = 3.29
     config.parameters.Parasite_Switch_Type = "RATE_PER_PARASITE_7VARS"

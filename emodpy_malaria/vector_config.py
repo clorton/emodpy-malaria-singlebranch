@@ -23,7 +23,6 @@ def set_team_defaults(config, manifest):
     config.parameters.Simulation_Type = "VECTOR_SIM"
     config.parameters.Infection_Updates_Per_Timestep = 8
     config.parameters.Incubation_Period_Constant = 7
-    config.parameters.Infectious_Period_Constant = 10
 
     # VECTOR_SIM parameters (formerly lived in dtk-tools/dtk/vector/params.py)
     config.parameters.Enable_Vector_Species_Report = 0
