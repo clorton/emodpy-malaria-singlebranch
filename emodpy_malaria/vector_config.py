@@ -3,6 +3,7 @@ import csv
 import os
 from emodpy_malaria.malaria_vector_species_params import species_params
 
+
 #
 # PUBLIC API section
 #
@@ -141,10 +142,11 @@ def add_species(config, manifest, species_to_select):
     for species in species_to_select:
         vector_species_parameters = species_params(manifest, species)
         if isinstance(vector_species_parameters, list):
-            raise ValueError(f"'{species}' species not found in list, available species are: {vector_species_parameters}. "
-                             f"We suggest adding 'gambiae' species and changing "
-                             f"the name and relevant parameters with set_species_params() or "
-                             f"adding your species to malaria_vector_species_params.py.\n")
+            raise ValueError(
+                f"'{species}' species not found in list, available species are: {vector_species_parameters}. "
+                f"We suggest adding 'gambiae' species and changing "
+                f"the name and relevant parameters with set_species_params() or "
+                f"adding your species to malaria_vector_species_params.py.\n")
         else:
             config.parameters.Vector_Species_Params.append(vector_species_parameters)
 
@@ -602,7 +604,7 @@ def set_max_larval_capacity(config, species_name, habitat_type, max_larval_capac
 
     Args:
         config:
-        species_name: string. Species_Name to target.
+        species_name: string. Species Name to target.
         habitat_type: enum. Habitat_Type to target.
         max_larval_capacity: integer. New value of Max_Larval_Capacity.
 
@@ -620,4 +622,65 @@ def set_max_larval_capacity(config, species_name, habitat_type, max_larval_capac
 
     raise ValueError(f"Failed to find habitat_type {habitat_type} for species {species_name}.")
 
-    return  # can't get here
+
+def add_microsporidia(config, manifest, species_name: str = None, female_to_male_probability: float = 0,
+                      male_to_female_probability: float = 0, female_to_egg_probability: float = 0,
+                      duration_to_disease_acquisition_modification: dict = None, larval_growth_modifier: float = 1,
+                      female_mortality_modifier: float = 1, male_mortality_modifier: float = 1):
+    """
+
+    Args:
+        config: schema-backed config dictionary, written to config.json
+        manifest: file that contains path to the schema file
+        species_name: Species to target, **Name** parameter
+        female_to_male_probability: **Microsporidia_Female_To_Male_Transmission_Probability** The probability
+            an infected female will infect an uninfected male.
+        male_to_female_probability: **Microsporidia_Male_To_Female_Transmission_Probability** The probability
+            an infected male will infect an uninfected female
+        female_to_egg_probability: **Microsporidia_Female_To_Egg_Transmission_Probability** The probability
+            an infected female will infect her eggs when laying them.
+        duration_to_disease_acquisition_modification: **Microsporidia_Duration_To_Disease_Acquisition_Modification**,
+            A dictionary for "Times" and "Values" as an age-based modification that the female will acquire malaria.
+            **Times** is an array of days in ascending order that represent the number of days since the vector become
+            infected. **Values** is an array of probabilities with values from 0 to 1 where each probability is the
+            probability that the vector will acquire malaria due to Microsporidia.
+
+             **Example**::
+
+             {
+                    "Times": [    0,   3,   6,   9 ],
+                    "Values": [ 1.0, 1.0, 0.5, 0.0 ]
+             }
+
+
+        larval_growth_modifier: **Microsporidia_Larval_Growth_Modifier** A multiplier modifier to the daily, temperature
+            dependent, larval growth progress.
+        female_mortality_modifier: **Microsporidia_Female_Mortality_Modifier** A multiplier modifier on the death
+            rate for female vectors due to general life expectancy, age, and dry heat
+        male_mortality_modifier: **Microsporidia_Male_Mortality_Modifier** A multiplier modifier on the death rate for
+            male vectors due to general life expectancy, age, and dry heat
+
+    Returns:
+        Nothing
+    """
+    if not species_name:
+        raise ValueError("Please define species name.\n")
+    if not duration_to_disease_acquisition_modification:
+        duration_to_disease_acquisition_modification = \
+            {
+                "Times": [0,   3,    6,    9],
+                "Values": [1.0, 1.0, 0.5, 0.0]
+            }
+
+    species_parameters = get_species_params(config, species_name)
+
+    d_t_d_a_m = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:InterpolatedValueMap"])
+    d_t_d_a_m.parameters.Times = duration_to_disease_acquisition_modification["Times"]
+    d_t_d_a_m.parameters.Values = duration_to_disease_acquisition_modification["Values"]
+    species_parameters.Microsporidia_Duration_To_Disease_Acquisition_Modification = d_t_d_a_m.parameters
+    species_parameters.Microsporidia_Female_To_Male_Transmission_Probability = female_to_male_probability
+    species_parameters.Microsporidia_Male_To_Female_Transmission_Probability = male_to_female_probability
+    species_parameters.Microsporidia_Female_To_Egg_Transmission_Probability = female_to_egg_probability
+    species_parameters.Microsporidia_Larval_Growth_Modifier = larval_growth_modifier
+    species_parameters.Microsporidia_Female_Mortality_Modifier = female_mortality_modifier
+    species_parameters.Microsporidia_Male_Mortality_Modifier = male_mortality_modifier
