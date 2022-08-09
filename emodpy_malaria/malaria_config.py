@@ -388,8 +388,8 @@ def add_drug_resistance(config, manifest, drugname: str = None, drug_resistant_s
 
     drugmod = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:DrugModifier"])
     drugmod.parameters.Drug_Resistant_String = drug_resistant_string
-    drugmod.parameters.Max_IRBC_Kill_Modifier = pkpd_c50_modifier
-    drugmod.parameters.PKPD_C50_Modifier = max_irbc_kill_modifier
+    drugmod.parameters.Max_IRBC_Kill_Modifier = max_irbc_kill_modifier
+    drugmod.parameters.PKPD_C50_Modifier = pkpd_c50_modifier
 
     for drug_param in config.parameters.Malaria_Drug_Params:
         if drug_param.Name == drugname:
