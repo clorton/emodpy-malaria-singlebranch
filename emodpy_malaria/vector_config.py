@@ -128,23 +128,27 @@ def configure_linear_spline(manifest, max_larval_capacity: float = pow(10, 8),
                             capacity_distribution_over_time: dict = None):
     """
         Configures and returns a ReadOnlyDict of the LINEAR_SPLINE habitat parameters
+
     Args:
-        manifest: manifest file containing the schema path
-        max_larval_capacity: **Max_Larval_Capacity** The maximum larval capacity.
-        capacity_distribution_number_of_years: **Capacity_Distribution_Number_Of_Years** The total length of time in
+        manifest:  manifest file containing the schema path
+        max_larval_capacity:  The maximum larval capacity. Sets **Max_Larval_Capacity**
+        capacity_distribution_number_of_years:  The total length of time in
             years for the scaling.  If the simulation goes longer than this time, the pattern will repeat.  Ideally,
             this value times 365 is the last value in 'Capacity_Distribution_Over_Time'.
-        capacity_distribution_over_time: **Capacity_Distribution_Over_Time* "This allows one to scale the larval
+            Sets **Capacity_Distribution_Number_Of_Years**
+        capacity_distribution_over_time:  "This allows one to scale the larval
             capacity over time.  The Times and Values arrays must be the same length where Times is in days and
             Values are a scale factor per degrees squared.  The value is multiplied times the max capacity and
             'Node_Grid_Size' squared/4. Ideally, you want the last value  to equal the first value if they are
-            one day apart.  A point will be added if not.
+            one day apart.  A point will be added if not. Sets **Capacity_Distribution_Over_Time**
 
-                **Example**::
+            **Example**::
+
                 {
                     "Times": [0,  30,  60,   91,  122, 152, 182, 213, 243, 274, 304, 334, 365 ],
                     "Values": [3, 0.8, 1.25, 0.1, 2.7, 8,    4,   35, 6.8, 6.5, 2.6, 2.1, 2]
                 }
+
     Returns:
         Configured Habitat_Type: "LINEAR_SPLINE" parameters to be passed directly to "set_species_params" function
     """
