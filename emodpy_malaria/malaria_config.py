@@ -207,7 +207,7 @@ def set_parasite_genetics_params(config, manifest, var_gene_randomness_type: str
     Malaria_Model = "MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS"
 
     Args:
-        config:
+        config: schema-backed config smart dict
         manifest: schema path container
         var_gene_randomness_type: possible values are "FIXED_NEIGHBORHOOD", "FIXED_MSP", "ALL_RANDOM" (default)
 
@@ -348,7 +348,7 @@ def set_drug_param(config, drug_name: str = None, parameter: str = None, value: 
          set_drug_param(cb, drug_name='Artemether', parameter="Resistances", value=artemether_drug_resistance)
 
     Args:
-        config:
+        config: schema-backed config smart dict
         drug_name: The drug that has a parameter to set
         parameter: The parameter to set
         value: The new value to set
@@ -372,8 +372,8 @@ def add_drug_resistance(config, manifest, drugname: str = None, drug_resistant_s
     Adds drug resistances by drug name and parameters
 
     Args:
-        config:
-        manifest:
+        config: schema-backed config smart dict
+        manifest: manifest file containing the schema path
         drugname: name of the drug for which to assign resistances
         drug_resistant_string: A series of nucleotide base letters (A, C, G, T) that represent the drug resistant
             values at locations in the genome
@@ -438,7 +438,7 @@ def set_max_larval_capacity(config, species_name: str, habitat_type: str, max_la
     where i is index of species_name and j is index of habitat_type.
 
     Args:
-        config:
+        config: schema-backed config smart dict
         species_name: string. Species_Name to target.
         habitat_type: enum. Habitat_Type to target.
         max_larval_capacity: integer. New value of Max_Larval_Capacity.
@@ -448,3 +448,36 @@ def set_max_larval_capacity(config, species_name: str, habitat_type: str, max_la
 
     """
     return vector_config.set_max_larval_capacity(config, species_name, habitat_type, max_larval_capacity)
+
+
+def configure_linear_spline(manifest, max_larval_capacity: float = pow(10, 8),
+                            capacity_distribution_number_of_years: int = 1,
+                            capacity_distribution_over_time: dict = None):
+    """
+        Configures and returns a ReadOnlyDict of the LINEAR_SPLINE habitat parameters
+
+    Args:
+        manifest:  manifest file containing the schema path
+        max_larval_capacity:  The maximum larval capacity. Sets **Max_Larval_Capacity**
+        capacity_distribution_number_of_years:  The total length of time in
+            years for the scaling.  If the simulation goes longer than this time, the pattern will repeat.  Ideally,
+            this value times 365 is the last value in 'Capacity_Distribution_Over_Time'.
+            Sets **Capacity_Distribution_Number_Of_Years**
+        capacity_distribution_over_time:  "This allows one to scale the larval
+            capacity over time.  The Times and Values arrays must be the same length where Times is in days and
+            Values are a scale factor per degrees squared.  The value is multiplied times the max capacity and
+            'Node_Grid_Size' squared/4. Ideally, you want the last value  to equal the first value if they are
+            one day apart.  A point will be added if not. Sets **Capacity_Distribution_Over_Time**
+
+            **Example**::
+
+                {
+                    "Times": [0,  30,  60,   91,  122, 152, 182, 213, 243, 274, 304, 334, 365 ],
+                    "Values": [3, 0.8, 1.25, 0.1, 2.7, 8,    4,   35, 6.8, 6.5, 2.6, 2.1, 2]
+                }
+
+    Returns:
+        Configured Habitat_Type: "LINEAR_SPLINE" parameters to be passed directly to "set_species_params" function
+    """
+    return vector_config.configure_linear_spline(manifest, max_larval_capacity, capacity_distribution_number_of_years,
+                                                 capacity_distribution_over_time)
