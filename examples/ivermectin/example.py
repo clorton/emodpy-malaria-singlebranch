@@ -108,7 +108,7 @@ def set_config_parameters(config):
                                                                       "Times": [0, 30, 60, 91, 122, 152, 182, 213, 243,
                                                                                 274, 304, 334, 365],
                                                                       "Values": [3, 0.8, 1.25, 0.1, 2.7, 8, 4, 35, 6.8,
-                                                                                 6.5, 2.6, 2.1, 2]
+                                                                                 6.5, 2.6, 2.1, 3]
                                                                   }
                                                                   )
     malaria_config.set_species_param(config, "gambiae", "Habitats", linear_spline_habitat)
