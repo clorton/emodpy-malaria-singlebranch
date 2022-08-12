@@ -279,6 +279,12 @@ rule weather_sim:
     run:
          shell(get_command("weather", python_version=config['python_version']))
 
+rule microsporidia:
+    input:
+    output: Path("microsporidia", "experiment_id")
+    run:
+        shell(get_command("microsporidia", python_version=config['python_version']))
+
 rule clean:
     input: 
     output: 

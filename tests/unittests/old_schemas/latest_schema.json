@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "ReportFilter(f62aefc3cc)",
-        "DTK_Build_Date": "Feb  7 2022",
-        "DTK_Version": "2.20.5144.0"
+        "DTK_Branch": "GH-4716-B(3505ed3b57)",
+        "DTK_Build_Date": "Aug  4 2022",
+        "DTK_Version": "2.20.5212.0"
     },
     "config": {
         "AIRBORNE_SIM": {
@@ -1741,7 +1741,7 @@
                 "default": 1,
                 "description": "Number of infection updates executed during each timestep. A timestep defaults to one day.",
                 "max": 144,
-                "min": 0,
+                "min": 1,
                 "type": "integer"
             },
             "Local_Migration_Roundtrip_Duration": {
@@ -1986,7 +1986,7 @@
                 "type": "float"
             },
             "Enable_Disease_Mortality": {
-                "default": 1,
+                "default": 0,
                 "depends-on": {
                     "Simulation_Type": "GENERIC_SIM,VECTOR_SIM,STI_SIM,ENVIRONMENTAL_SIM,MALARIA_SIM,TBHIV_SIM,TYPHOID_SIM,PY_SIM"
                 },
@@ -7217,6 +7217,14 @@
             }
         },
         "Report": {
+            "Inset_Chart_Has_IP": {
+                "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
+                "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                "type": "Vector String"
+            },
             "Inset_Chart_Has_Interventions": {
                 "default": [],
                 "depends-on": {
@@ -7455,6 +7463,14 @@
             }
         },
         "ReportHIV": {
+            "Inset_Chart_Has_IP": {
+                "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
+                "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                "type": "Vector String"
+            },
             "Inset_Chart_Has_Interventions": {
                 "default": [],
                 "depends-on": {
@@ -7718,6 +7734,14 @@
             }
         },
         "ReportMalaria": {
+            "Inset_Chart_Has_IP": {
+                "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
+                "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                "type": "Vector String"
+            },
             "Inset_Chart_Has_Interventions": {
                 "default": [],
                 "depends-on": {
@@ -7751,6 +7775,14 @@
                     "VRPV3"
                 ],
                 "type": "enum"
+            },
+            "Inset_Chart_Has_IP": {
+                "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
+                "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                "type": "Vector String"
             },
             "Inset_Chart_Has_Interventions": {
                 "default": [],
@@ -7790,6 +7822,14 @@
             }
         },
         "ReportTyphoid": {
+            "Inset_Chart_Has_IP": {
+                "default": [],
+                "depends-on": {
+                    "Enable_Default_Reporting": 1
+                },
+                "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                "type": "Vector String"
+            },
             "Inset_Chart_Has_Interventions": {
                 "default": [],
                 "depends-on": {
@@ -7832,6 +7872,175 @@
                 "description": "Year to stop the typhoid output report.",
                 "max": 3.40282e+38,
                 "min": 0,
+                "type": "float"
+            }
+        },
+        "STIReportEventRecorder": {
+            "Report_Event_Recorder_End_Year": {
+                "default": 2200,
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "Stop collecting data to report on January 1st of this year.",
+                "max": 2200,
+                "min": 1900,
+                "type": "float"
+            },
+            "Report_Event_Recorder_Events": {
+                "Built-in": [
+                    "Births",
+                    "EveryUpdate",
+                    "NewInfectionEvent",
+                    "TBActivation",
+                    "NewClinicalCase",
+                    "NewSevereCase",
+                    "DiseaseDeaths",
+                    "OpportunisticInfectionDeath",
+                    "NonDiseaseDeaths",
+                    "TBActivationSmearPos",
+                    "TBActivationSmearNeg",
+                    "TBActivationExtrapulm",
+                    "TBActivationPostRelapse",
+                    "TBPendingRelapse",
+                    "TBActivationPresymptomatic",
+                    "TestPositiveOnSmear",
+                    "ProviderOrdersTBTest",
+                    "TBTestPositive",
+                    "TBTestNegative",
+                    "TBTestDefault",
+                    "TBRestartHSB",
+                    "TBMDRTestPositive",
+                    "TBMDRTestNegative",
+                    "TBMDRTestDefault",
+                    "TBFailedDrugRegimen",
+                    "TBRelapseAfterDrugRegimen",
+                    "TBStartDrugRegimen",
+                    "TBStopDrugRegimen",
+                    "PropertyChange",
+                    "STIDebut",
+                    "StartedART",
+                    "StoppedART",
+                    "InterventionDisqualified",
+                    "HIVNewlyDiagnosed",
+                    "GaveBirth",
+                    "Pregnant",
+                    "Emigrating",
+                    "Immigrating",
+                    "HIVTestedNegative",
+                    "HIVTestedPositive",
+                    "NewlySymptomatic",
+                    "SymptomaticCleared",
+                    "TwelveWeeksPregnant",
+                    "FourteenWeeksPregnant",
+                    "SixWeeksOld",
+                    "EighteenMonthsOld",
+                    "STIPreEmigrating",
+                    "STIPostImmigrating",
+                    "STINewInfection",
+                    "STIExposed",
+                    "NewExternalHIVInfection",
+                    "NodePropertyChange",
+                    "HappyBirthday",
+                    "EnteredRelationship",
+                    "ExitedRelationship",
+                    "FirstCoitalAct",
+                    "ExposureComplete",
+                    "VectorToHumanTransmission",
+                    "HumanToVectorTransmission",
+                    "ReceivedInfectiousBites",
+                    "InfectionCleared",
+                    "WouldHaveDied",
+                    "WouldHaveHadAIDS",
+                    "WouldHaveEnteredLatentStage",
+                    "HIVInfectionStageEnteredLatent",
+                    "HIVInfectionStageEnteredAIDS",
+                    "HIVInfectionStageEnteredOnART"
+                ],
+                "default": [],
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "The list of events to include or exclude in the ReportEventRecorder.csv output report, based on how Report_Event_Recorder_Ignore_Events_In_List is set.",
+                "type": "Vector Constrained String",
+                "value_source": "'<configuration>:Custom_Individual_Events.*' or Built-in"
+            },
+            "Report_Event_Recorder_Ignore_Events_In_List": {
+                "default": 0,
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "If set to 0, only the events listed in the Report_Event_Recorder_Events array will be included in the ReportEventRecorder.csv output report. If set to 1, only the events listed in the array will be excluded, and all other events will be included. If you want to return all events from the simulation, leave the events array empty.",
+                "type": "bool"
+            },
+            "Report_Event_Recorder_Individual_Properties": {
+                "default": [],
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "A list of the IndividualProperty key:value pairs, as defined in the demographics file, that individuals must have to be targeted by this intervention.",
+                "type": "Dynamic String Set",
+                "value_source": "<demographics>::*.Individual_Properties.*.Property"
+            },
+            "Report_Event_Recorder_Max_Age_Years": {
+                "default": 9.3228e+35,
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "Maximum age in years of people to collect data on",
+                "max": 9.3228e+35,
+                "min": 0,
+                "type": "float"
+            },
+            "Report_Event_Recorder_Min_Age_Years": {
+                "default": 0,
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "Minimum age in years of people to collect data on",
+                "max": 9.3228e+35,
+                "min": 0,
+                "type": "float"
+            },
+            "Report_Event_Recorder_Must_Have_IP_Key_Value": {
+                "default": "",
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "A Key:Value pair that the individual must have in order to be included. Empty string means don't look at IPs.",
+                "type": "string"
+            },
+            "Report_Event_Recorder_Must_Have_Intervention": {
+                "default": "",
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "The name of the an intervention that the person must have in order to be included. Empty string means don't look at the interventions.",
+                "type": "string"
+            },
+            "Report_Event_Recorder_Node_IDs_Of_Interest": {
+                "ascending": 0,
+                "default": [],
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "Data will be collected for the nodes in this list.",
+                "max": 2147480000.0,
+                "min": 0,
+                "type": "Vector Uint32"
+            },
+            "Report_Event_Recorder_PropertyChange_IP_Key_Of_Interest": {
+                "default": "",
+                "description": "If the string is not empty, then the recorder will add the PropertyChange event to the list of events that the report is listening to. However, it will only record the events where the property changed the value of the given key.",
+                "type": "string"
+            },
+            "Report_Event_Recorder_Start_Year": {
+                "default": 1900,
+                "depends-on": {
+                    "Report_Event_Recorder": 1
+                },
+                "description": "January 1st of the year of the simulation to start collecting data.",
+                "max": 2200,
+                "min": 1900,
                 "type": "float"
             }
         },
@@ -10885,7 +11094,7 @@
                 },
                 "Number_Repetitions": {
                     "default": 1,
-                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.",
+                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.  A value of -1 implies an infinite number of repetitions.",
                     "max": 10000,
                     "min": -1,
                     "type": "integer"
@@ -11201,7 +11410,7 @@
                 },
                 "Number_Repetitions": {
                     "default": 1,
-                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.",
+                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.  A value of -1 implies an infinite number of repetitions.",
                     "max": 10000,
                     "min": -1,
                     "type": "integer"
@@ -11314,7 +11523,7 @@
                 },
                 "Number_Repetitions": {
                     "default": 1,
-                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.",
+                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.  A value of -1 implies an infinite number of repetitions.",
                     "max": 10000,
                     "min": -1,
                     "type": "integer"
@@ -11661,6 +11870,101 @@
                 },
                 "class": "ReferenceTrackingEventCoordinatorHIV"
             },
+            "ReferenceTrackingEventCoordinatorTrackingConfig": {
+                "End_Year": {
+                    "default": 2200,
+                    "description": "The final date at which this set of targeted coverages should be applied (expiration).",
+                    "max": 2200,
+                    "min": 1900,
+                    "type": "float"
+                },
+                "Intervention_Config": {
+                    "description": "The nested JSON of the actual intervention to be distributed by this event coordinator.",
+                    "type": "idmAbstractType:Intervention"
+                },
+                "Node_Property_Restrictions": {
+                    "description": "A list of the NodeProperty key:value pairs, as defined in the demographics file, that nodes must have to be targeted by the intervention.",
+                    "type": "idmType:NodePropertyRestrictions"
+                },
+                "Property_Restrictions": {
+                    "default": [],
+                    "description": "A list of the IndividualProperty key:value pairs, as defined in the demographics file, that individuals must have to be targeted by this intervention.",
+                    "type": "Dynamic String Set",
+                    "value_source": "'<demographics>::*.Individual_Properties.*.Property':'<demographics>::*.Individual_Properties.*.Values'"
+                },
+                "Property_Restrictions_Within_Node": {
+                    "description": "A list of the IndividualProperty key:value pairs, as defined in the demographics file, that individuals must have to be targeted by this intervention.",
+                    "type": "idmType:PropertyRestrictions"
+                },
+                "Target_Age_Max": {
+                    "default": 9.3228e+35,
+                    "depends-on": {
+                        "Target_Demographic": "ExplicitAgeRanges,ExplicitAgeRangesAndGender"
+                    },
+                    "description": "The upper end of ages targeted for an intervention, in years.",
+                    "max": 9.3228e+35,
+                    "min": 0,
+                    "type": "float"
+                },
+                "Target_Age_Min": {
+                    "default": 0,
+                    "depends-on": {
+                        "Target_Demographic": "ExplicitAgeRanges,ExplicitAgeRangesAndGender"
+                    },
+                    "description": "The lower end of ages targeted for an intervention, in years.",
+                    "max": 9.3228e+35,
+                    "min": 0,
+                    "type": "float"
+                },
+                "Target_Demographic": {
+                    "default": "Everyone",
+                    "description": "The target demographic group.",
+                    "enum": [
+                        "Everyone",
+                        "ExplicitAgeRanges",
+                        "ExplicitAgeRangesAndGender",
+                        "ExplicitGender",
+                        "PossibleMothers",
+                        "ExplicitDiseaseState"
+                    ],
+                    "type": "enum"
+                },
+                "Target_Gender": {
+                    "default": "All",
+                    "description": "Specifies the gender restriction for the intervention.",
+                    "enum": [
+                        "All",
+                        "Male",
+                        "Female"
+                    ],
+                    "type": "enum"
+                },
+                "Target_Residents_Only": {
+                    "default": 0,
+                    "description": "When set to true (1), the intervention is only distributed to individuals that began the simulation in the node (i.e. those that claim the node as their residence).",
+                    "type": "bool"
+                },
+                "Targeting_Config": {
+                    "description": "TBD",
+                    "type": "idmType:AdditionalRestrictions"
+                },
+                "Time_Value_Map": {
+                    "description": "Map of times (years) to coverages.",
+                    "type": "idmType:InterpolatedValueMap"
+                },
+                "Tracking_Config": {
+                    "description": "Use the Tracking_Config objects to define the attribute to be tracked.  The number of people that have this attribute is the numerator while the other targeting parameters define the denominator of the coverage.  People without this attribute will be given the intervention.",
+                    "type": "idmType:AdditionalRestrictions"
+                },
+                "Update_Period": {
+                    "default": 365,
+                    "description": "The time between distribution updates.",
+                    "max": 3650,
+                    "min": 1,
+                    "type": "float"
+                },
+                "class": "ReferenceTrackingEventCoordinatorTrackingConfig"
+            },
             "StandardInterventionDistributionEventCoordinator": {
                 "Demographic_Coverage": {
                     "default": 1,
@@ -11688,7 +11992,7 @@
                 },
                 "Number_Repetitions": {
                     "default": 1,
-                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.",
+                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.  A value of -1 implies an infinite number of repetitions.",
                     "max": 10000,
                     "min": -1,
                     "type": "integer"
@@ -11857,7 +12161,7 @@
                 },
                 "Number_Repetitions": {
                     "default": 1,
-                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.",
+                    "description": "The number of times an intervention is given, used with Timesteps_Between_Repetitions.  A value of -1 implies an infinite number of repetitions.",
                     "max": 10000,
                     "min": -1,
                     "type": "integer"
@@ -23602,6 +23906,11 @@
                         "min": 0,
                         "type": "float"
                     },
+                    "Released_Microsporidia": {
+                        "default": 0,
+                        "description": "A boolean indicating if the released vectors are infected with microsporidia or not.",
+                        "type": "bool"
+                    },
                     "Released_Number": {
                         "default": 10000,
                         "description": "The number of mosquitoes released in the intervention.",
@@ -25593,7 +25902,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Max_Number_Reports": {
@@ -25655,7 +25964,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Max_Age_Years": {
@@ -25755,7 +26064,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Infectiousness_Bins": {
@@ -25908,7 +26217,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "IP_Key_To_Collect": {
@@ -26084,7 +26393,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Max_Age_Years": {
@@ -26187,7 +26496,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Max_Age_Years": {
@@ -26244,8 +26553,13 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
+                },
+                "Has_IP": {
+                    "default": [],
+                    "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                    "type": "Vector String"
                 },
                 "Has_Interventions": {
                     "default": [],
@@ -26311,8 +26625,13 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
+                },
+                "Has_IP": {
+                    "default": [],
+                    "description": "A channel is added to InsetChart for each value of each IP provided.  The channel name will be HasIP_<Key:Value> and will be the fraction of the population that has that value for that IPKey.",
+                    "type": "Vector String"
                 },
                 "Has_Interventions": {
                     "default": [],
@@ -26541,7 +26860,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Include_Human_To_Vector_Transmission": {
@@ -26638,7 +26957,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Gender": {
@@ -26741,6 +27060,11 @@
                     "description": "Adds columns for feeding and gestation",
                     "type": "bool"
                 },
+                "Include_Microsporidia_Columns": {
+                    "default": 0,
+                    "description": "Adds columns for the number of vectors that have microsporidia in each state during this time step.",
+                    "type": "bool"
+                },
                 "Include_Wolbachia_Columns": {
                     "default": 0,
                     "description": "Add a column for each type of Wolbachia.  Summation of columns should equal VectorPopulation.",
@@ -26777,6 +27101,11 @@
                 "Include_Gestation_Columns": {
                     "default": 0,
                     "description": "Adds columns for feeding and gestation",
+                    "type": "bool"
+                },
+                "Include_Microsporidia_Columns": {
+                    "default": 0,
+                    "description": "Adds columns for the number of vectors that have microsporidia in each state during this time step.",
                     "type": "bool"
                 },
                 "Include_Wolbachia_Columns": {
@@ -26868,7 +27197,7 @@
                 },
                 "Filename_Suffix": {
                     "default": "",
-                    "description": "Augments the filename of the report. If multiple CSV reports are being generated, this allows you to distinguish among the multiple reports.",
+                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
                     "type": "string"
                 },
                 "Max_Age_Years": {
@@ -28486,6 +28815,52 @@
                 "description": "Number of days an average male mosquito survives. The daily male mortality rate is 1 / (value of this parameter).",
                 "max": 730,
                 "min": 1,
+                "type": "float"
+            },
+            "Microsporidia_Duration_To_Disease_Acquisition_Modification": {
+                "description": "A modifer is seleteced based on the duration of the age of the microsporidia infection.  The modifier is used to modifiy the probability the vecor aquires the disease (i.e. malaria).",
+                "type": "idmType:InterpolatedValueMap"
+            },
+            "Microsporidia_Female_Mortality_Modifier": {
+                "default": 1,
+                "description": "A modifier on the death rate for female vectors due to general life expectancy, age, and dry heat",
+                "max": 3.40282e+38,
+                "min": 0,
+                "type": "float"
+            },
+            "Microsporidia_Female_To_Egg_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability an infected female will infect her eggs when laying them.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Microsporidia_Female_To_Male_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability an infected female will infect an uninfected male during mating.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Microsporidia_Larval_Growth_Modifier": {
+                "default": 1,
+                "description": "A modifier to the daily, temperature dependent, larval growth progression to immature.",
+                "max": 3.40282e+38,
+                "min": 0,
+                "type": "float"
+            },
+            "Microsporidia_Male_Mortality_Modifier": {
+                "default": 1,
+                "description": "A modifier on the death rate for male vectors due to general life expectancy, age, and dry heat",
+                "max": 3.40282e+38,
+                "min": 0,
+                "type": "float"
+            },
+            "Microsporidia_Male_To_Female_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability an infected male will infect an uninfected female during mating.",
+                "max": 1,
+                "min": 0,
                 "type": "float"
             },
             "Name": {
