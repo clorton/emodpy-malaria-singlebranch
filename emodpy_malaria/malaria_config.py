@@ -28,6 +28,9 @@ def set_team_defaults(config, manifest):
     """
     vector_config.set_team_defaults(config, manifest)
     config.parameters.Simulation_Type = "MALARIA_SIM"
+    # removing Infectious_Period parameteres because not allowed in MALARIA_SIM, but need in VECTOR SIM
+    config.parameters.pop("Infectious_Period_Constant")
+    config.parameters.pop("Infectious_Period_Distribution")
     config.parameters.Malaria_Strain_Model = "FALCIPARUM_RANDOM_STRAIN"
     config.parameters.Enable_Disease_Mortality = 0
     # config.parameters.Enable_Malaria_CoTransmission = 0
