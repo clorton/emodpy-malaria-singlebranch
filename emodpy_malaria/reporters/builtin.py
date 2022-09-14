@@ -934,7 +934,8 @@ def add_report_node_demographics_malaria(task, manifest,
 def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   barcodes: list = None,
                                                   drug_resistant_strings: list = None,
-                                                  drug_resistant_statistic_type: str = "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
+                                                  drug_resistant_and_hrp_statistic_type: str = "NUM_PEOPLE_WITH_RESISTANT_INFECTION",
+                                                  hrp_strings: list = None,
                                                   age_bins: list = None,
                                                   ip_key_to_collect: str = "",
                                                   stratify_by_gender: int = 1):
@@ -950,12 +951,14 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
             ACT, AGT, and ATT. The report contains a BarcodeOther column for barcodes that are not defined.
             Note: There is no validation that the barcode strings are valid barcodes for the scenario.
         drug_resistant_strings: a list of strings representing the set of drug resistant markers.  A column will be
-            created with the number of humans infetions with that barcode.  One can use '*' for a wild card.
+            created with the number of humans infections with that barcode.  One can use '*' for a wild card.
             A 'BarcodeOther' column will be created for barcodes not define
-        drug_resistant_statistic_type: indicates the statistic in the Drug Resistant columns:
+        hrp_strings: A list of strings representing the set of HRP markers.  A column will be created with the
+            number of humans infections with that HRP string.  One can use '*' for a wild card.
+            A 'OtherHRP' column will be created for HRP strings not defined.
+        drug_resistant_and_hrp_statistic_type: indicates the statistic in the Drug Resistant & HRP columns columns:
             NUM_PEOPLE_WITH_RESISTANT_INFECTION = A person is counted if they have one infection with that drug
-            resistant marker;
-            NUM_INFECTIONS = The total number of infections with that marker.
+            resistant marker;  NUM_INFECTIONS = The total number of infections with that marker.
         age_bins: the age bins (in years) to aggregate within and report. An empty array does not stratify by age. You
             must sort your input data from low to high.
         ip_key_to_collect: The name of theIndividualProperties key by which to stratify the report.
@@ -974,7 +977,8 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
         params.Stratify_By_Gender = stratify_by_gender
         params.Barcodes = barcodes if barcodes else []
         params.Drug_Resistant_Strings = drug_resistant_strings if drug_resistant_strings else []
-        params.Drug_Resistant_Statistic_Type = drug_resistant_statistic_type
+        params.HRP_Strings = hrp_strings if hrp_strings else []
+        params.Drug_Resistant_And_HRP_Statistic_Type = drug_resistant_and_hrp_statistic_type
         return params
 
     reporter.config(rec_config_builder, manifest)
