@@ -134,7 +134,7 @@ def add_reports(task, manifest):
                                age_bins=[2, 10, 125], parasitemia_bins=[0, 50, 200, 500, 2000000])
     add_human_migration_tracking(task, manifest)
 
-    add_malaria_transmission_report(task, manifest, start_day=1, duration_days=1*365,
+    add_malaria_cotransmission_report(task, manifest, start_day=1, duration_days=1*365,
                                     report_description="Jon's Transmission Report")
 
 

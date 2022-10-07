@@ -308,8 +308,8 @@ class TestMalariaReport(unittest.TestCase):
     # end region
 
     # region ReportSimpleMalariaTransimissionJSON
-    def test_malaria_transmission_report_default(self):
-        self.tmp_reporter = add_malaria_transmission_report(None, schema_path_file)
+    def test_malaria_cotransmission_report_default(self):
+        self.tmp_reporter = add_malaria_cotransmission_report(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], 0)
@@ -324,11 +324,11 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list)
 
 
-    def test_malaria_transmission_report_custom(self):
+    def test_malaria_cotransmission_report_custom(self):
         duration = 17
         filename_suffix = "Testing"
         start_day = 5
-        self.tmp_reporter = add_malaria_transmission_report(None, schema_path_file,
+        self.tmp_reporter = add_malaria_cotransmission_report(None, schema_path_file,
                                                             start_day=start_day,
                                                             end_day=duration,
                                                             node_ids=test_list,
@@ -358,7 +358,7 @@ class TestMalariaReport(unittest.TestCase):
     # region VectorHabitatReport
     def test_add_vector_habitat_report(self):
         self.assertIsNone(self.tmp_reporter)
-        self.tmp_reporter = add_malaria_transmission_report(None, schema_path_file)
+        self.tmp_reporter = add_vector_habitat_report(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
 
