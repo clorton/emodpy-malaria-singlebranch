@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-
+import argparse
+import os
 import pathlib  # for a join
+import sys
 from functools import \
     partial  # for setting Run_Number. In Jonathan Future World, Run_Number is set by dtk_pre_proc based on generic param_sweep_value...
 
@@ -134,7 +136,7 @@ def build_demographics():
     return demographics
 
 
-def general_sim():
+def general_sim(selected_platform):
     """
         This function is designed to be a parameterized version of the sequence of things we do
     every time we run an emod experiment.
@@ -142,11 +144,7 @@ def general_sim():
         Nothing
     """
 
-    # Set platform
-    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
-    platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
-
-    # create EMODTask 
+    # create EMODTask
     print("Creating EMODTask (from files)...")
     task = emod_task.EMODTask.from_default2(
         config_path="config.json",
@@ -157,10 +155,21 @@ def general_sim():
         param_custom_cb=set_config_parameters,
         demog_builder=build_demographics
     )
-    
-    # set the singularity image to be used when running this experiment
-    task.set_sif(manifest.sif_path)
-    
+
+    # Set platform
+    # use Platform("SLURMStage") to run on comps2.idmod.org for testing/dev work
+    if selected_platform == "COMPS":
+        platform = Platform("Calculon", node_group="idm_48cores", priority="Highest")
+        # set the singularity image to be used when running this experiment
+        task.set_sif(manifest.sif_id)
+    elif selected_platform.startswith("SLURM"):
+        # This is for native slurm cluster
+        # Quest slurm cluster. 'b1139' is guest partition for idm user. You may have different partition and acct
+        platform = Platform(selected_platform, job_directory=manifest.job_directory, partition='b1139', time='10:00:00',
+                            account='b1139', modules=['singularity'], max_running_jobs=10)
+        # set the singularity image to be used when running this experiment
+        task.set_sif(manifest.SIF_PATH, platform)
+
     # Create simulation sweep with builder
     # sweeping over start day AND killing effectiveness - this will be a cross product
     builder = SimulationBuilder()
@@ -204,4 +213,5 @@ if __name__ == "__main__":
     import pathlib
 
     dtk.setup(pathlib.Path(manifest.eradication_path).parent)
-    general_sim()
+    selected_platform = "COMPS"
+    general_sim(selected_platform)
