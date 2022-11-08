@@ -259,20 +259,21 @@ def add_malaria_patient_json_report(task, manifest,
         return reporter
 
 
-def add_malaria_transmission_report(task, manifest,
-                                    start_day: int = 0,
-                                    end_day: int = 365000,
-                                    node_ids: list = None,
-                                    min_age_years: float = 0,
-                                    max_age_years: float = 125,
-                                    must_have_ip_key_value: str = "",
-                                    must_have_intervention: str = "",
-                                    include_human_to_vector: int = 0,
-                                    pretty_format: int = 0,
-                                    filename_suffix: str = ""):
+def add_malaria_cotransmission_report(task, manifest,
+                                      start_day: int = 0,
+                                      end_day: int = 365000,
+                                      node_ids: list = None,
+                                      min_age_years: float = 0,
+                                      max_age_years: float = 125,
+                                      must_have_ip_key_value: str = "",
+                                      must_have_intervention: str = "",
+                                      include_human_to_vector: int = 0,
+                                      pretty_format: int = 0,
+                                      filename_suffix: str = ""):
     """
     Adds ReportSimpleMalariaTransmissionJSON report to the simulation.
     See class definition for description of the report.
+    This is the report used to track malaria CoTransmission (co_transmission)
 
     Args:
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
