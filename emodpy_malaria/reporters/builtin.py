@@ -5,6 +5,35 @@ from emod_api import schema_to_class as s2c
 import emod_api.interventions.utils as utils
 
 
+def check_vectors(task):
+    """
+        Checks that there are species defined for the simulation
+    Args:
+        task: task to which to add the reporter, which also contains the config file
+
+    Returns:
+        Nothing, raises ValueError if no species defined
+    """
+    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
+        raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
+                         f"use ReportVectorGenetics.\n")
+
+
+def all_vectors_if_none(task):
+    """
+        Creates a list of all species names available in the tasks's config and returns in
+    Args:
+        task: task to which to add the reporter, which also contains the config file
+
+    Returns:
+        A list of all species' names defined in the config
+    """
+    species_list = []
+    for species_params in task.config.parameters.Vector_Species_Params:
+        species_list.append(species_params["Name"])
+    return species_list
+
+
 def add_report_vector_genetics(task, manifest,
                                start_day: int = 0,
                                end_day: int = 365000,
@@ -62,10 +91,9 @@ def add_report_vector_genetics(task, manifest,
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
     # verifying that there are alleles to report on
-    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
-        raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
-                         f"use ReportVectorGenetics.\n")
-
+    check_vectors(task)
+    if not species:
+        raise ValueError("Please define species for which to collect information.\n")
     reporter = ReportVectorGenetics()  # Create the reporter
 
     def rec_config_builder(params):
@@ -108,7 +136,7 @@ def add_report_vector_stats(task, manifest,
     Args:
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
-        species_list: a list of species to include information on
+        species_list: a list of species to include information on, default of None or [] means "all species"
         stratify_by_species: if 1(true), data will break out each the species for each node
         include_death_state: if 1(true), adds columns for the number of vectors that died in this state during this
             time step as well as the average age.  It adds two columns for each of the following states: ADULT,
@@ -120,13 +148,14 @@ def add_report_vector_stats(task, manifest,
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
-    if task and not task.config.parameters.Vector_Species_Params:
-        raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
-                         f"use ReportVectorStats.\n")
+    check_vectors(task)
+    if not species_list:
+        species_list = all_vectors_if_none(task)
+
     reporter = ReportVectorStats()  # Create the reporter
 
     def rec_config_builder(params):
-        params.Species_List = species_list if species_list else []
+        params.Species_List = species_list
         params.Stratify_By_Species = stratify_by_species
         params.Include_Death_By_State_Columns = include_death_state
         params.Include_Wolbachia_Columns = include_wolbachia
@@ -1000,9 +1029,7 @@ def add_report_vector_migration(task, manifest,
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
-
-    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
-        raise ValueError(f"No Vector_Species_Params defined.\n")
+    check_vectors(task)
 
     reporter = ReportVectorMigration()  # Create the reporter
 
@@ -1032,7 +1059,7 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
     Args:
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
-        species_list: a list of species to include information on
+        species_list: a list of species to include information on, default of None or [] means "all species"
         stratify_by_species: if 1(true), data will break out each the species for each node
         include_death_state: if 1(true), adds columns for the number of vectors that died in this state during this
             time step as well as the average age.  It adds two columns for each of the following states: ADULT,
@@ -1049,13 +1076,14 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
 
-    if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
-        raise ValueError(f"No Vector_Species_Params defined.\n")
+    check_vectors(task)
+    if not species_list:
+        species_list = all_vectors_if_none(task)
 
     reporter = ReportVectorStatsMalariaGenetics()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
-        params.Species_List = species_list if species_list else []
+        params.Species_List = species_list
         params.Stratify_By_Species = stratify_by_species
         params.Include_Death_By_State_Columns = include_death_state
         params.Include_Wolbachia_Columns = include_wolbachia
