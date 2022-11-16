@@ -42,17 +42,25 @@ import manifest
 
 # When you're doing a sweep across campaign parameters, you want those parameters exposed
 # in the build_campaign function as done here
-def build_campaign(start_day=1, coverage=1.0, killing_effect=0, constant_duration=25):
+def build_campaign(bednet_start_day=1, bednet_coverage=1,
+                   spraying_coverage=1.0,
+                   ivemectin_killing_initial=1):
     """
-        Adds a SpaceSpraying intervention, using parameters passed in.
+        Creates and returns the full campaign file.
+        Campaign file contains all the interventions that will be distributed (ran) over the course of the simulation.
+        The file is created on the server and can be modified using the partial and callback functions below for each
+        simulation. The exposed parameters are the ones that can be modified at the time of
+        campaign file creating
     Args:
-        start_day: the day the intervention goes in effect
-        coverage: portion of each node covered by the intervention
-        killing_effect: portion of vectors killed by the intervention
-        constant_duration: the duration of effectiveness of the SpaceSpraying
+        bednet_start_day: start_day parameter value for the bednet intervention
+        bednet_coverage: demographic_overage parameter value for the bednet intervention
+        spraying_coverage: spray_coverage parameter value for the space spraying
+        ivemectin_killing_initial: killing_initial_effect parameter value for the ivermectin
+
     Returns:
-        completed campaign
+
     """
+
     # adds a SpaceSpraying intervention
     import emod_api.campaign as campaign
     import emodpy_malaria.interventions.spacespraying as spray
@@ -60,52 +68,44 @@ def build_campaign(start_day=1, coverage=1.0, killing_effect=0, constant_duratio
     from emodpy_malaria.interventions.usage_dependent_bednet import add_scheduled_usage_dependent_bednet
     # passing in manifest
     campaign.set_schema(manifest.schema_file)
-    add_scheduled_usage_dependent_bednet(campaign, start_day=start_day, demographic_coverage=coverage)
-    spray.add_scheduled_space_spraying(campaign, start_day=start_day, spray_coverage=coverage,
-                                       killing_initial_effect=killing_effect, killing_box_duration=constant_duration,
+    add_scheduled_usage_dependent_bednet(campaign, start_day=bednet_start_day, demographic_coverage=bednet_coverage)
+    spray.add_scheduled_space_spraying(campaign, start_day=15, spray_coverage=spraying_coverage,
+                                       killing_initial_effect=0.85,
+                                       killing_box_duration=50,
                                        killing_decay_time_constant=33)
 
     ivermectin.add_scheduled_ivermectin(campaign=campaign,
                                         start_day=20,
                                         demographic_coverage=0.57,
-                                        killing_initial_effect=0.65,
+                                        killing_initial_effect=ivemectin_killing_initial,
                                         killing_box_duration=2,
                                         killing_decay_time_constant=0.25)
     return campaign
 
 
-def update_campaign_start_day(simulation, value):
-    """
-        This callback function updates the start day of the campaign.
-        to use: Please un-comment builder.add_sweep_definition(update_campaign_start_day, etc)
-    Args:
-        simulation:
-        value: value to which the start_day will be set
-
-    Returns:
-        tag that will be added to the simulation run
-    """
-    build_campaign_partial = partial(build_campaign, star_day=value)
-    simulation.task.create_campaign_from_callback(build_campaign_partial)
-    return {"start_day": value}
-
-
-def update_campaign_multiple_parameters(simulation, values):
+def update_campaign_multiple_parameters(simulation, bednet_start_day=1, bednet_coverage=1,
+                   spraying_coverage=1.0,
+                   ivemectin_killing_initial=1):
     """
         This is a callback function that updates several parameters in the build_campaign function.
         the sweep is achieved by the itertools creating a an array of inputs with all the possible combinations
         see builder.add_sweep_definition(update_campaign_multiple_parameters function below
     Args:
         simulation: simulation object to which we will attach the callback function
-        values: a list of values to assign to this particular simuation
+        bednet_start_day: start_day parameter value for the bednet intervention
+        bednet_coverage: demographic_overage parameter value for the bednet intervention
+        spraying_coverage: spray_coverage parameter value for the space spraying
+        ivemectin_killing_initial: killing_initial_effect parameter value for the ivermectin
 
     Returns:
-        tags for the simulation to use in comps
+        a dictionary of tags for the simulation to use in COMPS
     """
-    build_campaign_partial = partial(build_campaign, start_day=values[0], coverage=values[1],
-                                     killing_effect=values[2])
+
+    build_campaign_partial = partial(build_campaign, start_day=start_day, coverage=coverage,
+                                     killing_effect=killing_effect)
     simulation.task.create_campaign_from_callback(build_campaign_partial)
-    return {"start_day": values[0], "spray_coverage": values[1], "killing_effectiveness": values[2]}
+    return dict(bednet_start_day=bednet_start_day, bednet_coverage=bednet_coverage,
+                spraying_coverage=spraying_coverage}
 
 
 def set_config_parameters(config):
@@ -174,19 +174,16 @@ def general_sim(selected_platform):
     # sweeping over start day AND killing effectiveness - this will be a cross product
     builder = SimulationBuilder()
 
-    # this sweeps over one parameter, calling several of these one-parameter sweeps in
-    # this script will cause only the last parameter to be swept, but there will be a cross-product-of-the-sweeps
-    # number of simulations created.
-    # comment out the builder below when using this
-    # builder.add_sweep_definition(update_campaign_start_day, [23, 3, 84, 1])
-
-    # this is how you sweep over a multiple-parameters space:
-    # itertools product creates a an array with all the combinations of parameters (cross-product)
-    # so, 2x3x2 = 12 simulations
-    import itertools
-    # .product([start_days],[spray_coverages], [killing_effectivenesses])
-    builder.add_sweep_definition(update_campaign_multiple_parameters,
-                                 list(itertools.product([3, 5], [0.95, 0.87, 0.58], [0.79, 0.51])))
+    # this will sweep over the entire parameter space in a cross-product fashion
+    # you will get 2x3x2 simulations
+    builder.add_multiple_parameter_sweep_definition(
+        update_campaign_multiple_parameters,
+        dict(
+            start_day=[3, 5],
+            coverage=[0.95, 0.87, 0.58],
+            killing_effect=[0.79, 0.51]
+        )
+    )
 
     # create experiment from builder
     experiment = Experiment.from_builder(builder, task, name="Campaign Sweep, SpaceSpraying")
