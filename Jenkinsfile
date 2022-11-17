@@ -21,7 +21,7 @@ podTemplate(
 				sh 'python3 -m pip install --upgrade pip'
 				sh "pip3 install wheel"
 				//workarround for https://github.com/InstituteforDiseaseModeling/idmtools/issues/1893
-				sh "yum install -y libgit2-devel"  
+				sh "pip3 install pygit2==1.10.1"  
 				sh 'python3 -m pip install --upgrade setuptools'
 				sh 'pip3 freeze'
 				//sh 'yum -y remove mpich'
