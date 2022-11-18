@@ -91,9 +91,11 @@ def add_report_vector_genetics(task, manifest,
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
     # verifying that there are alleles to report on
-    check_vectors(task)
-    if not species:
-        raise ValueError("Please define species for which to collect information.\n")
+    if task:
+        check_vectors(task)
+        if not species:
+            raise ValueError("Please define species for which to collect information.\n")
+
     reporter = ReportVectorGenetics()  # Create the reporter
 
     def rec_config_builder(params):
@@ -148,9 +150,10 @@ def add_report_vector_stats(task, manifest,
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
-    check_vectors(task)
-    if not species_list:
-        species_list = all_vectors_if_none(task)
+    if task:
+        check_vectors(task)
+        if not species_list:
+            species_list = all_vectors_if_none(task)
 
     reporter = ReportVectorStats()  # Create the reporter
 
@@ -1079,10 +1082,10 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
-
-    check_vectors(task)
-    if not species_list:
-        species_list = all_vectors_if_none(task)
+    if task:
+        check_vectors(task)
+        if not species_list:
+            species_list = all_vectors_if_none(task)
 
     reporter = ReportVectorStatsMalariaGenetics()  # Create the reporter
 
