@@ -92,7 +92,9 @@ def add_outbreak_malaria_genetics(campaign,
                                   msp_variant_value: int = None,
                                   pfemp1_variants_values: list = None,
                                   barcode_allele_frequencies_per_genome_location: list = None,
-                                  drug_resistant_allele_frequencies_per_genome_location: list = None):
+                                  drug_resistant_allele_frequencies_per_genome_location: list = None,
+                                  hrp_allele_frequencies_per_genome_location: list = None,
+                                  hrp_string: str = None):
     """
         Creates a scheduled OutbreakIndividualMalariaGenetics CampaignEvent which can then
         be added to a campaign.
@@ -151,6 +153,14 @@ def add_outbreak_malaria_genetics(campaign,
             For each location, there should be four values between 0 and 1 indicating the probability that specific
             character will appear. The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3. It also depends on
             create_nucleotide_sequence_from when it is equal to ALLELE_FREQUENCIES. The frequencies should sum up to 1.
+        hrp_allele_frequencies_per_genome_location: The fractions of allele occurrences for each location in the HRP
+            markers.  This 2D array should have one array for each HRP location.  For each location, there should be
+            four values between 0 and 1 indicating the probability that specific character will appear.
+            The possible letters are 'A'=0, 'C'=1, 'G'=2, 'T'=3.
+        hrp_string: A series of nucleotide base letters (A, C, G, T) that represent the HRP values at locations in
+            the genome. There must be one character for each location defined in
+            <config>.Parasite_Genetics.HRP_Genome_Locations. 'A' means HRP marker is not present and a non-'A' means it is.
+
 
 
     Returns:
@@ -159,25 +169,28 @@ def add_outbreak_malaria_genetics(campaign,
     if create_nucleotide_sequence_from == "BARCODE_STRING" and not barcode_string:
         raise ValueError(f"You must define barcode_string with {create_nucleotide_sequence_from} setting.\n")
     elif create_nucleotide_sequence_from == "BARCODE_STRING" and (msp_variant_value or pfemp1_variants_values
-                                                                  or barcode_allele_frequencies_per_genome_location):
+                                                                  or barcode_allele_frequencies_per_genome_location or
+                                                                 hrp_allele_frequencies_per_genome_location):
         raise ValueError(f"With {create_nucleotide_sequence_from} setting does not use msp_variant_value or "
-                         f"pfemp1_variants_values or barcode_allele_frequencies_per_genome_location. "
-                         f"Please do not set them.\n")
+                         f"pfemp1_variants_values or barcode_allele_frequencies_per_genome_location or "
+                         f"hrp_allele_frequencies_per_genome_location. Please do not set them.\n")
     elif create_nucleotide_sequence_from == "NUCLEOTIDE_SEQUENCE" and not (
             msp_variant_value and pfemp1_variants_values):
         raise ValueError(f"You must define msp_variant_value and pfemp1_variants_values with "
                          f"{create_nucleotide_sequence_from} setting.\n")
     elif create_nucleotide_sequence_from == "NUCLEOTIDE_SEQUENCE" and (barcode_string or
-                                                                       barcode_allele_frequencies_per_genome_location):
+                                                                       barcode_allele_frequencies_per_genome_location or
+                                                                        hrp_allele_frequencies_per_genome_location):
         raise ValueError(f"With {create_nucleotide_sequence_from} setting does not use barcode_string "
-                         f"or barcode_allele_frequencies_per_genome_location. Please do not set them.\n")
+                         f"or barcode_allele_frequencies_per_genome_location or "
+                         f"hrp_allele_frequencies_per_genome_location. Please do not set them.\n")
     elif create_nucleotide_sequence_from == "ALLELE_FREQUENCIES" and not barcode_allele_frequencies_per_genome_location:
         raise ValueError(f"You must define barcode_allele_frequencies_per_genome_location with "
                          f"{create_nucleotide_sequence_from} setting.\n")
-    elif create_nucleotide_sequence_from == "ALLELE_FREQUENCIES" and (barcode_string or
+    elif create_nucleotide_sequence_from == "ALLELE_FREQUENCIES" and (barcode_string or hrp_string or
                                                                       msp_variant_value or pfemp1_variants_values):
         raise ValueError(f"With {create_nucleotide_sequence_from} setting does not use barcode_string "
-                         f"or msp_variant_value or pfemp1_variants_values. Please do not set them.\n")
+                         f"or msp_variant_value or pfemp1_variants_values or hrp_string. Please do not set them.\n")
 
     schema_path = campaign.schema_path
 
@@ -187,16 +200,22 @@ def add_outbreak_malaria_genetics(campaign,
         intervention.Barcode_String = barcode_string
         if drug_resistant_string:
             intervention.Drug_Resistant_String = drug_resistant_string
+        if hrp_string:
+            intervention.HRP_String = hrp_string
     elif create_nucleotide_sequence_from == "NUCLEOTIDE_SEQUENCE":
         intervention.MSP_Variant_Value = msp_variant_value
         intervention.Barcode_String = barcode_string
         intervention.PfEMP1_Variants_Values = pfemp1_variants_values
         if drug_resistant_string:
             intervention.Drug_Resistant_String = drug_resistant_string
+        if hrp_string:
+            intervention.HRP_String = hrp_string
     elif create_nucleotide_sequence_from == "ALLELE_FREQUENCIES":
         intervention.Barcode_Allele_Frequencies_Per_Genome_Location = barcode_allele_frequencies_per_genome_location
         if drug_resistant_allele_frequencies_per_genome_location:
             intervention.Drug_Resistant_Allele_Frequencies_Per_Genome_Location = drug_resistant_allele_frequencies_per_genome_location
+        if hrp_allele_frequencies_per_genome_location:
+            intervention.HRP_Allele_Frequencies_Per_Genome_Location = hrp_allele_frequencies_per_genome_location
     else:
         raise ValueError(f"Unknown create_nucleotide_sequence_from option - {create_nucleotide_sequence_from}.\n")
 
