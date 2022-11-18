@@ -101,11 +101,12 @@ def update_campaign_multiple_parameters(simulation, bednet_start_day=1, bednet_c
         a dictionary of tags for the simulation to use in COMPS
     """
 
-    build_campaign_partial = partial(build_campaign, start_day=start_day, coverage=coverage,
-                                     killing_effect=killing_effect)
+    build_campaign_partial = partial(build_campaign, bednet_start_day=bednet_start_day, bednet_coverage=bednet_coverage,
+                                     spraying_coverage=spraying_coverage,
+                                     ivemectin_killing_initial=ivemectin_killing_initial)
     simulation.task.create_campaign_from_callback(build_campaign_partial)
     return dict(bednet_start_day=bednet_start_day, bednet_coverage=bednet_coverage,
-                spraying_coverage=spraying_coverage}
+                spraying_coverage=spraying_coverage, ivemectin_killing_initial=ivemectin_killing_initial)
 
 
 def set_config_parameters(config):
