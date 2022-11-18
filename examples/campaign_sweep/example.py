@@ -44,7 +44,7 @@ import manifest
 # in the build_campaign function as done here
 def build_campaign(bednet_start_day=1, bednet_coverage=1,
                    spraying_coverage=1.0,
-                   ivemectin_killing_initial=1):
+                   ivermectin_killing_initial=1):
     """
         Creates and returns the full campaign file.
         Campaign file contains all the interventions that will be distributed (ran) over the course of the simulation.
@@ -55,7 +55,7 @@ def build_campaign(bednet_start_day=1, bednet_coverage=1,
         bednet_start_day: start_day parameter value for the bednet intervention
         bednet_coverage: demographic_overage parameter value for the bednet intervention
         spraying_coverage: spray_coverage parameter value for the space spraying
-        ivemectin_killing_initial: killing_initial_effect parameter value for the ivermectin
+        ivermectin_killing_initial: killing_initial_effect parameter value for the ivermectin
 
     Returns:
 
@@ -77,15 +77,15 @@ def build_campaign(bednet_start_day=1, bednet_coverage=1,
     ivermectin.add_scheduled_ivermectin(campaign=campaign,
                                         start_day=20,
                                         demographic_coverage=0.57,
-                                        killing_initial_effect=ivemectin_killing_initial,
+                                        killing_initial_effect=ivermectin_killing_initial,
                                         killing_box_duration=2,
                                         killing_decay_time_constant=0.25)
     return campaign
 
 
-def update_campaign_multiple_parameters(simulation, bednet_start_day=1, bednet_coverage=1,
-                   spraying_coverage=1.0,
-                   ivemectin_killing_initial=1):
+def update_campaign_multiple_parameters(simulation, bednet_start_day, bednet_coverage,
+                                        spraying_coverage,
+                                        ivermectin_killing_initial):
     """
         This is a callback function that updates several parameters in the build_campaign function.
         the sweep is achieved by the itertools creating a an array of inputs with all the possible combinations
@@ -95,7 +95,7 @@ def update_campaign_multiple_parameters(simulation, bednet_start_day=1, bednet_c
         bednet_start_day: start_day parameter value for the bednet intervention
         bednet_coverage: demographic_overage parameter value for the bednet intervention
         spraying_coverage: spray_coverage parameter value for the space spraying
-        ivemectin_killing_initial: killing_initial_effect parameter value for the ivermectin
+        ivermectin_killing_initial: killing_initial_effect parameter value for the ivermectin
 
     Returns:
         a dictionary of tags for the simulation to use in COMPS
@@ -103,10 +103,10 @@ def update_campaign_multiple_parameters(simulation, bednet_start_day=1, bednet_c
 
     build_campaign_partial = partial(build_campaign, bednet_start_day=bednet_start_day, bednet_coverage=bednet_coverage,
                                      spraying_coverage=spraying_coverage,
-                                     ivemectin_killing_initial=ivemectin_killing_initial)
+                                     ivermectin_killing_initial=ivermectin_killing_initial)
     simulation.task.create_campaign_from_callback(build_campaign_partial)
     return dict(bednet_start_day=bednet_start_day, bednet_coverage=bednet_coverage,
-                spraying_coverage=spraying_coverage, ivemectin_killing_initial=ivemectin_killing_initial)
+                spraying_coverage=spraying_coverage, ivermectin_killing_initial=ivermectin_killing_initial)
 
 
 def set_config_parameters(config):
@@ -180,9 +180,10 @@ def general_sim(selected_platform):
     builder.add_multiple_parameter_sweep_definition(
         update_campaign_multiple_parameters,
         dict(
-            start_day=[3, 5],
-            coverage=[0.95, 0.87, 0.58],
-            killing_effect=[0.79, 0.51]
+            bednet_start_day=[3, 5],
+            bednet_coverage=[0.95, 0.87, 0.58],
+            spraying_coverage=[0.95, 0.87, 0.58],
+            ivermectin_killing_initial=[0.79, 0.51]
         )
     )
 
