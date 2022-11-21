@@ -8,6 +8,7 @@ import emod_api.interventions.utils as utils
 def check_vectors(task):
     """
         Checks that there are species defined for the simulation
+
     Args:
         task: task to which to add the reporter, which also contains the config file
 
@@ -21,7 +22,9 @@ def check_vectors(task):
 
 def all_vectors_if_none(task):
     """
-        Creates a list of all species names available in the tasks's config and returns in
+        Creates a list of all species names available in the tasks's config and returns
+        a list of all species defined for the simulation
+
     Args:
         task: task to which to add the reporter, which also contains the config file
 
