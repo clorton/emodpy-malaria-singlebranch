@@ -58,10 +58,10 @@ def build_campaign(bednet_start_day=1, bednet_coverage=1,
         ivermectin_killing_initial: killing_initial_effect parameter value for the ivermectin
 
     Returns:
+        Configured campaign
 
     """
 
-    # adds a SpaceSpraying intervention
     import emod_api.campaign as campaign
     import emodpy_malaria.interventions.spacespraying as spray
     import emodpy_malaria.interventions.ivermectin as ivermectin
