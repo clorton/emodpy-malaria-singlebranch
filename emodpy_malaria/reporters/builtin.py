@@ -13,7 +13,10 @@ def check_vectors(task):
         task: task to which to add the reporter, which also contains the config file
 
     Returns:
-        Nothing, raises ValueError if no species defined
+        Nothing
+
+    Raises:
+        ValueError: No Vector_Species_Params defined. You need to define at least one to use ReportVectorGenetics.
     """
     if task and not task.config.parameters.Vector_Species_Params:  # else assume we're in unittest
         raise ValueError(f"No Vector_Species_Params defined. You need to define at least one to "
