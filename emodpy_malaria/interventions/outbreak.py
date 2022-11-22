@@ -63,7 +63,8 @@ def add_outbreak_individual(campaign,
     intervention.Incubation_Period_Override = incubation_period_override
 
     if broadcast_event:
-        intervention = MultiInterventionDistributor(campaign, [intervention, BroadcastEvent(campaign, Event_Trigger=broadcast_event)])
+        intervention = MultiInterventionDistributor(campaign, [intervention,
+                                                               BroadcastEvent(campaign, Event_Trigger=broadcast_event)])
 
     add_campaign_event(campaign, start_day=start_day, demographic_coverage=demographic_coverage,
                        repetitions=repetitions,
@@ -126,42 +127,40 @@ def add_outbreak_malaria_genetics(campaign,
             Set to -1 to honor the configuration parameter settings
         create_nucleotide_sequence_from: A string that indicates how the genomes are created.
             Possible values are: BARCODE_STRING, ALLELE_FREQUENCIES, NUCLEOTIDE_SEQUENCE.
-        barcode_string: A series of nucleotide base letters (A, C, G, T) that represent the values at locations in
-            the genome. The length of the string depends on the number of locations defined in
-            config.Parasite_Genetics.Barcode_Genome_Locations. Each character of the string corresponds
-            to one of the locations. The locations are assumed to be in ascending order. Also depends
-            on create_nucleotide_sequence_from when it is equal to NUCLEOTIDE_SEQUENCE or BARCODE_STRING.
-        drug_resistant_string: A series of nucleotide base letters (A, C, G, T) that represent the values at
-            locations in the genome. The length of the string depends on the number of locations defined in
-            config.Parasite_Genetics.Drug_Resistant_Genome_Locations. Each character of the string corresponds
-            to one of the locations. The locations are assumed to be in ascending order. Also depends on
-            create_nucleotide_sequence_from when it is equal to NUCLEOTIDE_SEQUENCE or BARCODE_STRING.
-        msp_variant_value: The Merozoite Surface Protein value used to determine how the antibodies recognizes
-            the merzoites. This value depends on config.Falciparum_MSP_Variants and must be less than or equal to it.
-            It also depends on create_nucleotide_sequence_from when it is equal to NUCLEOTIDE_SEQUENCE.
-        pfemp1_variants_values: The PfEMP1 Variant values / major epitopes used to define how the antibodies recognize
-            the infected red blood cells. The values of the array depend on config.Falciparum_PfEMP1_Variants and
-            must be less than or equal to it. There must be exactly 50 values – one for each epitope. It also depends
-            on create_nucleotide_sequence_from when it is equal to NUCLEOTIDE_SEQUENCE.
-        barcode_allele_frequencies_per_genome_location: The fractions of allele occurrences for each location in the
-            barcode. This 2D array should have one array for each location/character in the barcode. For each location,
-            there should be four values between 0 and 1 indicating the probability that specific character appears.
-            The possible letters are: A=0, C=1, G=2, T=3. It also depends on create_nucleotide_sequence_from when
-            it is equal to ALLELE_FREQUENCIES. The frequencies should sum up to 1.
-        drug_resistant_allele_frequencies_per_genome_location: The fractions of allele occurrences for each location
-            in the drug resistant markers. This 2D array should have one array for each drug resistant location.
+        barcode_string: Used with 'BARCODE_STRING' or 'NUCLEOTIDE_SEQUENCE'. A series of nucleotide base letters
+            (A, C, G, T) that represent the values at locations in the genome. The length of the string depends on the
+            number of locations defined in config.Parasite_Genetics.Barcode_Genome_Locations. Each character of the
+            string corresponds to one of the locations. The locations are assumed to be in ascending order.
+        drug_resistant_string: Used with 'BARCODE_STRING' or 'NUCLEOTIDE_SEQUENCE'. A series of nucleotide base
+            letters (A, C, G, T) that represent the values at locations in the genome. The length of the string depends
+            on the number of locations defined in config.Parasite_Genetics.Drug_Resistant_Genome_Locations. Each
+            character of the string corresponds to one of the locations. The locations are assumed to be in ascending
+            order.
+        msp_variant_value: Used with 'NUCLEOTIDE_SEQUENCE'. The Merozoite Surface Protein value used to determine how
+            the antibodies recognizes the merzoites. This value depends on config.Falciparum_MSP_Variants and must be
+            less than or equal to it.
+        pfemp1_variants_values: Used with 'NUCLEOTIDE_SEQUENCE'. The PfEMP1 Variant values / major epitopes used to
+            define how the antibodies recognize the infected red blood cells. The values of the array depend on
+            config. Falciparum_PfEMP1_Variants and must be less than or equal to it.
+            There must be exactly 50 values – one for each epitope.
+        barcode_allele_frequencies_per_genome_location: Used with 'ALLELE_FREQUENCIES'. The fractions of allele
+            occurrences for each location in the barcode. This 2D array should have one array for each
+            location/character in the barcode. For each location, there should be four values between 0 and 1
+            indicating the probability that specific character appears. The possible letters are: A=0, C=1, G=2, T=3.
+            The frequencies should sum up to 1.
+        drug_resistant_allele_frequencies_per_genome_location:Used with 'ALLELE_FREQUENCIES'. The fractions of allele
+            `occurrences for each location in the drug resistant markers. This 2D array should have one array for each
+            drug resistant location. For each location, there should be four values between 0 and 1 indicating the
+            probability that specific character will appear. The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3.
+            The frequencies should sum up to 1.
+        hrp_allele_frequencies_per_genome_location: Used with 'ALLELE_FREQUENCIES'. The fractions of allele occurrences
+            for each location in the HRP markers.  This 2D array should have one array for each HRP location.
             For each location, there should be four values between 0 and 1 indicating the probability that specific
-            character will appear. The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3. It also depends on
-            create_nucleotide_sequence_from when it is equal to ALLELE_FREQUENCIES. The frequencies should sum up to 1.
-        hrp_allele_frequencies_per_genome_location: The fractions of allele occurrences for each location in the HRP
-            markers.  This 2D array should have one array for each HRP location.  For each location, there should be
-            four values between 0 and 1 indicating the probability that specific character will appear.
-            The possible letters are 'A'=0, 'C'=1, 'G'=2, 'T'=3.
-        hrp_string: A series of nucleotide base letters (A, C, G, T) that represent the HRP values at locations in
-            the genome. There must be one character for each location defined in
-            <config>.Parasite_Genetics.HRP_Genome_Locations. 'A' means HRP marker is not present and a non-'A' means it is.
-
-
+            character will appear. The possible letters are 'A'=0, 'C'=1, 'G'=2, 'T'=3.
+        hrp_string: Used with 'BARCODE_STRING' or 'NUCLEOTIDE_SEQUENCE'. A series of nucleotide base letters (A, C, G, T)
+            that represent the HRP values at locations in the genome. There must be one character for each location
+            defined in <config>.Parasite_Genetics.HRP_Genome_Locations. 'A' means HRP marker is present and a
+            non-'A' means it isn't.
 
     Returns:
         CampaignEvent which then can be added to the campaign file
@@ -170,7 +169,7 @@ def add_outbreak_malaria_genetics(campaign,
         raise ValueError(f"You must define barcode_string with {create_nucleotide_sequence_from} setting.\n")
     elif create_nucleotide_sequence_from == "BARCODE_STRING" and (msp_variant_value or pfemp1_variants_values
                                                                   or barcode_allele_frequencies_per_genome_location or
-                                                                 hrp_allele_frequencies_per_genome_location):
+                                                                  hrp_allele_frequencies_per_genome_location):
         raise ValueError(f"With {create_nucleotide_sequence_from} setting does not use msp_variant_value or "
                          f"pfemp1_variants_values or barcode_allele_frequencies_per_genome_location or "
                          f"hrp_allele_frequencies_per_genome_location. Please do not set them.\n")
@@ -180,7 +179,7 @@ def add_outbreak_malaria_genetics(campaign,
                          f"{create_nucleotide_sequence_from} setting.\n")
     elif create_nucleotide_sequence_from == "NUCLEOTIDE_SEQUENCE" and (barcode_string or
                                                                        barcode_allele_frequencies_per_genome_location or
-                                                                        hrp_allele_frequencies_per_genome_location):
+                                                                       hrp_allele_frequencies_per_genome_location):
         raise ValueError(f"With {create_nucleotide_sequence_from} setting does not use barcode_string "
                          f"or barcode_allele_frequencies_per_genome_location or "
                          f"hrp_allele_frequencies_per_genome_location. Please do not set them.\n")
@@ -345,9 +344,12 @@ def add_campaign_event(campaign,
         target_age_max: The upper end of ages targeted for an intervention, in years. Sets **Target_Age_Max**
         target_gender: The gender targeted for an intervention: All, Male, or Female.
         intervention: Intervention or a list of interventions to be distributed by this event
+
     Returns:
+        Nothing, add the CampaignEvent to the campaign
 
     """
+
     schema_path = campaign.schema_path
     event = s2c.get_class_with_defaults("CampaignEvent", schema_path)
     event.Start_Day = start_day
