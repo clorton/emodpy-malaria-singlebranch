@@ -149,9 +149,9 @@ def add_outbreak_malaria_genetics(campaign,
             indicating the probability that specific character appears. The possible letters are: A=0, C=1, G=2, T=3.
             The frequencies should sum up to 1.
         drug_resistant_allele_frequencies_per_genome_location:Used with 'ALLELE_FREQUENCIES'. The fractions of allele
-            `occurrences for each location in the drug resistant markers. This 2D array should have one array for each
+            occurrences for each location in the drug resistant markers. This 2D array should have one array for each
             drug resistant location. For each location, there should be four values between 0 and 1 indicating the
-            probability that specific character will appear. The possible letters are'A'=0, 'C'=1, 'G'=2, 'T'=3.
+            probability that specific character will appear. The possible letters are S'A'=0, 'C'=1, 'G'=2, 'T'=3.
             The frequencies should sum up to 1.
         hrp_allele_frequencies_per_genome_location: Used with 'ALLELE_FREQUENCIES'. The fractions of allele occurrences
             for each location in the HRP markers.  This 2D array should have one array for each HRP location.
