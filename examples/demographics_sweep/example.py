@@ -62,23 +62,18 @@ def set_config_parameters(config):
 
 def build_demographics(birth_rate=0.004, total_population=300, rural_fraction=0.21):
     """
-
+        Creates a demographics object that will be written to a demographics file to
+        be used by the simulation.
     Args:
-        birth_rate:
-        total_population:
-        rural_fraction:
+        birth_rate: Birth rate for all the nodes
+        total_population: total population for all the nodes
+        rural_fraction: fraction of the population that will live in all the nodes
+            but the first (see below)
 
     Returns:
+        Configured demographics object
+    """
 
-    """
-    """
-    Build a demographics input file for the DTK using emod_api.
-    Right now this function creates the file and returns the filename. If calling code just needs an asset that's fine.
-    Also right now this function takes care of the config updates that are required as a result of specific demog settings.
-     We do NOT want the emodpy-disease developers to have to know that. It needs to be done automatically in emod-api as much as possible.
-    TBD: Pass the config (or a 'pointer' thereto) to the demog functions or to the demog class/module.
-
-    """
     import emodpy_malaria.demographics.MalariaDemographics as Demographics  # OK to call into emod-api
     import emod_api.demographics.DemographicsTemplates as demogTemplates
 
