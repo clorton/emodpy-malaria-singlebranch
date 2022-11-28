@@ -162,6 +162,30 @@ class TestMalariaReport(unittest.TestCase):
 
     # endregion
 
+    # region ReportInfectionStatsMalaria
+    def test_report_infection_stats_default(self):
+        self.tmp_reporter = add_report_infection_stats_malaria(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], 0)
+        self.assertEqual(self.p_dict['End_Day'], 365000)
+        self.assertEqual(self.p_dict['Reporting_Interval'], 30)
+
+        pass
+
+    def test_report_infection_stats_custom(self):
+        self.tmp_reporter = add_report_infection_stats_malaria(None, schema_path_file,
+                                                               start_day=25, end_day=67,
+                                                               reporting_interval=12)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], 25)
+        self.assertEqual(self.p_dict['End_Day'], 67)
+        self.assertEqual(self.p_dict['Reporting_Interval'], 12)
+        pass
+
+    # endregion
+
     # region MalariaSummaryReport
     def test_malaria_summary_report_default(self):
         self.tmp_reporter = add_malaria_summary_report(None, schema_path_file)
@@ -261,6 +285,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Include_Infection_Data_Table'], false)
         self.assertEqual(self.p_dict['Include_Health_Table'], false)
         self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 1)
+
     # end region
 
     # start region ReportEventCounter
@@ -277,7 +302,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Max_Age_Years'], max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], min_age)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list)
-
 
     def test_report_counter_custom(self):
         duration = 17
@@ -305,6 +329,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Max_Age_Years'], test_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], test_min_age)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], test_list)
+
     # end region
 
     # region ReportSimpleMalariaTransimissionJSON
@@ -323,23 +348,22 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Min_Age_Years'], min_age)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list)
 
-
     def test_malaria_cotransmission_report_custom(self):
         duration = 17
         filename_suffix = "Testing"
         start_day = 5
         self.tmp_reporter = add_malaria_cotransmission_report(None, schema_path_file,
-                                                            start_day=start_day,
-                                                            end_day=duration,
-                                                            node_ids=test_list,
-                                                            pretty_format=1,
-                                                            filename_suffix=filename_suffix,
-                                                            include_human_to_vector=1,
-                                                            min_age_years=test_min_age,
-                                                            max_age_years=test_max_age,
-                                                            must_have_intervention=test_string,
-                                                            must_have_ip_key_value=test_string1,
-                                                            )
+                                                              start_day=start_day,
+                                                              end_day=duration,
+                                                              node_ids=test_list,
+                                                              pretty_format=1,
+                                                              filename_suffix=filename_suffix,
+                                                              include_human_to_vector=1,
+                                                              min_age_years=test_min_age,
+                                                              max_age_years=test_max_age,
+                                                              must_have_intervention=test_string,
+                                                              must_have_ip_key_value=test_string1,
+                                                              )
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], start_day)
@@ -719,7 +743,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Max_Age_Years'], test_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], test_min_age)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], node_ids)
-
 
     def test_spatial_report_malaria_filtered_default(self):
         start_day = 0

@@ -839,7 +839,8 @@ def add_drug_status_report(task, manifest,
 
 def add_report_infection_stats_malaria(task, manifest,
                                        start_day: int = 0,
-                                       end_day: int = 365000):
+                                       end_day: int = 365000,
+                                       reporting_interval: int = 30):
     """
     Adds ReportInfectionStatsMalaria report to the simulation.
     See class definition for description of the report.
@@ -849,6 +850,8 @@ def add_report_infection_stats_malaria(task, manifest,
         manifest: schema path file
         start_day: the day of the simulation to start collecting data
         end_day: the day of the simulation to stop collecting data
+        reporting_interval: defines the cadence of the report by specifying how many time steps to collect data
+            before writing to the file
 
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -859,7 +862,7 @@ def add_report_infection_stats_malaria(task, manifest,
     def rec_config_builder(params):
         params.Start_Day = start_day
         params.End_Day = end_day
-
+        params.Reporting_Interval = reporting_interval
         return params
 
     reporter.config(rec_config_builder, manifest)
