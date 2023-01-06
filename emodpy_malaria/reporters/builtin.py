@@ -306,13 +306,11 @@ def add_malaria_cotransmission_report(task, manifest,
                                       must_have_ip_key_value: str = "",
                                       must_have_intervention: str = "",
                                       include_human_to_vector: int = 0,
-                                      pretty_format: int = 0,
                                       filename_suffix: str = ""):
     """
-    Adds ReportSimpleMalariaTransmissionJSON report to the simulation.
+    Adds ReportSimpleMalariaTransmission report to the simulation.
     See class definition for description of the report.
     This is the report used to track malaria CoTransmission (co_transmission)
-
     Args:
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
@@ -328,16 +326,13 @@ def add_malaria_cotransmission_report(task, manifest,
             means don't look at IPs (individual properties)
         must_have_intervention: the name of the an intervention that the person must have in order to be included.
             Empty string means don't look at the interventions
-        pretty_format: if 1(true) sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
-            for easier readability. The default, 0 (false), saves space where everything is on one line.
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
-
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
 
-    reporter = ReportSimpleMalariaTransmissionJSON()  # Create the reporter
+    reporter = ReportSimpleMalariaTransmission()  # Create the reporter
 
     def rec_config_builder(params):  # not used yet
         params.Start_Day = start_day
@@ -348,7 +343,6 @@ def add_malaria_cotransmission_report(task, manifest,
         params.Must_Have_IP_Key_Value = must_have_ip_key_value
         params.Must_Have_Intervention = must_have_intervention
         params.Node_IDs_Of_Interest = node_ids if node_ids else []
-        params.Pretty_Format = pretty_format
         params.Filename_Suffix = filename_suffix
         return params
 
@@ -1174,10 +1168,10 @@ def add_event_recorder(task, event_list: list = None,
 
 def add_report_intervention_pop_avg(task, manifest,
                                     start_day: int = 0,
-                                    end_day: int = 36500000,
+                                    end_day: int = 365000,
                                     node_ids: list = None,
                                     min_age_years: float = 0,
-                                    max_age_years: float = 365000,
+                                    max_age_years: float = 125,
                                     must_have_ip_key_value: str = "",
                                     must_have_intervention: str = "",
                                     filename_suffix: str = ""):
@@ -1224,10 +1218,10 @@ def add_report_intervention_pop_avg(task, manifest,
 
 def add_report_fpg_output(task, manifest,
                           start_day: int = 0,
-                          end_day: int = 36500000,
+                          end_day: int = 365000,
                           node_ids: list = None,
                           min_age_years: float = 0,
-                          max_age_years: float = 365000,
+                          max_age_years: float = 125,
                           must_have_ip_key_value: str = "",
                           must_have_intervention: str = "",
                           filename_suffix: str = "",
@@ -1370,21 +1364,22 @@ class MalariaPatientJSONReport(BuiltInReporter):
 
 
 @dataclass
-class ReportSimpleMalariaTransmissionJSON(BuiltInReporter):
+class ReportSimpleMalariaTransmission(BuiltInReporter):
     """
-        The simple malaria transmission report (ReportSimpleMalariaTransmissionJSON.json) is a JSON-formatted report that
+        The simple malaria transmission report (ReportSimpleMalariaTransmission.csv) is a csv report that
         provides data on malaria transmission, by tracking who transmitted malaria to whom.  The report can only be used
         when the simulation setup parameter **Malaria_Model** is set to MALARIA_MECHANISTIC_MODEL_WITH_CO_TRANSMISSION.
         This report is typically used as input to the GenEpi model.
     """
 
     def config(self, config_builder, manifest):
-        self.class_name = "ReportSimpleMalariaTransmissionJSON"
-        report_params = s2c.get_class_with_defaults("ReportSimpleMalariaTransmissionJSON", manifest.schema_file)
+        self.class_name = "ReportSimpleMalariaTransmission"
+        report_params = s2c.get_class_with_defaults("ReportSimpleMalariaTransmission", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")  # maybe that should be in finalize
         self.parameters.update(dict(report_params))
+
 
 
 @dataclass

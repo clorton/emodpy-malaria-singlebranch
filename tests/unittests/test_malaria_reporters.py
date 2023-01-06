@@ -331,15 +331,15 @@ class TestMalariaReport(unittest.TestCase):
 
     # end region
 
-    # region ReportSimpleMalariaTransimissionJSON
+    # region ReportSimpleMalariaTransimission
     def test_malaria_cotransmission_report_default(self):
         self.tmp_reporter = add_malaria_cotransmission_report(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], default_start_day)
         self.assertEqual(self.p_dict['End_Day'], default_end_day)
+        self.assertNotIn('Pretty_Format', self.p_dict)
         self.assertEqual(self.p_dict['Include_Human_To_Vector_Transmission'], 0)
-        self.assertEqual(self.p_dict['Pretty_Format'], 0)
         self.assertEqual(self.p_dict['Filename_Suffix'], empty_string)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], empty_string)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
@@ -350,20 +350,20 @@ class TestMalariaReport(unittest.TestCase):
     def test_malaria_cotransmission_report_custom(self):
         self.tmp_reporter = add_malaria_cotransmission_report(None, schema_path_file,
                                                               start_day=test_start_day,
-                                                              end_day=test_int,
+                                                              end_day=test_end_day,
                                                               node_ids=test_list,
-                                                              pretty_format=1,
                                                               filename_suffix=test_string2,
                                                               include_human_to_vector=1,
                                                               min_age_years=test_min_age,
                                                               max_age_years=test_max_age,
                                                               must_have_intervention=test_string,
-                                                              must_have_ip_key_value=test_string1)
+                                                              must_have_ip_key_value=test_string1,
+                                                              )
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], test_start_day)
-        self.assertEqual(self.p_dict['End_Day'], test_int)
-        self.assertEqual(self.p_dict['Pretty_Format'], 1)
+        self.assertEqual(self.p_dict['End_Day'], test_end_day)
+        self.assertNotIn('Pretty_Format', self.p_dict)
         self.assertEqual(self.p_dict['Include_Human_To_Vector_Transmission'], 1)
         self.assertEqual(self.p_dict['Filename_Suffix'], test_string2)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
@@ -453,7 +453,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['End_Day'], test_end_day)
         self.assertEqual(self.p_dict['Max_Number_Reports'], max_number_reports)
         self.assertEqual(self.p_dict['Event_Trigger_List'], event_trigger_list)
-        self.assertEqual(self.p_dict['IP_Key_To_Collect'], test_string_2)
+        self.assertEqual(self.p_dict['IP_Key_To_Collect'], test_string2)
         self.assertEqual(self.p_dict['Pretty_Format'], pretty_format)
         self.assertEqual(self.p_dict['Reporting_Interval'], reporting_interval)
         self.assertEqual(self.p_dict['Filename_Suffix'], filename_suffix)
@@ -462,13 +462,13 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], test_list)
 
     def test_malaria_survey_analyzer_default(self):
-        self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file)
+        self.tmp_reporter = add_malaria_survey_analyzer(None, schema_path_file, event_trigger_list=test_list)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], default_start_day)
         self.assertEqual(self.p_dict['End_Day'], default_end_day)
         self.assertEqual(self.p_dict['Max_Number_Reports'], default_end_day)
-        self.assertEqual(self.p_dict['Event_Trigger_List'], empty_list)
+        self.assertEqual(self.p_dict['Event_Trigger_List'], test_list)
         self.assertEqual(self.p_dict['IP_Key_To_Collect'], empty_string)
         self.assertEqual(self.p_dict['Pretty_Format'], 0)
         self.assertEqual(self.p_dict['Reporting_Interval'], 1)
@@ -718,7 +718,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
         self.assertEqual(self.p_dict['Max_Age_Years'], default_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], default_min_age)
-        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_string)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list)
 
     # endregion
 
@@ -776,20 +776,39 @@ class TestMalariaReport(unittest.TestCase):
 
     # region end
 
-    # region ReportIneterventionPopAvg
-    def test_report_intervention_pop_avg(self):
-        start_day = 83
-        node_ids = [1, 42, 23]
+    # region ReportInterventionPopAvg
+    def test_report_intervention_pop_avg_default(self):
         filename_suffix = "test_test"
         self.tmp_reporter = add_report_intervention_pop_avg(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
-        self.assertEqual(self.p_dict['Start_Day'], start_day)
+        self.assertEqual(self.p_dict['Start_Day'], default_start_day)
+        self.assertEqual(self.p_dict['End_Day'], default_end_day)
+        self.assertEqual(self.p_dict['Filename_Suffix'], empty_string)
+        self.assertEqual(self.p_dict['Max_Age_Years'], default_max_age)
+        self.assertEqual(self.p_dict['Min_Age_Years'], default_min_age)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list)
+        self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], empty_string)
+        self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
+
+    def test_report_intervention_pop_avg_custom(self):
+        self.tmp_reporter = add_report_intervention_pop_avg(None, schema_path_file,
+                                                            start_day=test_start_day,
+                                                            end_day=test_end_day,
+                                                            filename_suffix=test_string2,
+                                                            max_age_years=test_max_age,
+                                                            min_age_years=test_min_age,
+                                                            node_ids=test_list,
+                                                            must_have_ip_key_value=test_string1,
+                                                            must_have_intervention=test_string)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], test_start_day)
         self.assertEqual(self.p_dict['End_Day'], test_end_day)
-        self.assertEqual(self.p_dict['Filename_Suffix'], filename_suffix)
+        self.assertEqual(self.p_dict['Filename_Suffix'], test_string2)
         self.assertEqual(self.p_dict['Max_Age_Years'], test_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], test_min_age)
-        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], node_ids)
+        self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], test_list)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], test_string)
 
