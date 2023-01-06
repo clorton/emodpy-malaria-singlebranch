@@ -332,15 +332,15 @@ class TestMalariaReport(unittest.TestCase):
 
     # end region
 
-    # region ReportSimpleMalariaTransimissionJSON
+    # region ReportSimpleMalariaTransimission
     def test_malaria_cotransmission_report_default(self):
         self.tmp_reporter = add_malaria_cotransmission_report(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], 0)
         self.assertEqual(self.p_dict['End_Day'], end_day)
+        self.assertNotIn('Pretty_Format', self.p_dict)
         self.assertEqual(self.p_dict['Include_Human_To_Vector_Transmission'], 0)
-        self.assertEqual(self.p_dict['Pretty_Format'], 0)
         self.assertEqual(self.p_dict['Filename_Suffix'], empty_string)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], empty_string)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
@@ -356,7 +356,6 @@ class TestMalariaReport(unittest.TestCase):
                                                               start_day=start_day,
                                                               end_day=duration,
                                                               node_ids=test_list,
-                                                              pretty_format=1,
                                                               filename_suffix=filename_suffix,
                                                               include_human_to_vector=1,
                                                               min_age_years=test_min_age,
@@ -368,7 +367,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], start_day)
         self.assertEqual(self.p_dict['End_Day'], duration)
-        self.assertEqual(self.p_dict['Pretty_Format'], 1)
+        self.assertNotIn('Pretty_Format', self.p_dict)
         self.assertEqual(self.p_dict['Include_Human_To_Vector_Transmission'], 1)
         self.assertEqual(self.p_dict['Filename_Suffix'], filename_suffix)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
