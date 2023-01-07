@@ -311,6 +311,7 @@ def add_malaria_cotransmission_report(task, manifest,
     Adds ReportSimpleMalariaTransmission report to the simulation.
     See class definition for description of the report.
     This is the report used to track malaria CoTransmission (co_transmission)
+    
     Args:
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
@@ -328,6 +329,7 @@ def add_malaria_cotransmission_report(task, manifest,
             Empty string means don't look at the interventions
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
+
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
