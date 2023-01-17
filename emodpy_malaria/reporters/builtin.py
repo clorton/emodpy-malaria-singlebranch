@@ -1257,6 +1257,12 @@ def add_report_fpg_output(task, manifest,
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
+    if task:
+        if task.config.parameters.Malaria_Model != "MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS":
+            raise ValueError(f"ERROR: This report only works with 'Malaria_Model' = "
+                             f"'MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS', but you have "
+                             f"'Malaria_Model' = '{task.config.parameters.Malaria_Model}' .\n")
+
     reporter = ReportFpgOutputForObservationalModel()  # Create the reporter
 
     def rec_config_builder(params):
@@ -1381,7 +1387,6 @@ class ReportSimpleMalariaTransmission(BuiltInReporter):
         report_params.finalize()
         report_params.pop("Sim_Types")  # maybe that should be in finalize
         self.parameters.update(dict(report_params))
-
 
 
 @dataclass
@@ -1673,7 +1678,7 @@ class ReportFpgOutputForObservationalModel(BuiltInReporter):
     ReportFpgOutputForObservationalModel generates two files:
     infIndexRecursive-genomes-df.csv - This file will be the list of infected people in each node
     at each time step where each row represents one person.
-    variantsXXX_afYYY.npy - This file is a two dimensional numpy array. It is an array of genomes
+    variantsXXX_afFPG.npy - This file is a two dimensional numpy array. It is an array of genomes
     where each row is an genome and each column is a 0 or 1. The 'XXX' will indicate the number
     of genome locations found in a single genome (i.e. 24, 100, etc.).
     """
