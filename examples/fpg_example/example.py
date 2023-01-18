@@ -181,6 +181,9 @@ def general_sim():
     # ReportDrugStatus
     add_malaria_sql_report(task, manifest, start_day=3, end_day=82, include_infection_table=1, include_health_table=1,
                            include_drug_table=1)
+    add_report_fpg_output(task, manifest, start_day=30, end_day=80, filename_suffix="example",
+                          min_age_years=3, max_age_years=15, include_barcode_ids=True,
+                          minimum_parasite_density=3.3, sampling_period=5)
 
     # We are creating one-simulation experiment straight from task.
     # If you are doing a sweep, please see sweep_* examples.

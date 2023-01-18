@@ -311,7 +311,7 @@ def add_malaria_cotransmission_report(task, manifest,
     Adds ReportSimpleMalariaTransmission report to the simulation.
     See class definition for description of the report.
     This is the report used to track malaria CoTransmission (co_transmission)
-
+    
     Args:
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
@@ -1170,10 +1170,10 @@ def add_event_recorder(task, event_list: list = None,
 
 def add_report_intervention_pop_avg(task, manifest,
                                     start_day: int = 0,
-                                    end_day: int = 36500000,
+                                    end_day: int = 365000,
                                     node_ids: list = None,
                                     min_age_years: float = 0,
-                                    max_age_years: float = 365000,
+                                    max_age_years: float = 125,
                                     must_have_ip_key_value: str = "",
                                     must_have_intervention: str = "",
                                     filename_suffix: str = ""):
@@ -1200,7 +1200,7 @@ def add_report_intervention_pop_avg(task, manifest,
     """
     reporter = ReportInterventionPopAvg()  # Create the reporter
 
-    def rec_config_builder(params):  # not used yet
+    def rec_config_builder(params):
         params.Start_Day = start_day
         params.End_Day = end_day
         params.Node_IDs_Of_Interest = node_ids if node_ids else []
@@ -1209,8 +1209,75 @@ def add_report_intervention_pop_avg(task, manifest,
         params.Must_Have_IP_Key_Value = must_have_ip_key_value
         params.Must_Have_Intervention = must_have_intervention
         params.Filename_Suffix = filename_suffix
+        return params
 
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
+def add_report_fpg_output(task, manifest,
+                          start_day: int = 0,
+                          end_day: int = 365000,
+                          node_ids: list = None,
+                          min_age_years: float = 0,
+                          max_age_years: float = 125,
+                          must_have_ip_key_value: str = "",
+                          must_have_intervention: str = "",
+                          filename_suffix: str = "",
+                          include_barcode_ids: bool = False,
+                          minimum_parasite_density: float = 1,
+                          sampling_period: float = 1):
+    """
+    Adds ReportFpgOutputForObservationalModel reporter. See class definition for description of the report.
+
+    Args:
+        task: Task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: Schema path file
+        start_day: the day of the simulation to start collecting data
+        end_day: the day of the simulation to stop collecting data
+        node_ids: List of nodes for which to collect data
+        min_age_years: Minimum age in years of people to collect data on
+        max_age_years: Maximum age in years of people to collect data on
+        must_have_ip_key_value: a "Key:Value" pair that the individual must have in order to be included. Empty string
+            means don't look at IPs (individual properties)
+        must_have_intervention: the name of the an intervention that the person must have in order to be included.
+            Empty string means don't look at the interventions
+        filename_suffix: augments the filename of the report. If multiple reports are being generated,
+            this allows you to distinguish among the multiple reports
+        include_barcode_ids: Add a column that has a list of Barcode IDs (hashcode) for the person.
+        minimum_parasite_density: The minimum density that the infection must have to be included in the list
+            of infections. A value of zero implies include all infections. Number of asexual parasites
+            per micro liter of blood.
+        sampling_period: The number of days between sampling the population. This implies one should get data
+            on days Start_Day, Start_Day+Sampling_Period, Start_Day+2*Sampling_Period, and so on.
+
+    Returns:
+        if task is not set, returns the configured reporter, otherwise returns nothing
+    """
+    if task:
+        if task.config.parameters.Malaria_Model != "MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS":
+            raise ValueError(f"ERROR: This report only works with 'Malaria_Model' = "
+                             f"'MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS', but you have "
+                             f"'Malaria_Model' = '{task.config.parameters.Malaria_Model}' .\n")
+
+    reporter = ReportFpgOutputForObservationalModel()  # Create the reporter
+
+    def rec_config_builder(params):
+        params.Start_Day = start_day
+        params.End_Day = end_day
+        params.Node_IDs_Of_Interest = node_ids if node_ids else []
+        params.Max_Age_Years = max_age_years
+        params.Min_Age_Years = min_age_years
+        params.Must_Have_IP_Key_Value = must_have_ip_key_value
+        params.Must_Have_Intervention = must_have_intervention
         params.Filename_Suffix = filename_suffix
+        params.Include_Barcode_IDs = 1 if include_barcode_ids else 0
+        params.Minimum_Parasite_Density = minimum_parasite_density
+        params.Sampling_Period = sampling_period
+
         return params
 
     reporter.config(rec_config_builder, manifest)
@@ -1599,6 +1666,26 @@ class ReportInterventionPopAvg(BuiltInReporter):
     def config(self, config_builder, manifest):
         self.class_name = "ReportInterventionPopAvg"
         report_params = s2c.get_class_with_defaults("ReportInterventionPopAvg", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class ReportFpgOutputForObservationalModel(BuiltInReporter):
+    """
+    ReportFpgOutputForObservationalModel generates two files:
+    infIndexRecursive-genomes-df.csv - This file will be the list of infected people in each node
+    at each time step where each row represents one person.
+    variantsXXX_afFPG.npy - This file is a two dimensional numpy array. It is an array of genomes
+    where each row is an genome and each column is a 0 or 1. The 'XXX' will indicate the number
+    of genome locations found in a single genome (i.e. 24, 100, etc.).
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportFpgOutputForObservationalModel"
+        report_params = s2c.get_class_with_defaults("ReportFpgOutputForObservationalModel", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")
