@@ -110,6 +110,11 @@ def general_sim():
                        must_have_intervention="Ivermectin",
                        property_change_ip_to_record="")
 
+    # SqlReportMalaria
+    add_sql_report_malaria(task, manifest, start_day=3, end_day=82, include_infection_table=True,
+                           include_health_table=True,
+                           include_drug_table=True, include_individual_properties=False)
+
     # ReportDrugStatus
     add_drug_status_report(task, manifest, start_day=5, end_day=43)
 
