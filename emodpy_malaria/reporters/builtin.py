@@ -46,10 +46,10 @@ def add_report_vector_genetics(task, manifest,
                                node_ids: list = None,
                                species: str = None,
                                gender: str = "VECTOR_FEMALE",
-                               include_vector_state: int = 1,
-                               include_death_state: int = 0,
+                               include_vector_state: bool = True,
+                               include_death_state: bool = False,
                                stratify_by: str = "GENOME",
-                               combine_similar_genomes: int = 0,
+                               combine_similar_genomes: bool = False,
                                specific_genome_combinations_for_stratification: list = None,
                                allele_combinations_for_stratification: list = None,
                                alleles_for_stratification: list = None,
@@ -66,13 +66,13 @@ def add_report_vector_genetics(task, manifest,
         species: the species to include information on
         gender: gender of species to include information on. Default: "VECTOR_FEMALE",
             other options: "VECTOR_MALE", "VECTOR_BOTH_GENDERS"
-        include_vector_state: if 1(true), adds the columns for vectors in the different states (i.e Eggs, Larva, etc)
-        include_death_state: if 1(true), adds columns for the number of vectors that died in this state during this
+        include_vector_state: if True(1), adds the columns for vectors in the different states (i.e Eggs, Larva, etc)
+        include_death_state: if True(1), adds columns for the number of vectors that died in this state during this
             time step as well as the average age.  It adds two columns for each of the following states: ADULT,
             INFECTED, INFECTIOUS, and MALE
         stratify_by: the way to stratify data. Default: "GENOME",
             other options: "SPECIFIC_GENOME", "ALLELE", "ALLELE_FREQ"
-        combine_similar_genomes: if 1(true), genomes are combined if for each locus (ignoring gender) the set of allele
+        combine_similar_genomes: if True(1), genomes are combined if for each locus (ignoring gender) the set of allele
             of the two genomes are the same (i.e. 1-0 is similar to 0-1). Depends on: "GENOME", "SPECIFIC_GENOME"
             specific_genome_combinations_for_stratification: if stratifying by "SPECIFIC_GENOME", then use these genomes
             to stratify by. Example::
@@ -100,7 +100,8 @@ def add_report_vector_genetics(task, manifest,
     if task:
         check_vectors(task)
         if not species:
-            raise ValueError("Please define species for which to collect information.\n")
+            raise ValueError(f"Please define species for which to collect information, available species are "
+                             f"{all_vectors_if_none(task)}.\n")
 
     reporter = ReportVectorGenetics()  # Create the reporter
 
@@ -110,11 +111,11 @@ def add_report_vector_genetics(task, manifest,
         params.Node_IDs_Of_Interest = node_ids if node_ids else []
         params.Species = species
         params.Gender = gender
-        params.Include_Vector_State_Columns = include_vector_state
-        params.Include_Death_By_State_Columns = include_death_state
+        params.Include_Vector_State_Columns = 1 if include_vector_state else 0
+        params.Include_Death_By_State_Columns = 1 if include_death_state else 0
         params.Stratify_By = stratify_by
         if stratify_by == "GENOME" or stratify_by == "SPECIFIC_GENOME":
-            params.Combine_Similar_Genomes = combine_similar_genomes
+            params.Combine_Similar_Genomes = 1 if combine_similar_genomes else 0
         if stratify_by == "SPECIFIC_GENOME":
             params.Specific_Genome_Combinations_For_Stratification = specific_genome_combinations_for_stratification if specific_genome_combinations_for_stratification else []
         elif stratify_by == "ALLELE":
@@ -133,11 +134,11 @@ def add_report_vector_genetics(task, manifest,
 
 def add_report_vector_stats(task, manifest,
                             species_list: list = None,
-                            stratify_by_species: int = 0,
-                            include_death_state: int = 0,
-                            include_wolbachia: int = 0,
-                            include_gestation: int = 0,
-                            include_microsporidia: int = 0):
+                            stratify_by_species: bool = False,
+                            include_death_state: bool = False,
+                            include_wolbachia: bool = False,
+                            include_gestation: bool = False,
+                            include_microsporidia: bool = False):
     """
     Adds ReportVectorStats report to the simulation. See class definition for description of the report.
 
@@ -145,13 +146,13 @@ def add_report_vector_stats(task, manifest,
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
         species_list: a list of species to include information on, default of None or [] means "all species"
-        stratify_by_species: if 1(true), data will break out each the species for each node
-        include_death_state: if 1(true), adds columns for the number of vectors that died in this state during this
+        stratify_by_species: if True(1), data will break out each the species for each node
+        include_death_state: if True(1), adds columns for the number of vectors that died in this state during this
             time step as well as the average age.  It adds two columns for each of the following states: ADULT,
             INFECTED, INFECTIOUS, and MALE
-        include_wolbachia: if 1(true), add a column for each type of Wolbachia
-        include_gestation: if 1(true), adds columns for feeding and gestation
-        include_microsporidia: if 1(true), adds columns for the number of vectors that have microsporidia in
+        include_wolbachia: if True(1), add a column for each type of Wolbachia
+        include_gestation: if True(1), adds columns for feeding and gestation
+        include_microsporidia: if True(1), adds columns for the number of vectors that have microsporidia in
             each state during this time step
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -165,11 +166,11 @@ def add_report_vector_stats(task, manifest,
 
     def rec_config_builder(params):
         params.Species_List = species_list
-        params.Stratify_By_Species = stratify_by_species
-        params.Include_Death_By_State_Columns = include_death_state
-        params.Include_Wolbachia_Columns = include_wolbachia
-        params.Include_Gestation_Columns = include_gestation
-        params.Include_Microsporidia_Columns = include_microsporidia
+        params.Stratify_By_Species = 1 if stratify_by_species else 0
+        params.Include_Death_By_State_Columns = 1 if include_death_state else 0
+        params.Include_Wolbachia_Columns = 1 if include_wolbachia else 0
+        params.Include_Gestation_Columns = 1 if include_gestation else 0
+        params.Include_Microsporidia_Columns = 1 if include_microsporidia else 0
         return params
 
     reporter.config(rec_config_builder, manifest)
@@ -190,7 +191,7 @@ def add_malaria_summary_report(task, manifest,
                                infectiousness_bins: list = None,
                                max_number_reports: int = 100,
                                parasitemia_bins: list = None,
-                               pretty_format: int = 0,
+                               pretty_format: bool = False,
                                filename_suffix: str = ""):
     """
     Adds MalariaSummaryReport to the simulation. See class definition for description of the report.
@@ -213,7 +214,7 @@ def add_malaria_summary_report(task, manifest,
         max_number_reports: the maximum number of report output files that will be produced for a given simulation
         parasitemia_bins: Parasitemia bins on which to aggregate. A value <= 0 in the first bin indicates that
             uninfected individuals are added to this bin. You must sort your input data from low to high.
-        pretty_format: if 1(true) sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
+        pretty_format: if True(1) sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
             for easier readability. The default, 0 (false), saves space where everything is on one line.
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
@@ -234,7 +235,7 @@ def add_malaria_summary_report(task, manifest,
         params.Infectiousness_Bins = infectiousness_bins if infectiousness_bins else []
         params.Max_Number_Reports = max_number_reports
         params.Parasitemia_Bins = parasitemia_bins if infectiousness_bins else []
-        params.Pretty_Format = pretty_format
+        params.Pretty_Format = 1 if pretty_format else 0
         params.Reporting_Interval = reporting_interval
         params.Filename_Suffix = filename_suffix
         return params
@@ -333,6 +334,10 @@ def add_malaria_cotransmission_report(task, manifest,
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
+    if task and task.config.parameters.Malaria_Model != "MALARIA_MECHANISTIC_MODEL_WITH_CO_TRANSMISSION":
+        raise ValueError(f"The cotransmission report (ReportSimpleMalariaTransmission) requires Malaria_Model"
+                         f" to be set to 'MALARIA_MECHANISTIC_MODEL_WITH_CO_TRANSMISSION', however, "
+                         f"{task.config.parameters.Malaria_Model} is being used.\n ")
 
     reporter = ReportSimpleMalariaTransmission()  # Create the reporter
 
@@ -364,7 +369,7 @@ def add_report_malaria_filtered(task, manifest,
                                 must_have_ip_key_value: str = "",
                                 must_have_intervention: str = "",
                                 has_interventions: list = None,
-                                include_30day_avg_infection_duration: int = 1,
+                                include_30day_avg_infection_duration: bool = True,
                                 filename_suffix: str = ""):
     """
     Adds ReportMalariaFiltered report to the simulation.
@@ -385,7 +390,7 @@ def add_report_malaria_filtered(task, manifest,
         has_interventions: a list of intervention names, a channel is added to the report for each InterventionName
             provided.  The channel name will be Has_<InterventionName> and will be the fraction of the population
             that has that intervention. The **Intervention_Name** in the campaign should be the values in this parameter
-        include_30day_avg_infection_duration: if (1) true the '30-Day Avg Infection Duration' channel is included
+        include_30day_avg_infection_duration: if True(1) the '30-Day Avg Infection Duration' channel is included
             in the report
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
@@ -425,7 +430,7 @@ def add_report_malaria_filtered_intrahost(task, manifest,
                                           must_have_ip_key_value: str = "",
                                           must_have_intervention: str = "",
                                           has_interventions: list = None,
-                                          include_30day_avg_infection_duration: int = 1,
+                                          include_30day_avg_infection_duration: bool = True,
                                           filename_suffix: str = ""):
     """
     Adds ReportMalariaFilteredIntraHost report to the simulation.
@@ -446,7 +451,7 @@ def add_report_malaria_filtered_intrahost(task, manifest,
         has_interventions: a list of intervention names, a channel is added to the report for each InterventionName
             provided.  The channel name will be Has_<InterventionName> and will be the fraction of the population
             that has that intervention. The **Intervention_Name** in the campaign should be the values in this parameter
-        include_30day_avg_infection_duration: if (1) true the '30-Day Avg Infection Duration' channel is included
+        include_30day_avg_infection_duration: if True(1) the '30-Day Avg Infection Duration' channel is included
             in the report
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
@@ -601,14 +606,15 @@ def add_report_event_counter(task, manifest,
         return reporter
 
 
-def add_malaria_sql_report(task, manifest,
+def add_sql_report_malaria(task, manifest,
                            start_day: int = 0,
                            end_day: int = 365000,
-                           include_infection_table: int = 1,
-                           include_health_table: int = 1,
-                           include_drug_table: int = 0):
+                           include_infection_table: bool = True,
+                           include_health_table: bool = True,
+                           include_drug_table: bool = False,
+                           include_individual_properties: bool = False):
     """
-    Adds MalariaSqlReport report to the simulation.
+    Adds SqlReportMalaria report to the simulation.
     See class definition for description of the report.
 
     Args:
@@ -616,23 +622,77 @@ def add_malaria_sql_report(task, manifest,
         manifest: schema path file
         start_day: the day of the simulation to start collecting data
         end_day: the day of the simulation to stop collecting data
-        include_infection_table: if 1(true), include the table that provides data at each time step for each active
+        include_infection_table: if True(1), include the table that provides data at each time step for each active
             infection
-        include_health_table: if 1(true), include the table that provides data at each time step for a person's health
-        include_drug_table: if 1(true), include the table that provides data at each time step for each drug used
+        include_health_table: if True(1), include the table that provides data at each time step for a person's health
+        include_drug_table: if True(1), include the table that provides data at each time step for each drug used
+        include_individual_properties: if True(1), add columns to the Health table for each Property(key).
+            The values in the columns are integers that are the primary key in a new IndividualProperties
+            table that contains the strings.
 
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
     """
 
-    reporter = MalariaSqlReport()  # Create the reporter
+    reporter = SqlReportMalaria()  # Create the reporter
 
     def rec_config_builder(params):
         params.Start_Day = start_day
         params.End_Day = end_day
-        params.Include_Infection_Data_Table = include_infection_table
-        params.Include_Health_Table = include_health_table
-        params.Include_Drug_Status_Table = include_drug_table
+        params.Include_Infection_Data_Table = 1 if include_infection_table else 0
+        params.Include_Health_Table = 1 if include_health_table else 0
+        params.Include_Drug_Status_Table = 1 if include_drug_table else 0
+        params.Include_Individual_Properties = 1 if include_individual_properties else 0
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
+def add_sql_report_malaria_genetics(task, manifest,
+                                    start_day: int = 0,
+                                    end_day: int = 365000,
+                                    include_infection_table: bool = True,
+                                    include_health_table: bool = True,
+                                    include_drug_table: bool = False,
+                                    include_individual_properties: bool = False):
+    """
+    Adds SqlReportMalariaGenetics report to the simulation.
+    See class definition for description of the report.
+
+    Args:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
+        start_day: the day of the simulation to start collecting data
+        end_day: the day of the simulation to stop collecting data
+        include_infection_table: if True(1), include the table that provides data at each time step for each active
+            infection
+        include_health_table: if True(1), include the table that provides data at each time step for a person's health
+        include_drug_table: if True(1), include the table that provides data at each time step for each drug used
+        include_individual_properties: if True(1), add columns to the Health table for each Property(key).
+            The values in the columns are integers that are the primary key in a new IndividualProperties
+            table that contains the strings.
+
+    Returns:
+        if task is not set, returns the configured reporter, otherwise returns nothing
+    """
+    if task and task.config.parameters.Malaria_Model != "MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS":
+        raise ValueError(f"The cotransmission report (ReportSimpleMalariaTransmission) requires Malaria_Model"
+                         f" to be set to 'MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS', however, "
+                         f"{task.config.parameters.Malaria_Model} is being used.\n ")
+
+    reporter = SqlReportMalariaGenetics()  # Create the reporter
+
+    def rec_config_builder(params):
+        params.Start_Day = start_day
+        params.End_Day = end_day
+        params.Include_Infection_Data_Table = 1 if include_infection_table else 0
+        params.Include_Health_Table = 1 if include_health_table else 0
+        params.Include_Drug_Status_Table = 1 if include_drug_table else 0
+        params.Include_Individual_Properties = 1 if include_individual_properties else 0
         return params
 
     reporter.config(rec_config_builder, manifest)
@@ -680,7 +740,7 @@ def add_malaria_immunity_report(task, manifest,
                                 age_bins: list = None,
                                 must_have_ip_key_value: str = "",
                                 must_have_intervention: str = "",
-                                pretty_format: int = 0,
+                                pretty_format: bool = False,
                                 filename_suffix: str = ""):
     """
     Adds MalariaImmunityReport report to the simulation.
@@ -701,7 +761,7 @@ def add_malaria_immunity_report(task, manifest,
             means don't look at IPs (individual properties)
         must_have_intervention: the name of the an intervention that the person must have in order to be included.
             Empty string means don't look at the interventions
-        pretty_format: if 1(true) sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
+        pretty_format: if True(1), sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
             for easier readability. The default, 0 (false), saves space where everything is on one line.
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
@@ -718,7 +778,7 @@ def add_malaria_immunity_report(task, manifest,
         params.Reporting_Interval = reporting_interval
         params.Max_Number_Reports = max_number_reports
         params.Age_Bins = age_bins if age_bins else []
-        params.Pretty_Format = pretty_format
+        params.Pretty_Format = 1 if pretty_format else 0
         params.Node_IDs_Of_Interest = node_ids if node_ids else []
         params.Must_Have_IP_Key_Value = must_have_ip_key_value
         params.Must_Have_Intervention = must_have_intervention
@@ -765,7 +825,7 @@ def add_malaria_survey_analyzer(task, manifest,
             means don't look at IPs (individual properties)
         must_have_intervention: the name of the an intervention that the person must have in order to be included.
             Empty string means don't look at the interventions
-        pretty_format: if 1(true) sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
+        pretty_format: if True(1), sets pretty JSON formatting, which includes carriage returns, line feeds, and spaces
             for easier readability. The default, 0 (false), saves space where everything is on one line.
         filename_suffix: augments the filename of the report. If multiple reports are being generated,
             this allows you to distinguish among the multiple reports
@@ -785,7 +845,7 @@ def add_malaria_survey_analyzer(task, manifest,
         params.Max_Number_Reports = max_number_reports
         params.Event_Trigger_List = event_trigger_list if event_trigger_list else []
         params.IP_Key_To_Collect = ip_key_to_collect
-        params.Pretty_Format = pretty_format
+        params.Pretty_Format = 1 if pretty_format else 0
         params.Reporting_Interval = reporting_interval
         params.Node_IDs_Of_Interest = node_ids if node_ids else []
         params.Must_Have_IP_Key_Value = must_have_ip_key_value
@@ -897,7 +957,7 @@ def add_human_migration_tracking(task, manifest):
 def add_report_node_demographics(task, manifest,
                                  age_bins: list = None,
                                  ip_key_to_collect: str = "",
-                                 stratify_by_gender: int = 1):
+                                 stratify_by_gender: bool = True):
     """
     Adds ReportNodeDemographics report to the simulation.
     See class definition for description of the report.
@@ -909,7 +969,7 @@ def add_report_node_demographics(task, manifest,
             must sort your input data from low to high.
         ip_key_to_collect: The name of the Individual Properties Key by which to stratify the report.
             An empty string does not stratify by Individual Properties
-        stratify_by_gender: if 1(true), to stratify by gender. Set to false (0) to not stratify by gender.
+        stratify_by_gender: if True(1), to stratify by gender. Set to False (0) to not stratify by gender.
 
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -920,7 +980,7 @@ def add_report_node_demographics(task, manifest,
     def rec_config_builder(params):
         params.IP_Key_To_Collect = ip_key_to_collect
         params.Age_Bins = age_bins if age_bins else []
-        params.Stratify_By_Gender = stratify_by_gender
+        params.Stratify_By_Gender = 1 if stratify_by_gender else 0
         return params
 
     reporter.config(rec_config_builder, manifest)
@@ -933,8 +993,8 @@ def add_report_node_demographics(task, manifest,
 def add_report_node_demographics_malaria(task, manifest,
                                          age_bins: list = None,
                                          ip_key_to_collect: str = "",
-                                         stratify_by_gender: int = 1,
-                                         stratify_by_clinical_symptoms: int = 0):
+                                         stratify_by_gender: bool = True,
+                                         stratify_by_clinical_symptoms: bool = False):
     """
     Adds ReportNodeDemographicsMalaria report to the simulation.
     See class definition for description of the report.
@@ -946,8 +1006,8 @@ def add_report_node_demographics_malaria(task, manifest,
             must sort your input data from low to high.
         ip_key_to_collect: The name of theIndividualProperties key by which to stratify the report.
             An empty string does not stratify by Individual Properties
-        stratify_by_gender: if 1(true), to stratify by gender. Set to false (0) to not stratify by gender.
-        stratify_by_clinical_symptoms: if set to 1, the data will have an extra stratification for people who have
+        stratify_by_gender: if True(1), to stratify by gender. Set to False (0) to not stratify by gender.
+        stratify_by_clinical_symptoms: if set to True(1), the data will have an extra stratification for people who have
             clinical symptoms and those that do not.  Default is 0 or no extra stratification
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -976,7 +1036,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   hrp_strings: list = None,
                                                   age_bins: list = None,
                                                   ip_key_to_collect: str = "",
-                                                  stratify_by_gender: int = 1):
+                                                  stratify_by_gender: bool = True):
     """
     Adds ReportNodeDemographicsMalariaGenetics report to the simulation.
     See class definition for description of the report.
@@ -1001,7 +1061,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
             must sort your input data from low to high.
         ip_key_to_collect: The name of theIndividualProperties key by which to stratify the report.
             An empty string does not stratify by Individual Properties
-        stratify_by_gender: if 1(true), to stratify by gender. Set to false (0) to not stratify by gender.
+        stratify_by_gender: if True(1), to stratify by gender. Set to False(0) to not stratify by gender.
 
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -1012,7 +1072,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
     def rec_config_builder(params):
         params.IP_Key_To_Collect = ip_key_to_collect
         params.Age_Bins = age_bins if age_bins else []
-        params.Stratify_By_Gender = stratify_by_gender
+        params.Stratify_By_Gender = 1 if stratify_by_gender else 0
         params.Barcodes = barcodes if barcodes else []
         params.Drug_Resistant_Strings = drug_resistant_strings if drug_resistant_strings else []
         params.HRP_Strings = hrp_strings if hrp_strings else []
@@ -1059,11 +1119,11 @@ def add_report_vector_migration(task, manifest,
 
 def add_report_vector_stats_malaria_genetics(task, manifest,
                                              species_list: list = None,
-                                             stratify_by_species: int = 0,
-                                             include_death_state: int = 0,
-                                             include_wolbachia: int = 0,
-                                             include_gestation: int = 0,
-                                             include_microsporidia: int = 0,
+                                             stratify_by_species: bool = False,
+                                             include_death_state: bool = False,
+                                             include_wolbachia: bool = False,
+                                             include_gestation: bool = False,
+                                             include_microsporidia: bool = False,
                                              barcodes: list = None):
     """
     Adds ReportVectorStatsMalariaGenetics report to the simulation. See class definition for description of the report.
@@ -1072,13 +1132,13 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
         task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
         manifest: schema path file
         species_list: a list of species to include information on, default of None or [] means "all species"
-        stratify_by_species: if 1(true), data will break out each the species for each node
-        include_death_state: if 1(true), adds columns for the number of vectors that died in this state during this
+        stratify_by_species: if True(1), data will break out each the species for each node
+        include_death_state: if True(1), adds columns for the number of vectors that died in this state during this
             time step as well as the average age.  It adds two columns for each of the following states: ADULT,
             INFECTED, INFECTIOUS, and MALE
-        include_wolbachia: if 1(true), add a column for each type of Wolbachia
-        include_gestation: if 1(true), adds columns for feeding and gestation
-        include_microsporidia: if 1(true), adds columns for the number of vectors that have microsporidia in
+        include_wolbachia: if True(1), add a column for each type of Wolbachia
+        include_gestation: if True(1), adds columns for feeding and gestation
+        include_microsporidia: if True(1), adds columns for the number of vectors that have microsporidia in
             each state during this time step
         barcodes: a list of barcode strings. The report contains the number of human infections with each barcode.
             Use '*' for a wild card at a loci to include all values at that loci.  For example, “A*T” includes AAT,
@@ -1096,11 +1156,11 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
 
     def rec_config_builder(params):  # not used yet
         params.Species_List = species_list
-        params.Stratify_By_Species = stratify_by_species
-        params.Include_Death_By_State_Columns = include_death_state
-        params.Include_Wolbachia_Columns = include_wolbachia
-        params.Include_Gestation_Columns = include_gestation
-        params.Include_Microsporidia_Columns = include_microsporidia
+        params.Stratify_By_Species = 1 if stratify_by_species else 0
+        params.Include_Death_By_State_Columns = 1 if include_death_state else 0
+        params.Include_Wolbachia_Columns = 1 if include_wolbachia else 0
+        params.Include_Gestation_Columns = 1 if include_gestation else 0
+        params.Include_Microsporidia_Columns = 1 if include_microsporidia else 0
         params.Barcodes = barcodes if barcodes else []
         return params
 
@@ -1457,16 +1517,33 @@ class ReportEventCounter(BuiltInReporter):
 
 
 @dataclass
-class MalariaSqlReport(BuiltInReporter):
+class SqlReportMalariaGenetics(BuiltInReporter):
     """
-        The MalariaSQL report outputs epidemiological and transmission data. Because of the quantity and complexity of
+        The SqlReportMalariaGenetics outputs epidemiological and transmission data. Because of the quantity and complexity of
         the data, the report output is a multi-table SQLite relational database (see https://sqlitebrowser.org/).
         Use the configuration parameters to manage the size of the database.
     """
 
     def config(self, config_builder, manifest):
-        self.class_name = "MalariaSqlReport"
-        report_params = s2c.get_class_with_defaults("MalariaSqlReport", manifest.schema_file)
+        self.class_name = "SqlReportMalariaGenetics"
+        report_params = s2c.get_class_with_defaults("SqlReportMalariaGenetics", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class SqlReportMalaria(BuiltInReporter):
+    """
+        The SqlReportMalaria outputs epidemiological and transmission data. This report does not contain any genomics
+        data. Because of the quantity and complexity of the data, the report output is a multi-table SQLite relational
+        database (see https://sqlitebrowser.org/). Use the configuration parameters to manage the size of the database.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "SqlReportMalaria"
+        report_params = s2c.get_class_with_defaults("SqlReportMalaria", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")

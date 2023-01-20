@@ -130,7 +130,7 @@ def general_sim():
     add_malaria_summary_report(task, manifest, start_day=56, end_day=66, reporting_interval=7,
                                age_bins=[3, 77, 115],
                                infectiousness_bins=[0.023, 0.1, 0.5], max_number_reports=3, parasitemia_bins=[12, 3423],
-                               pretty_format=1)
+                               pretty_format=True)
 
     # ReportNodeDemographics
     add_report_node_demographics(task, manifest, age_bins=[5, 25, 100])
@@ -139,7 +139,7 @@ def general_sim():
     add_report_vector_migration(task, manifest, start_day=56, end_day=64)
 
     # ReportVectorStats
-    add_report_vector_stats(task, manifest, species_list=["arabiensis", "gambiae"], stratify_by_species=1)
+    add_report_vector_stats(task, manifest, species_list=["arabiensis", "gambiae"], stratify_by_species=True)
 
     # ReportDrugStatus
     add_drug_status_report(task, manifest, start_day=25, end_day=37)
