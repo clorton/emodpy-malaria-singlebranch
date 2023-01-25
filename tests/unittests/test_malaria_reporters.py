@@ -50,12 +50,12 @@ class TestMalariaReport(unittest.TestCase):
     def test_vector_stats_custom(self):
         self.assertIsNone(self.tmp_reporter)
         self.tmp_reporter = add_report_vector_stats(None, schema_path_file,
-                                                    include_gestation=1,
-                                                    include_wolbachia=1,
-                                                    include_death_state=1,
+                                                    include_gestation=True,
+                                                    include_wolbachia=True,
+                                                    include_death_state=True,
                                                     species_list=["gambiae", "SillySkeeter"],
-                                                    stratify_by_species=1,
-                                                    include_microsporidia=1)
+                                                    stratify_by_species=True,
+                                                    include_microsporidia=True)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Stratify_By_Species'], 1)
@@ -85,7 +85,7 @@ class TestMalariaReport(unittest.TestCase):
     def test_vg_custom_genome_stratification(self):
         self.assertIsNone(self.tmp_reporter)
         self.tmp_reporter = add_report_vector_genetics(None, schema_path_file,
-                                                       combine_similar_genomes=1,
+                                                       combine_similar_genomes=True,
                                                        stratify_by="GENOME")
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
@@ -96,7 +96,7 @@ class TestMalariaReport(unittest.TestCase):
         self.tmp_reporter = add_report_vector_genetics(None, schema_path_file,
                                                        end_day=test_end_day,
                                                        gender="VECTOR_MALE",
-                                                       include_vector_state=0,
+                                                       include_vector_state=False,
                                                        filename_suffix="test_report",
                                                        species="Silly_Skeeter",
                                                        start_day=test_start_day,
@@ -121,7 +121,7 @@ class TestMalariaReport(unittest.TestCase):
                                                        end_day=test_end_day,
                                                        species="Silly_Skeeter",
                                                        gender="VECTOR_MALE",
-                                                       include_vector_state=0,
+                                                       include_vector_state=False,
                                                        alleles_for_stratification=["a0", "a1", "b0", "b1"],
                                                        filename_suffix="Does some stuff",
                                                        )
@@ -248,7 +248,7 @@ class TestMalariaReport(unittest.TestCase):
 
     def test_malaria_summary_report_custom3(self):
         self.tmp_reporter = add_malaria_summary_report(None, schema_path_file,
-                                                       pretty_format=1,
+                                                       pretty_format=True,
                                                        filename_suffix=test_string2,
                                                        reporting_interval=test_float,
                                                        start_day=test_start_day)
@@ -262,9 +262,9 @@ class TestMalariaReport(unittest.TestCase):
 
     # endregion
 
-    # MalariaSqlReport
-    def test_malaria_sql_report_default(self):
-        self.tmp_reporter = add_malaria_sql_report(None, schema_path_file)
+    # SqlReportMalaria
+    def test_sql_report_malaria_default(self):
+        self.tmp_reporter = add_sql_report_malaria(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], default_start_day)
@@ -272,14 +272,16 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Include_Infection_Data_Table'], 1)
         self.assertEqual(self.p_dict['Include_Health_Table'], 1)
         self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 0)
+        self.assertEqual(self.p_dict['Include_Individual_Properties'], 0)
 
-    def test_malaria_sql_report_custom(self):
-        self.tmp_reporter = add_malaria_sql_report(None, schema_path_file,
+    def test_sql_report_malaria_custom(self):
+        self.tmp_reporter = add_sql_report_malaria(None, schema_path_file,
                                                    end_day=test_end_day,
                                                    start_day=test_start_day,
-                                                   include_infection_table=0,
-                                                   include_health_table=0,
-                                                   include_drug_table=1)
+                                                   include_infection_table=False,
+                                                   include_health_table=False,
+                                                   include_drug_table=True,
+                                                   include_individual_properties=True)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], test_start_day)
@@ -287,6 +289,38 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Include_Infection_Data_Table'], 0)
         self.assertEqual(self.p_dict['Include_Health_Table'], 0)
         self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 1)
+        self.assertEqual(self.p_dict['Include_Individual_Properties'], 1)
+
+    # end region
+
+    # SqlReportMalariaGenetics
+    def test_sql_report_malaria_genetics_default(self):
+        self.tmp_reporter = add_sql_report_malaria_genetics(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], default_start_day)
+        self.assertEqual(self.p_dict['End_Day'], default_end_day)
+        self.assertEqual(self.p_dict['Include_Infection_Data_Table'], 1)
+        self.assertEqual(self.p_dict['Include_Health_Table'], 1)
+        self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 0)
+        self.assertEqual(self.p_dict['Include_Individual_Properties'], 0)
+
+    def test_sql_report_malaria_genetics_custom(self):
+        self.tmp_reporter = add_sql_report_malaria_genetics(None, schema_path_file,
+                                                            end_day=test_end_day,
+                                                            start_day=test_start_day,
+                                                            include_infection_table=False,
+                                                            include_health_table=False,
+                                                            include_drug_table=True,
+                                                            include_individual_properties=True)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+        self.assertEqual(self.p_dict['Start_Day'], test_start_day)
+        self.assertEqual(self.p_dict['End_Day'], test_end_day)
+        self.assertEqual(self.p_dict['Include_Infection_Data_Table'], 0)
+        self.assertEqual(self.p_dict['Include_Health_Table'], 0)
+        self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 1)
+        self.assertEqual(self.p_dict['Include_Individual_Properties'], 1)
 
     # end region
 
@@ -400,7 +434,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
 
     def test_malaria_immunity_report_custom(self):
-        pretty_format = 1
         self.tmp_reporter = add_malaria_immunity_report(None, schema_path_file,
                                                         start_day=test_start_day,
                                                         end_day=test_end_day,
@@ -408,7 +441,7 @@ class TestMalariaReport(unittest.TestCase):
                                                         max_number_reports=test_int,
                                                         node_ids=test_list,
                                                         age_bins=test_list,
-                                                        pretty_format=pretty_format,
+                                                        pretty_format=True,
                                                         filename_suffix=test_string2,
                                                         must_have_intervention=test_string,
                                                         must_have_ip_key_value=test_string1)
@@ -419,7 +452,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Reporting_Interval'], test_int)
         self.assertEqual(self.p_dict['Max_Number_Reports'], test_int)
         self.assertEqual(self.p_dict['Age_Bins'], test_list)
-        self.assertEqual(self.p_dict['Pretty_Format'], pretty_format)
+        self.assertEqual(self.p_dict['Pretty_Format'], 1)
         self.assertEqual(self.p_dict['Filename_Suffix'], test_string2)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], test_string)
@@ -509,16 +542,15 @@ class TestMalariaReport(unittest.TestCase):
 
     # ReportNodeDemographics
     def test_report_node_demographics_custom(self):
-        stratify_by_gender = 0
         self.tmp_reporter = add_report_node_demographics(None, schema_path_file,
                                                          age_bins=test_list,
                                                          ip_key_to_collect=test_string,
-                                                         stratify_by_gender=stratify_by_gender)
+                                                         stratify_by_gender=False)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Age_Bins'], test_list)
         self.assertEqual(self.p_dict['IP_Key_To_Collect'], test_string)
-        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], 0)
 
     def test_report_node_demographics_default(self):
         stratify_by_gender = 1
@@ -533,17 +565,16 @@ class TestMalariaReport(unittest.TestCase):
 
     # ReportNodeDemographicsMalaria
     def test_report_node_demographics_malaria_custom(self):
-        stratify_by_gender = 0
         self.tmp_reporter = add_report_node_demographics_malaria(None, schema_path_file,
                                                                  age_bins=test_list,
                                                                  ip_key_to_collect=test_string,
-                                                                 stratify_by_gender=stratify_by_gender,
-                                                                 stratify_by_clinical_symptoms=1)
+                                                                 stratify_by_gender=False,
+                                                                 stratify_by_clinical_symptoms=True)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Age_Bins'], test_list)
         self.assertEqual(self.p_dict['IP_Key_To_Collect'], test_string)
-        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], 0)
         self.assertEqual(self.p_dict['Stratify_By_Has_Clinical_Symptoms'], 1)
 
     def test_report_node_demographics_malaria_default(self):
@@ -565,19 +596,18 @@ class TestMalariaReport(unittest.TestCase):
         drug_resistant_statistic_type = "NUM_INFECTIONS"
         age_bins = [5, 45, 90]
         individual_property_to_collect = "Risk"
-        stratify_by_gender = 0
         self.tmp_reporter = add_report_node_demographics_malaria_genetics(None, schema_path_file,
                                                                           barcodes=barcodes,
                                                                           drug_resistant_strings=drug_resistant_strings,
                                                                           drug_resistant_and_hrp_statistic_type=drug_resistant_statistic_type,
                                                                           age_bins=age_bins,
                                                                           ip_key_to_collect=individual_property_to_collect,
-                                                                          stratify_by_gender=stratify_by_gender)
+                                                                          stratify_by_gender=False)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Age_Bins'], age_bins)
         self.assertEqual(self.p_dict['IP_Key_To_Collect'], individual_property_to_collect)
-        self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
+        self.assertEqual(self.p_dict['Stratify_By_Gender'], 0)
         self.assertEqual(self.p_dict['Barcodes'], barcodes)
         self.assertEqual(self.p_dict['Drug_Resistant_Strings'], drug_resistant_strings)
         self.assertEqual(self.p_dict['Drug_Resistant_And_HRP_Statistic_Type'], drug_resistant_statistic_type)
@@ -625,28 +655,24 @@ class TestMalariaReport(unittest.TestCase):
     # region ReportVectorStatsMalariaGenetics
     def test_report_vector_stats_malaria_genetics_custom(self):
         species_list = ["gambiae", "funestus"]
-        stratify_by_species = 1
-        include_wolbachia = 1
-        include_gestation = 1
         barcodes = ["AAATTAGC"]
-        include_microsporidia = 1
         self.tmp_reporter = add_report_vector_stats_malaria_genetics(None, schema_path_file,
                                                                      species_list=species_list,
-                                                                     stratify_by_species=stratify_by_species,
-                                                                     include_death_state=include_gestation,
-                                                                     include_wolbachia=include_wolbachia,
-                                                                     include_gestation=include_gestation,
+                                                                     stratify_by_species=True,
+                                                                     include_death_state=True,
+                                                                     include_wolbachia=True,
+                                                                     include_gestation=True,
                                                                      barcodes=barcodes,
-                                                                     include_microsporidia=include_microsporidia)
+                                                                     include_microsporidia=True)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Species_List'], species_list)
-        self.assertEqual(self.p_dict['Stratify_By_Species'], stratify_by_species)
-        self.assertEqual(self.p_dict['Include_Wolbachia_Columns'], include_wolbachia)
-        self.assertEqual(self.p_dict['Include_Gestation_Columns'], include_gestation)
-        self.assertEqual(self.p_dict['Include_Death_By_State_Columns'], include_gestation)
+        self.assertEqual(self.p_dict['Stratify_By_Species'], 1)
+        self.assertEqual(self.p_dict['Include_Wolbachia_Columns'], 1)
+        self.assertEqual(self.p_dict['Include_Gestation_Columns'], 1)
+        self.assertEqual(self.p_dict['Include_Death_By_State_Columns'], 1)
         self.assertEqual(self.p_dict['Barcodes'], barcodes)
-        self.assertEqual(self.p_dict['Include_Microsporidia_Columns'], include_microsporidia)
+        self.assertEqual(self.p_dict['Include_Microsporidia_Columns'], 1)
 
     def test_report_vector_stats_malaria_genetics_default(self):
         species_list = empty_list
