@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "Malaria-Ongoing(041e2b7a85)",
-        "DTK_Build_Date": "Jan 20 2023",
-        "DTK_Version": "2.20.5357.0"
+        "DTK_Branch": "Malaria-Ongoing(ae4ed57986)",
+        "DTK_Build_Date": "Feb  1 2023",
+        "DTK_Version": "2.20.5360.0"
     },
     "config": {
         "Climate.ByData": {
@@ -3836,7 +3836,8 @@
                     "WouldHaveEnteredLatentStage",
                     "HIVInfectionStageEnteredLatent",
                     "HIVInfectionStageEnteredAIDS",
-                    "HIVInfectionStageEnteredOnART"
+                    "HIVInfectionStageEnteredOnART",
+                    "NewMalariaInfectionObject"
                 ],
                 "default": [],
                 "depends-on": {
@@ -5554,7 +5555,8 @@
                         "WouldHaveEnteredLatentStage",
                         "HIVInfectionStageEnteredLatent",
                         "HIVInfectionStageEnteredAIDS",
-                        "HIVInfectionStageEnteredOnART"
+                        "HIVInfectionStageEnteredOnART",
+                        "NewMalariaInfectionObject"
                     ],
                     "default": [],
                     "description": "The list of events that are of interest to the community health worker (CHW). If one of these events occurs, the individual or node is put into a queue to receive the CHW's intervention. The CHW processes the queue when the event coordinator is updated.",
@@ -6530,7 +6532,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The event that triggers the drug intervention campaign.",
@@ -6858,7 +6861,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The event that should occur at the end of the delay period.",
@@ -6973,7 +6977,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The name of the event to broadcast to selected nodes.",
@@ -7101,7 +7106,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The name of the event to be broadcast when the intervention is distributed to an individual. See the list of available events for possible values.",
@@ -7193,7 +7199,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The name of the event to be broadcast when the intervention is distributed to an individual. See the list of available events for possible values.",
@@ -7734,7 +7741,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "When the person stops using the contraceptive, this event will be broadcasted.",
@@ -8006,7 +8014,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If 'Event_Or_Config' is set to 'Event', this parameter defines the event to be broadcasted on a negative test result.",
@@ -8087,7 +8096,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If the test is positive, this specifies an event that can trigger another intervention when the event occurs. Only used if Event_Or_Config is set to Event.",
@@ -8459,7 +8469,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "When the person stops using the intervention, this event will be broadcasted.",
@@ -8670,7 +8681,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If 'Event_Or_Config' is set to 'Event', this parameter defines the event to be broadcasted on a negative test result.",
@@ -8755,7 +8767,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If the test is positive, this specifies an event that can trigger another intervention when the event occurs. Only used if Event_Or_Config is set to Event.",
@@ -9462,7 +9475,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The event that is broadcast when an individual discards their bed net, either by replacing an existing net or due to the expiration timer.",
@@ -9720,7 +9734,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "This parameter broadcasts when a new net is received, either the first net or a replacement net.",
@@ -9803,7 +9818,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "This parameter broadcasts each time step in which a bed net is used.",
@@ -10519,7 +10535,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If the test is positive, this specifies an event that can trigger another intervention when the event occurs. Only used if Event_Or_Config is set to Event.",
@@ -10612,7 +10629,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The event of an actual intervention sought. Selects a class for the intervention and configures the parameters specific for that intervention class. See the list of available events for possible values.",
@@ -11007,7 +11025,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If 'Event_Or_Config' is set to 'Event', this parameter defines the event to be broadcasted on a negative test result.",
@@ -11092,7 +11111,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "If the test is positive, this specifies an event that can trigger another intervention when the event occurs. Only used if Event_Or_Config is set to Event.",
@@ -11192,7 +11212,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The event that is broadcast when an individual discards their bed net, either by replacing an existing net or due to the expiration timer.",
@@ -11476,7 +11497,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "This parameter broadcasts when a new net is received, either the first net or a replacement net.",
@@ -11563,7 +11585,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "This parameter broadcasts each time step in which a bed net is used.",
@@ -12907,7 +12930,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": "",
                         "description": "The event to broadcast if an intervention cannot be distributed due to the Blackout_Period.",
@@ -13105,7 +13129,8 @@
                             "WouldHaveEnteredLatentStage",
                             "HIVInfectionStageEnteredLatent",
                             "HIVInfectionStageEnteredAIDS",
-                            "HIVInfectionStageEnteredOnART"
+                            "HIVInfectionStageEnteredOnART",
+                            "NewMalariaInfectionObject"
                         ],
                         "default": [],
                         "description": "A list of events that trigger a health seeking intervention.",
@@ -14269,7 +14294,8 @@
                         "WouldHaveEnteredLatentStage",
                         "HIVInfectionStageEnteredLatent",
                         "HIVInfectionStageEnteredAIDS",
-                        "HIVInfectionStageEnteredOnART"
+                        "HIVInfectionStageEnteredOnART",
+                        "NewMalariaInfectionObject"
                     ],
                     "default": [],
                     "description": "The list of triggers for the events included in the report.",
@@ -14445,7 +14471,8 @@
                         "WouldHaveEnteredLatentStage",
                         "HIVInfectionStageEnteredLatent",
                         "HIVInfectionStageEnteredAIDS",
-                        "HIVInfectionStageEnteredOnART"
+                        "HIVInfectionStageEnteredOnART",
+                        "NewMalariaInfectionObject"
                     ],
                     "default": [],
                     "description": "The list of triggers for the events included in the report.",
@@ -14931,6 +14958,11 @@
                     "default": "",
                     "description": "Name of the key to add a column for.",
                     "type": "string"
+                },
+                "Include_Identity_By_XXX": {
+                    "default": 0,
+                    "description": "Include columns about the average Identity By State (IBS) and Identity By Descent (IBD) for all new infections with unique barcodes in the last year.",
+                    "type": "bool"
                 },
                 "Sim_Types": [
                     "MALARIA_SIM"
@@ -15614,7 +15646,8 @@
                     "WouldHaveEnteredLatentStage",
                     "HIVInfectionStageEnteredLatent",
                     "HIVInfectionStageEnteredAIDS",
-                    "HIVInfectionStageEnteredOnART"
+                    "HIVInfectionStageEnteredOnART",
+                    "NewMalariaInfectionObject"
                 ],
                 "default": [],
                 "description": "A list of events that will trigger an intervention.",
