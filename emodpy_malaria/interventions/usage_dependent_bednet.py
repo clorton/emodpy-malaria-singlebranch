@@ -82,6 +82,9 @@ def add_scheduled_usage_dependent_bednet(
         blocking_initial_effect: float = 0.9,
         blocking_box_duration: int = 0,
         blocking_decay_time_constant: float = 730,
+        blocking_linear_times: list = None,
+        blocking_linear_values: list = None,
+        blocking_expire_at_end: int = 0,
         killing_initial_effect: float = 0,
         killing_box_duration: int = 0,
         killing_decay_time_constant: float = 1460,
@@ -120,7 +123,7 @@ def add_scheduled_usage_dependent_bednet(
         discard_config: A dictionary of parameters needed to define expiration distribution.
             No need to definite the distribution with all its parameters
             Default is bednet being discarded with EXPONENTIAL_DISTRIBUTION with Expiration_Period_Exponential of 10 years
-            
+
             Examples::
 
                     for Gaussian: {"Expiration_Period_Distribution": "GAUSSIAN_DISTRIBUTION",
@@ -139,6 +142,12 @@ def add_scheduled_usage_dependent_bednet(
         blocking_initial_effect: Initial strength of the Blocking effect. The effect may decay over time.
         blocking_box_duration: Box duration of effect in days before the decay of Blocking Initial_Effect.
         blocking_decay_time_constant: The exponential decay length, in days of the Blocking Initial_Effect.
+        blocking_linear_times: An array of days that matches the defined linear values for Blocking Initial_Effect
+        blocking_linear_values: An array of multiplier values that matches the defined linear days for
+            Blocking Initial_Effect.
+        blocking_expire_at_end: Set to 1 to have efficacy go to zero and let the intervention expire when the end of
+            the map is reached.  Only vaccines and bednet usage currently support this expiration feature.
+            defaults to 0.
         killing_initial_effect: Initial strength of the Killing effect. The effect may decay over time.
         killing_box_duration: Box duration of effect in days before the decay of Killing Initial_Effect.
         killing_decay_time_constant: The exponential decay length, in days of the Killing Initial_Effect.
@@ -190,6 +199,9 @@ def add_scheduled_usage_dependent_bednet(
                                            blocking_initial_effect=blocking_initial_effect,
                                            blocking_box_duration=blocking_box_duration,
                                            blocking_decay_time_constant=blocking_decay_time_constant,
+                                           blocking_linear_times=blocking_linear_times,
+                                           blocking_linear_values=blocking_linear_values,
+                                           blocking_expire_at_end=blocking_expire_at_end,
                                            killing_initial_effect=killing_initial_effect,
                                            killing_box_duration=killing_box_duration,
                                            killing_decay_time_constant=killing_decay_time_constant,
@@ -222,6 +234,9 @@ def add_triggered_usage_dependent_bednet(campaign,
                                          blocking_initial_effect: float = 0.9,
                                          blocking_box_duration: int = 0,
                                          blocking_decay_time_constant: float = 730,
+                                         blocking_linear_times: list = None,
+                                         blocking_linear_values: list = None,
+                                         blocking_expire_at_end: int = 0,
                                          killing_initial_effect: float = 0,
                                          killing_box_duration: int = 0,
                                          killing_decay_time_constant: float = 1460,
@@ -236,6 +251,7 @@ def add_triggered_usage_dependent_bednet(campaign,
         box_duration = 0 + decay_time_constant > 0 => WaningEffectExponential
         box_duration > 0 + decay_time_constant = 0 => WaningEffectBox/Constant (depending on duration)
         box_duration > 0 + decay_time_constant > 0 => WaningEffectBoxExponential
+        if any of the blocking_linear_* parameters are defined, only blocking_initial_effect is used.
 
     Args:
         campaign: campaign object to which the intervention will be added, and schema_path container
@@ -285,6 +301,12 @@ def add_triggered_usage_dependent_bednet(campaign,
         blocking_initial_effect: Initial strength of the Blocking effect. The effect may decay over time.
         blocking_box_duration: Box duration of effect in days before the decay of Blocking Initial_Effect.
         blocking_decay_time_constant: The exponential decay length, in days of the Blocking Initial_Effect.
+        blocking_linear_times: An array of days that matches the defined linear values for Blocking Initial_Effect.
+        blocking_linear_values: An array of multiplier values that matches the defined linear days for
+            Blocking Initial_Effect.
+        blocking_expire_at_end: Set to 1 to have efficacy go to zero and let the intervention expire when the end of
+            the map is reached.  Only vaccines and bednet usage currently support this expiration feature.
+            defaults to 0.
         killing_initial_effect: Initial strength of the Killing effect. The effect may decay over time.
         killing_box_duration: Box duration of effect in days before the decay of Killing Initial_Effect.
         killing_decay_time_constant: The exponential decay length, in days of the Killing Initial_Effect.
@@ -339,6 +361,9 @@ def add_triggered_usage_dependent_bednet(campaign,
                                            blocking_initial_effect=blocking_initial_effect,
                                            blocking_box_duration=blocking_box_duration,
                                            blocking_decay_time_constant=blocking_decay_time_constant,
+                                           blocking_linear_times=blocking_linear_times,
+                                           blocking_linear_values=blocking_linear_values,
+                                           blocking_expire_at_end=blocking_expire_at_end,
                                            killing_initial_effect=killing_initial_effect,
                                            killing_box_duration=killing_box_duration,
                                            killing_decay_time_constant=killing_decay_time_constant,
@@ -365,6 +390,9 @@ def _usage_dependent_bednet(campaign,
                             blocking_initial_effect: float = 0.9,
                             blocking_box_duration: int = 0,
                             blocking_decay_time_constant: float = 730,
+                            blocking_linear_times: list = None,
+                            blocking_linear_values: list = None,
+                            blocking_expire_at_end: int = 0,
                             killing_initial_effect: float = 0,
                             killing_box_duration: int = 0,
                             killing_decay_time_constant: float = 1460,
@@ -402,6 +430,14 @@ def _usage_dependent_bednet(campaign,
         blocking_box_duration: Box duration of effect in days before the decay of Blocking Initial_Effect.
             -1 indicates effect is indefinite (WaningEffectConstant)
         blocking_decay_time_constant: The exponential decay length, in days of the Blocking Initial_Effect.
+        blocking_linear_times: An array of days that matches the defined linear values for Blocking Initial_Effect
+            if this is set, WaningEffectMapLinear is used, box_duration and decay_time_constant is ignored for blocking
+        blocking_linear_values: An array of multiplier values that matches the defined linear days for
+            Blocking Initial_Effect. if this is set, WaningEffectMapLinear is used, box_duration and
+            decay_time_constant is ignored for blocking
+        blocking_expire_at_end: Set to 1 to have efficacy go to zero and let the intervention expire when the end of
+            the map is reached.  Only vaccines and bednet usage currently support this expiration feature.
+            defaults to 0.
         killing_initial_effect: Initial strength of the Killing effect. The effect may decay over time.
         killing_box_duration: Box duration of effect in days before the decay of Killing Initial_Effect.
             -1 indicates effect is indefinite (WaningEffectConstant)
@@ -430,15 +466,24 @@ def _usage_dependent_bednet(campaign,
         discard_config = {"Expiration_Period_Exponential": 10 * 365}
 
     schema_path = campaign.schema_path
-    blocking = utils.get_waning_from_params(schema_path=schema_path, initial=blocking_initial_effect,
-                                            box_duration=blocking_box_duration,
-                                            decay_time_constant=blocking_decay_time_constant)
-    killing = utils.get_waning_from_params(schema_path=schema_path, initial=killing_initial_effect,
-                                           box_duration=killing_box_duration,
-                                           decay_time_constant=killing_decay_time_constant)
-    repelling = utils.get_waning_from_params(schema_path=schema_path, initial=repelling_initial_effect,
-                                             box_duration=repelling_box_duration,
-                                             decay_time_constant=repelling_decay_time_constant)
+
+    if blocking_linear_values or blocking_linear_values:
+        if len(blocking_linear_times) != len(blocking_linear_values):
+            raise ValueError("'blocking_linear_times' and 'blocking_linear_values' lists must be the same length.\n")
+        times_values = list(zip(blocking_linear_times, blocking_linear_values))
+        blocking = utils.get_waning_from_points(schema_path=schema_path, initial=blocking_initial_effect,
+                                                times_values=times_values,
+                                                expire_at_end=blocking_expire_at_end)
+    else:
+        blocking = utils.get_waning_from_parameters(schema_path=schema_path, initial=blocking_initial_effect,
+                                                    box_duration=blocking_box_duration,
+                                                    decay_time_constant=blocking_decay_time_constant)
+    killing = utils.get_waning_from_parameters(schema_path=schema_path, initial=killing_initial_effect,
+                                               box_duration=killing_box_duration,
+                                               decay_time_constant=killing_decay_time_constant)
+    repelling = utils.get_waning_from_parameters(schema_path=schema_path, initial=repelling_initial_effect,
+                                                 box_duration=repelling_box_duration,
+                                                 decay_time_constant=repelling_decay_time_constant)
 
     intervention = s2c.get_class_with_defaults("UsageDependentBednet", schema_path)
 
