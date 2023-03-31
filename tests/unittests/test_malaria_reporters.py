@@ -602,7 +602,8 @@ class TestMalariaReport(unittest.TestCase):
                                                                           drug_resistant_and_hrp_statistic_type=drug_resistant_statistic_type,
                                                                           age_bins=age_bins,
                                                                           ip_key_to_collect=individual_property_to_collect,
-                                                                          stratify_by_gender=False)
+                                                                          stratify_by_gender=False,
+                                                                          include_identity_by_xxx=True)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Age_Bins'], age_bins)
@@ -611,6 +612,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Barcodes'], barcodes)
         self.assertEqual(self.p_dict['Drug_Resistant_Strings'], drug_resistant_strings)
         self.assertEqual(self.p_dict['Drug_Resistant_And_HRP_Statistic_Type'], drug_resistant_statistic_type)
+        self.assertEqual(self.p_dict['Include_Identity_By_XXX'], 1)
 
     def test_report_node_demographics_malaria_genetics_default(self):
         barcodes = empty_list
@@ -628,6 +630,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Barcodes'], barcodes)
         self.assertEqual(self.p_dict['Drug_Resistant_Strings'], drug_resistant_strings)
         self.assertEqual(self.p_dict['Drug_Resistant_And_HRP_Statistic_Type'], drug_resistant_statistic_type)
+        self.assertEqual(self.p_dict['Include_Identity_By_XXX'], 0)
 
     # end region
 

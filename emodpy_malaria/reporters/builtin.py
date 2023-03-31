@@ -1036,7 +1036,8 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
                                                   hrp_strings: list = None,
                                                   age_bins: list = None,
                                                   ip_key_to_collect: str = "",
-                                                  stratify_by_gender: bool = True):
+                                                  stratify_by_gender: bool = True,
+                                                  include_identity_by_xxx: bool = False):
     """
     Adds ReportNodeDemographicsMalariaGenetics report to the simulation.
     See class definition for description of the report.
@@ -1062,6 +1063,8 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
         ip_key_to_collect: The name of theIndividualProperties key by which to stratify the report.
             An empty string does not stratify by Individual Properties
         stratify_by_gender: if True(1), to stratify by gender. Set to False(0) to not stratify by gender.
+        include_identity_by_xxx: if True(1), include columns about the average Identity By State (IBS) and
+            Identity By Descent (IBD) for all new infections with unique barcodes in the last year.
 
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -1077,6 +1080,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
         params.Drug_Resistant_Strings = drug_resistant_strings if drug_resistant_strings else []
         params.HRP_Strings = hrp_strings if hrp_strings else []
         params.Drug_Resistant_And_HRP_Statistic_Type = drug_resistant_and_hrp_statistic_type
+        params.Include_Identity_By_XXX = 1 if include_identity_by_xxx else 0
         return params
 
     reporter.config(rec_config_builder, manifest)
@@ -1767,3 +1771,4 @@ class ReportFpgOutputForObservationalModel(BuiltInReporter):
         report_params.finalize()
         report_params.pop("Sim_Types")
         self.parameters.update(dict(report_params))
+
