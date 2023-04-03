@@ -1373,6 +1373,33 @@ def add_report_fpg_output(task, manifest,
         return reporter
 
 
+def add_report_simulation_stats(task, manifest):
+    """
+    Adds ReportSimulationStats to collect data on the computational performance of the model
+    (duration, memory, number of persisted interventions, etc).
+
+    There are no special parameter that need to be configured to generate the report.
+
+    Args:
+        task: task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: schema path file
+
+    Returns:
+        if task is not set, returns the configured reporter, otherwise returns nothing
+    """
+
+    reporter = ReportSimulationStats()  # Create the reporter
+
+    def rec_config_builder(params):  # not used yet
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
 @dataclass
 class ReportVectorGenetics(BuiltInReporter):
     """
@@ -1684,7 +1711,7 @@ class ReportNodeDemographicsMalaria(BuiltInReporter):
     Genome_Markers because this report assumes that the simulation setup parameter Malaria_Model is set to
     MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS.
 
-    Note: If you need detailed data on the infections with different barcodes, use the MalariaSqlReport. That report
+    Note: If you need detailed data on the infections with different barcodes, use the SqlReportMalaria. That report
     contains data on all barcodes, without specifying what they are.
     """
 
@@ -1705,7 +1732,7 @@ class ReportNodeDemographicsMalariaGenetics(BuiltInReporter):
     Genome_Markers because this report assumes that the simulation setup parameter Malaria_Model is set to
     MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS.
 
-    Note: If you need detailed data on the infections with different barcodes, use the MalariaSqlReport. That report
+    Note: If you need detailed data on the infections with different barcodes, use the SqlReportMalaria. That report
     contains data on all barcodes, without specifying what they are.
     """
 
@@ -1789,6 +1816,22 @@ class ReportFpgOutputForObservationalModel(BuiltInReporter):
     def config(self, config_builder, manifest):
         self.class_name = "ReportFpgOutputForObservationalModel"
         report_params = s2c.get_class_with_defaults("ReportFpgOutputForObservationalModel", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))
+
+
+@dataclass
+class ReportSimulationStats(BuiltInReporter):
+    """
+    Adds ReportSimulationStats to collect data on the computational performance of the model
+    (duration, memory, number of persisted interventions, etc).
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportSimulationStats"
+        report_params = s2c.get_class_with_defaults("ReportSimulationStats", manifest.schema_file)
         report_params = config_builder(report_params)
         report_params.finalize()
         report_params.pop("Sim_Types")

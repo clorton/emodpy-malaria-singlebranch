@@ -528,6 +528,14 @@ class TestMalariaReport(unittest.TestCase):
         self.assertIsNotNone(self.tmp_reporter)
     # end region
 
+    # ReportSimulationStats
+    def test_add_report_simulation_stats(self):
+        self.assertIsNone(self.tmp_reporter)
+        self.tmp_reporter = add_drug_status_report(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
+    # end region
+
     # ReportMicrosporidia
     def test_report_microsporidia(self):
         self.assertIsNone(self.tmp_reporter)
