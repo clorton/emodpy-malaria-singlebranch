@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "Malaria-Ongoing(ae4ed57986)",
-        "DTK_Build_Date": "Feb  1 2023",
-        "DTK_Version": "2.20.5360.0"
+        "DTK_Branch": "Malaria-Ongoing(59f1741ac8)",
+        "DTK_Build_Date": "Mar 30 2023",
+        "DTK_Version": "2.20.5376.0"
     },
     "config": {
         "Climate.ByData": {
@@ -12643,10 +12643,10 @@
                         "min": 0,
                         "type": "float"
                     },
-                    "Released_Microsporidia": {
-                        "default": 0,
+                    "Released_Microsporidia_Strain": {
+                        "default": "",
                         "description": "A boolean indicating if the released vectors are infected with microsporidia or not.",
-                        "type": "bool"
+                        "type": "string"
                     },
                     "Released_Number": {
                         "default": 10000,
@@ -14536,11 +14536,6 @@
                     "min": 0,
                     "type": "float"
                 },
-                "Filename_Suffix": {
-                    "default": "",
-                    "description": "Augments the filename of the report. If multiple reports are being generated, this allows you to distinguish among the multiple reports.",
-                    "type": "string"
-                },
                 "Include_Barcode_IDs": {
                     "default": 0,
                     "description": "Add a column that has a list of Barcode IDs (hashcode) for the person.",
@@ -14867,6 +14862,14 @@
                     "type": "float"
                 },
                 "class": "ReportMalariaFilteredIntraHost"
+            },
+            "ReportMicrosporidia": {
+                "Sim_Types": [
+                    "VECTOR_SIM",
+                    "MALARIA_SIM",
+                    "DENGUE_SIM"
+                ],
+                "class": "ReportMicrosporidia"
             },
             "ReportNodeDemographics": {
                 "Age_Bins": {
@@ -15986,6 +15989,71 @@
             },
             "class": "MalariaDrugTypeParameters"
         },
+        "idmType:MicrosporidiaParameters": {
+            "Duration_To_Disease_Acquisition_Modification": {
+                "description": "A modifier is selected based on the duration of the age of the microsporidia infection.  The modifier is used to modify the probability the vector aquires the disease (i.e. malaria).",
+                "type": "idmType:InterpolatedValueMap"
+            },
+            "Duration_To_Disease_Transmission_Modification": {
+                "description": "A modifier is selected based on the duration of the age of the microsporidia infection.  The modifier is used to modify the probability the vector transmit the disease (i.e. malaria).",
+                "type": "idmType:InterpolatedValueMap"
+            },
+            "Female_Mortality_Modifier": {
+                "default": 1,
+                "description": "A modifier on the death rate for female vectors due to general life expectancy, age, and dry heat",
+                "max": 3.40282e+38,
+                "min": 0,
+                "type": "float"
+            },
+            "Female_To_Egg_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability an infected female will infect her eggs when laying them.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Female_To_Male_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability an infected female will infect an uninfected male during mating.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Larval_Growth_Modifier": {
+                "default": 1,
+                "description": "A modifier to the daily, temperature dependent, larval growth progression to immature.",
+                "max": 3.40282e+38,
+                "min": 0,
+                "type": "float"
+            },
+            "Male_Mortality_Modifier": {
+                "default": 1,
+                "description": "A modifier on the death rate for male vectors due to general life expectancy, age, and dry heat",
+                "max": 3.40282e+38,
+                "min": 0,
+                "type": "float"
+            },
+            "Male_To_Egg_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability a female that mated with an infected male will infect her eggs when laying them, independent of her being infected and transmitting to her offspring.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Male_To_Female_Transmission_Probability": {
+                "default": 0,
+                "description": "The probability an infected male will infect an uninfected female during mating.",
+                "max": 1,
+                "min": 0,
+                "type": "float"
+            },
+            "Strain_Name": {
+                "default": "UNINITIALIZED STRING",
+                "description": "The name/identifier of the collection of transmission parameters. Cannot be empty string.",
+                "type": "string"
+            },
+            "class": "MicrosporidiaParameters"
+        },
         "idmType:NodeIdAndCoverage": {
             "Coverage": {
                 "default": 0,
@@ -16842,55 +16910,11 @@
                 "min": 1,
                 "type": "float"
             },
-            "Microsporidia_Duration_To_Disease_Acquisition_Modification": {
-                "description": "A modifier is selected based on the duration of the age of the microsporidia infection.  The modifier is used to modify the probability the vector aquires the disease (i.e. malaria).",
-                "type": "idmType:InterpolatedValueMap"
-            },
-            "Microsporidia_Duration_To_Disease_Transmission_Modification": {
-                "description": "A modifier is selected based on the duration of the age of the microsporidia infection.  The modifier is used to modify the probability the vector transmit the disease (i.e. malaria).",
-                "type": "idmType:InterpolatedValueMap"
-            },
-            "Microsporidia_Female_Mortality_Modifier": {
-                "default": 1,
-                "description": "A modifier on the death rate for female vectors due to general life expectancy, age, and dry heat",
-                "max": 3.40282e+38,
-                "min": 0,
-                "type": "float"
-            },
-            "Microsporidia_Female_To_Egg_Transmission_Probability": {
-                "default": 0,
-                "description": "The probability an infected female will infect her eggs when laying them.",
-                "max": 1,
-                "min": 0,
-                "type": "float"
-            },
-            "Microsporidia_Female_To_Male_Transmission_Probability": {
-                "default": 0,
-                "description": "The probability an infected female will infect an uninfected male during mating.",
-                "max": 1,
-                "min": 0,
-                "type": "float"
-            },
-            "Microsporidia_Larval_Growth_Modifier": {
-                "default": 1,
-                "description": "A modifier to the daily, temperature dependent, larval growth progression to immature.",
-                "max": 3.40282e+38,
-                "min": 0,
-                "type": "float"
-            },
-            "Microsporidia_Male_Mortality_Modifier": {
-                "default": 1,
-                "description": "A modifier on the death rate for male vectors due to general life expectancy, age, and dry heat",
-                "max": 3.40282e+38,
-                "min": 0,
-                "type": "float"
-            },
-            "Microsporidia_Male_To_Female_Transmission_Probability": {
-                "default": 0,
-                "description": "The probability an infected male will infect an uninfected female during mating.",
-                "max": 1,
-                "min": 0,
-                "type": "float"
+            "Microsporidia": {
+                "default": [],
+                "description": "A list of microsporidia parameters for each strain that this species can get.",
+                "item_type": "idmType:MicrosporidiaParameters",
+                "type": "Vector idmType:MicrosporidiaParameters"
             },
             "Name": {
                 "default": "UNINITIALIZED STRING",

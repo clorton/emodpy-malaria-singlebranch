@@ -1282,6 +1282,30 @@ def add_report_intervention_pop_avg(task, manifest,
         return reporter
 
 
+def add_report_microsporidia(task, manifest):
+    """
+    Adds ReportMicrosporidia reporter. See class definition for description of the report.
+    There are no special parameter that need to be configured to generate the report.
+
+    Args:
+        task: Task to which to add the reporter, if left as None, reporter is returned (used for unittests)
+        manifest: Schema path file
+
+    Returns:
+        if task is not set, returns the configured reporter, otherwise returns nothing
+    """
+    reporter = ReportMicrosporidia()  # Create the reporter
+
+    def rec_config_builder(params):
+        return params
+
+    reporter.config(rec_config_builder, manifest)
+    if task:
+        task.reporters.add_reporter(reporter)
+    else:  # assume we're running a unittest
+        return reporter
+
+
 def add_report_fpg_output(task, manifest,
                           start_day: int = 0,
                           end_day: int = 365000,
@@ -1290,7 +1314,6 @@ def add_report_fpg_output(task, manifest,
                           max_age_years: float = 125,
                           must_have_ip_key_value: str = "",
                           must_have_intervention: str = "",
-                          filename_suffix: str = "",
                           include_barcode_ids: bool = False,
                           minimum_parasite_density: float = 1,
                           sampling_period: float = 1):
@@ -1337,7 +1360,6 @@ def add_report_fpg_output(task, manifest,
         params.Min_Age_Years = min_age_years
         params.Must_Have_IP_Key_Value = must_have_ip_key_value
         params.Must_Have_Intervention = must_have_intervention
-        params.Filename_Suffix = filename_suffix
         params.Include_Barcode_IDs = 1 if include_barcode_ids else 0
         params.Minimum_Parasite_Density = minimum_parasite_density
         params.Sampling_Period = sampling_period
@@ -1772,3 +1794,19 @@ class ReportFpgOutputForObservationalModel(BuiltInReporter):
         report_params.pop("Sim_Types")
         self.parameters.update(dict(report_params))
 
+
+@dataclass
+class ReportMicrosporidia(BuiltInReporter):
+    """
+    ReportMicrosporidia generates a ReportMicrosporidia.csv. It is a stratified report where the data is stratified
+    by time, node, species and microsporidia strain; with columns of counts of vectors in each state for that
+    stratification.
+    """
+
+    def config(self, config_builder, manifest):
+        self.class_name = "ReportMicrosporidia"
+        report_params = s2c.get_class_with_defaults("ReportMicrosporidia", manifest.schema_file)
+        report_params = config_builder(report_params)
+        report_params.finalize()
+        report_params.pop("Sim_Types")
+        self.parameters.update(dict(report_params))

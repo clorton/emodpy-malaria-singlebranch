@@ -65,7 +65,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Include_Death_By_State_Columns'], 1)
         self.assertEqual(self.p_dict['Include_Microsporidia_Columns'], 1)
         pass
-
     # endregion
 
     # region ReportVectorGenetics
@@ -157,7 +156,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Alleles_For_Stratification'], ["a0", "a1", "b0", "b1"])
         self.assertEqual(self.p_dict['Stratify_By'], "ALLELE_FREQ")
         pass
-
     # endregion
 
     # region malaria patient json report
@@ -189,7 +187,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['End_Day'], test_end_day)
         self.assertEqual(self.p_dict['Reporting_Interval'], test_int)
         pass
-
     # endregion
 
     # region MalariaSummaryReport
@@ -259,7 +256,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Reporting_Interval'], test_float)
         self.assertEqual(self.p_dict['Start_Day'], test_start_day)
         pass
-
     # endregion
 
     # SqlReportMalaria
@@ -290,7 +286,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Include_Health_Table'], 0)
         self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 1)
         self.assertEqual(self.p_dict['Include_Individual_Properties'], 1)
-
     # end region
 
     # SqlReportMalariaGenetics
@@ -321,7 +316,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Include_Health_Table'], 0)
         self.assertEqual(self.p_dict['Include_Drug_Status_Table'], 1)
         self.assertEqual(self.p_dict['Include_Individual_Properties'], 1)
-
     # end region
 
     # start region ReportEventCounter
@@ -362,7 +356,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Max_Age_Years'], test_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], test_min_age)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], test_list)
-
     # end region
 
     # region ReportSimpleMalariaTransimission
@@ -414,7 +407,6 @@ class TestMalariaReport(unittest.TestCase):
         self.tmp_reporter = add_vector_habitat_report(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
-
     # end region
 
     # MalariaImmunityReport
@@ -457,7 +449,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], test_string)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], test_list)
-
     # end region
 
     # MalariaSurveyJSONAnalyzer
@@ -509,7 +500,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list),
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], empty_string)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
-
     # end region
 
     # ReportDrugStatus
@@ -528,7 +518,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], default_start_day)
         self.assertEqual(self.p_dict['End_Day'], default_end_day)
-
     # end region
 
     # ReportHumanMigrationTracking
@@ -537,7 +526,14 @@ class TestMalariaReport(unittest.TestCase):
         self.tmp_reporter = add_drug_status_report(None, schema_path_file)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
+    # end region
 
+    # ReportMicrosporidia
+    def test_report_microsporidia(self):
+        self.assertIsNone(self.tmp_reporter)
+        self.tmp_reporter = add_report_microsporidia(None, schema_path_file)
+        self.p_dict = self.tmp_reporter.parameters
+        self.assertIsNotNone(self.tmp_reporter)
     # end region
 
     # ReportNodeDemographics
@@ -560,7 +556,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Age_Bins'], empty_list)
         self.assertEqual(self.p_dict['IP_Key_To_Collect'], empty_string)
         self.assertEqual(self.p_dict['Stratify_By_Gender'], stratify_by_gender)
-
     # end region
 
     # ReportNodeDemographicsMalaria
@@ -851,7 +846,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Start_Day'], default_start_day)
         self.assertEqual(self.p_dict['End_Day'], default_end_day)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], empty_list)
-        self.assertEqual(self.p_dict['Filename_Suffix'], empty_string)
         self.assertEqual(self.p_dict['Max_Age_Years'], default_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], default_min_age)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], empty_string)
@@ -864,7 +858,6 @@ class TestMalariaReport(unittest.TestCase):
         self.tmp_reporter = add_report_fpg_output(None, schema_path_file,
                                                   start_day=test_start_day,
                                                   end_day=test_end_day,
-                                                  filename_suffix=test_string2,
                                                   node_ids=test_list,
                                                   min_age_years=test_min_age,
                                                   max_age_years=test_max_age,
@@ -878,7 +871,6 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Start_Day'], test_start_day)
         self.assertEqual(self.p_dict['End_Day'], test_end_day)
         self.assertEqual(self.p_dict['Node_IDs_Of_Interest'], test_list)
-        self.assertEqual(self.p_dict['Filename_Suffix'], test_string2)
         self.assertEqual(self.p_dict['Max_Age_Years'], test_max_age)
         self.assertEqual(self.p_dict['Min_Age_Years'], test_min_age)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
