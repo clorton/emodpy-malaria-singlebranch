@@ -896,7 +896,13 @@ def add_drug_status_report(task, manifest,
 def add_report_infection_stats_malaria(task, manifest,
                                        start_day: int = 0,
                                        end_day: int = 365000,
-                                       reporting_interval: int = 30):
+                                       reporting_interval: int = 30,
+                                       include_hepatocyte: bool = True,
+                                       hepatocyte_threshold: int = 0,
+                                       include_irbc: bool = True,
+                                       irbc_threshold: int = 0,
+                                       include_gametocyte: bool = True,
+                                       gametocyte_threshold: int = 0):
     """
     Adds ReportInfectionStatsMalaria report to the simulation.
     See class definition for description of the report.
@@ -908,6 +914,21 @@ def add_report_infection_stats_malaria(task, manifest,
         end_day: the day of the simulation to stop collecting data
         reporting_interval: defines the cadence of the report by specifying how many time steps to collect data
             before writing to the file
+        include_hepatocyte: If set to True, then a column will be added to the report providing the count of the
+            infected hepatocytes. Default is True.
+        hepatocyte_threshold: If the column is included and the number of hepatocytes related to this
+            infection are greater than or equal to this value, then the row of data will be included. Default is 0,
+            so any/all counts of hepatocytes will be included.
+        include_irbc: If set to True, then a column will be added to the report with the number of Infected Red
+            Blood Cells from this infection. Default is True.
+        irbc_threshold: If the column is included and the number of IRBCs related to this infection are greater
+            than or equal to this value, then the row of data will be included. Default is 0,
+            so any/all counts of IRBCs will be included.
+        include_gametocyte: If set to True, then a column will be added to the report that contains the number
+            of gametocytes (male & female) from this infection. Default is True.
+        gametocyte_threshold: "If the column is included and the number of gametocytes related to this infection
+            are greater than or equal to this value, then the row of data will be included. Default is 0,
+            so any/all counts of gametocytes will be included.
 
     Returns:
         if task is not set, returns the configured reporter, otherwise returns nothing
@@ -919,6 +940,12 @@ def add_report_infection_stats_malaria(task, manifest,
         params.Start_Day = start_day
         params.End_Day = end_day
         params.Reporting_Interval = reporting_interval
+        params.Include_Column_Hepatocyte = include_hepatocyte
+        params.Include_Column_IRBC = include_irbc
+        params.Include_Column_Gametocyte = include_gametocyte
+        params.Include_Data_Threshold_Hepatocytes = hepatocyte_threshold
+        params.Include_Data_Threshold_IRBC = irbc_threshold
+        params.Include_Data_Threshold_Gametocytes = gametocyte_threshold
         return params
 
     reporter.config(rec_config_builder, manifest)

@@ -1,8 +1,8 @@
 {
     "Version": {
-        "DTK_Branch": "Malaria-Ongoing(59f1741ac8)",
-        "DTK_Build_Date": "Mar 30 2023",
-        "DTK_Version": "2.20.5376.0"
+        "DTK_Branch": "Malaria-Ongoing(e063826e8f)",
+        "DTK_Build_Date": "Mar 31 2023",
+        "DTK_Version": "2.20.5377.0"
     },
     "config": {
         "Climate.ByData": {
@@ -14629,6 +14629,42 @@
                 "End_Day": {
                     "default": 3.40282e+38,
                     "description": "The day of the simulation to stop collecting data.",
+                    "max": 3.40282e+38,
+                    "min": 0,
+                    "type": "float"
+                },
+                "Include_Column_Gametocyte": {
+                    "default": 1,
+                    "description": "If set to true (1), then a column will be added to the report that contains the number of gametocytes (male & female) from this infection.",
+                    "type": "bool"
+                },
+                "Include_Column_Hepatocyte": {
+                    "default": 1,
+                    "description": "If set to true (1), then a column will be added to the report providing the count of the infected hepatocytes.",
+                    "type": "bool"
+                },
+                "Include_Column_IRBC": {
+                    "default": 1,
+                    "description": "If set to true (1), then a column will be added to the report with the number of Infected Red Blood Cells from this infection.",
+                    "type": "bool"
+                },
+                "Include_Data_Threshold_Gametocytes": {
+                    "default": 0,
+                    "description": "If the column is included and the number of gametocytes related to this infection are greater than or equal to this value, then the row of data will be included.",
+                    "max": 3.40282e+38,
+                    "min": 0,
+                    "type": "float"
+                },
+                "Include_Data_Threshold_Hepatocytes": {
+                    "default": 0,
+                    "description": "If the column is included and the number of hepatocytes related to this infection are greater than or equal to this value, then the row of data will be included.",
+                    "max": 3.40282e+38,
+                    "min": 0,
+                    "type": "float"
+                },
+                "Include_Data_Threshold_IRBC": {
+                    "default": 0,
+                    "description": "If the column is included and the number of IRBCs related to this infection are greater than or equal to this value, then the row of data will be included.",
                     "max": 3.40282e+38,
                     "min": 0,
                     "type": "float"

@@ -174,18 +174,33 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Start_Day'], default_start_day)
         self.assertEqual(self.p_dict['End_Day'], default_end_day)
         self.assertEqual(self.p_dict['Reporting_Interval'], 30)
+        self.assertEqual(self.p_dict['Include_Column_Gametocyte'], 1)
+        self.assertEqual(self.p_dict['Include_Column_Hepatocyte'], 1)
+        self.assertEqual(self.p_dict['Include_Column_IRBC'], 1)
+        self.assertEqual(self.p_dict['Include_Data_Threshold_Gametocytes'], 0)
+        self.assertEqual(self.p_dict['Include_Data_Threshold_Hepatocytes'], 0)
+        self.assertEqual(self.p_dict['Include_Data_Threshold_IRBC'], 0)
 
         pass
 
     def test_report_infection_stats_custom(self):
         self.tmp_reporter = add_report_infection_stats_malaria(None, schema_path_file,
                                                                start_day=test_start_day, end_day=test_end_day,
-                                                               reporting_interval=test_int)
+                                                               reporting_interval=test_int,
+                                                               include_irbc=False, include_gametocyte=False,
+                                                               include_hepatocyte=False, irbc_threshold=2,
+                                                               hepatocyte_threshold=3802300, gametocyte_threshold=20)
         self.p_dict = self.tmp_reporter.parameters
         self.assertIsNotNone(self.tmp_reporter)
         self.assertEqual(self.p_dict['Start_Day'], test_start_day)
         self.assertEqual(self.p_dict['End_Day'], test_end_day)
         self.assertEqual(self.p_dict['Reporting_Interval'], test_int)
+        self.assertEqual(self.p_dict['Include_Column_Gametocyte'], 0)
+        self.assertEqual(self.p_dict['Include_Column_Hepatocyte'], 0)
+        self.assertEqual(self.p_dict['Include_Column_IRBC'], 0)
+        self.assertEqual(self.p_dict['Include_Data_Threshold_Gametocytes'], 20)
+        self.assertEqual(self.p_dict['Include_Data_Threshold_Hepatocytes'], 3802300)
+        self.assertEqual(self.p_dict['Include_Data_Threshold_IRBC'], 2)
         pass
     # endregion
 
