@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 
 from emodpy.reporters.base import BuiltInReporter
 from emod_api import schema_to_class as s2c
-import emod_api.interventions.utils as utils
 
 
 def check_vectors(task):
@@ -1341,6 +1340,7 @@ def add_report_fpg_output(task, manifest,
                           max_age_years: float = 125,
                           must_have_ip_key_value: str = "",
                           must_have_intervention: str = "",
+                          filename_suffix: str = "",
                           include_barcode_ids: bool = False,
                           minimum_parasite_density: float = 1,
                           sampling_period: float = 1):
@@ -1359,8 +1359,7 @@ def add_report_fpg_output(task, manifest,
             means don't look at IPs (individual properties)
         must_have_intervention: the name of the an intervention that the person must have in order to be included.
             Empty string means don't look at the interventions
-        filename_suffix: augments the filename of the report. If multiple reports are being generated,
-            this allows you to distinguish among the multiple reports
+        filename_suffix: NOT USED
         include_barcode_ids: Add a column that has a list of Barcode IDs (hashcode) for the person.
         minimum_parasite_density: The minimum density that the infection must have to be included in the list
             of infections. A value of zero implies include all infections. Number of asexual parasites
@@ -1376,6 +1375,8 @@ def add_report_fpg_output(task, manifest,
             raise ValueError(f"ERROR: This report only works with 'Malaria_Model' = "
                              f"'MALARIA_MECHANISTIC_MODEL_WITH_PARASITE_GENETICS', but you have "
                              f"'Malaria_Model' = '{task.config.parameters.Malaria_Model}' .\n")
+    if filename_suffix:
+        print("WARNING: add_report_fpg_output()'s filename_suffix is an unused parameter and will be ignored.\n")
 
     reporter = ReportFpgOutputForObservationalModel()  # Create the reporter
 

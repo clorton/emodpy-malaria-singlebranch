@@ -42,9 +42,9 @@ def build_campaign(microsporidia=True):
     campaign.set_schema(manifest.schema_file)
 
     add_scheduled_mosquito_release(campaign, 50, released_number=1000, released_species="gambiae",
-                                   released_microsporidia_strain="Strain_A", released_genome=[['X', 'Y']])
+                                   released_microsporidia=True, released_genome=[['X', 'Y']])
     add_scheduled_mosquito_release(campaign, 50, released_number=1000, released_species="gambiae",
-                                   released_microsporidia_strain="Strain_B", released_genome=[['X', 'Y']])
+                                   released_microsporidia="Strain_B", released_genome=[['X', 'Y']])
 
     return campaign
 
@@ -61,8 +61,6 @@ def set_config_parameters(config):
     config.parameters.Simulation_Duration = 100
     transmission_modification = {"Times": [0, 6], "Values": [1, 0.5]}
     malaria_config.add_microsporidia(config, manifest, species_name="gambiae",
-                                     strain_name="Strain_A",
-                                     male_to_egg_probability=0,
                                      female_to_male_probability=0,
                                      male_to_female_probability=0, female_to_egg_probability=0,
                                      duration_to_disease_acquisition_modification=None,

@@ -1378,7 +1378,7 @@ class TestMalariaInterventions(unittest.TestCase):
                                        released_infectious=released_infectious,
                                        released_species=released_species,
                                        released_genome=released_genome,
-                                       released_microsporidia_strain=released_microsporidia_strain)
+                                       released_microsporidia=released_microsporidia_strain)
         self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.start_day, start_day)

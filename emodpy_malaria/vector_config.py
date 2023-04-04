@@ -678,7 +678,7 @@ def set_max_larval_capacity(config, species_name, habitat_type, max_larval_capac
 
 
 def add_microsporidia(config, manifest, species_name: str = None,
-                      strain_name: str = None,
+                      strain_name: str = "Strain_A",
                       female_to_male_probability: float = 0,
                       female_to_egg_probability: float = 0,
                       male_to_female_probability: float = 0,

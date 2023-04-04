@@ -455,7 +455,7 @@ def set_max_larval_capacity(config, species_name: str, habitat_type: str, max_la
 
 
 def add_microsporidia(config, manifest, species_name: str = None,
-                      strain_name: str = None,
+                      strain_name: str = "Strain_A",
                       female_to_male_probability: float = 0,
                       female_to_egg_probability: float = 0,
                       male_to_female_probability: float = 0,
@@ -517,16 +517,18 @@ def add_microsporidia(config, manifest, species_name: str = None,
     Returns:
         Nothing
     """
-    vector_config.add_microsporidia(config, manifest, species_name,
-                                    strain_name,
-                                    female_to_male_probability,
-                                    female_to_egg_probability,
-                                    male_to_female_probability,
-                                    male_to_egg_probability,
-                                    duration_to_disease_acquisition_modification,
-                                    duration_to_disease_transmission_modification,
-                                    larval_growth_modifier,
-                                    female_mortality_modifier, male_mortality_modifier)
+    vector_config.add_microsporidia(config, manifest,
+                                    species_name=species_name,
+                                    strain_name=strain_name,
+                                    female_to_male_probability=female_to_male_probability,
+                                    female_to_egg_probability=female_to_egg_probability,
+                                    male_to_female_probability=male_to_female_probability,
+                                    male_to_egg_probability=male_to_egg_probability,
+                                    duration_to_disease_acquisition_modification=duration_to_disease_acquisition_modification,
+                                    duration_to_disease_transmission_modification=duration_to_disease_transmission_modification,
+                                    larval_growth_modifier=larval_growth_modifier,
+                                    female_mortality_modifier=female_mortality_modifier,
+                                    male_mortality_modifier=male_mortality_modifier)
 
 
 def configure_linear_spline(manifest, max_larval_capacity: float = pow(10, 8),

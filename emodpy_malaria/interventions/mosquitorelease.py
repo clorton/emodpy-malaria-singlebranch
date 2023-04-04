@@ -11,7 +11,7 @@ def _mosquito_release(campaign,
                       released_infectious: bool = False,
                       released_species: str = "arabiensis",
                       released_genome: list = None,
-                      released_microsporidia_strain: str = ""
+                      released_microsporidia: any = ""
                       ):
     """
         Configures node-targeted MosquitoRelease intervention
@@ -30,7 +30,7 @@ def _mosquito_release(campaign,
         released_species: The case sensitive name of the species of vectors to be released.
         released_genome: This defines the alleles of the genome of the vectors to be released.
             It must define all of the alleles including the gender 'gene'.  '*' is not allowed.
-        released_microsporidia_strain: String indicating the Strain_Name of the microsporidia strain being released.
+        released_microsporidia: String indicating the Strain_Name of the microsporidia strain being released.
 
     Returns:
         Configured MosquitoRelease intervention
@@ -40,6 +40,13 @@ def _mosquito_release(campaign,
     if (released_number and released_fraction) or (not released_number and not released_fraction):
         raise ValueError("Please define either released_number or released_fraction to determine how to release "
                          "mosquitoes, \n not both.\n")
+    if isinstance(released_microsporidia, bool):
+        if released_microsporidia:  # True, they wanted microsporidia
+            released_microsporidia = "Strain_A"
+            print("WARNING: add_scheduled_mosquito_release()'s released_microsporidia is now a string, "
+                  "which is the Strain_Name for microsporidia strain defined in config.\n")
+        else:  # False, no microsporidia
+            released_microsporidia = ""
 
     intervention = s2c.get_class_with_defaults("MosquitoRelease", campaign.schema_path)
     intervention.Intervention_Name = intervention_name
@@ -53,7 +60,7 @@ def _mosquito_release(campaign,
     intervention.Released_Species = released_species
     intervention.Released_Genome = released_genome
     intervention.Released_Wolbachia = "VECTOR_WOLBACHIA_FREE"
-    intervention.Released_Microsporidia_Strain = released_microsporidia_strain
+    intervention.Released_Microsporidia_Strain = released_microsporidia
     return intervention
 
 
@@ -69,7 +76,7 @@ def add_scheduled_mosquito_release(
         released_infectious: bool = False,
         released_species: str = "arabiensis",
         released_genome: list = None,
-        released_microsporidia_strain: str = ""):
+        released_microsporidia: any = None):
     """
         Adds to the campaign a node-level MosquitoRelease intervention
 
@@ -95,7 +102,7 @@ def add_scheduled_mosquito_release(
         released_species: The case sensitive name of the species of vectors to be released.
         released_genome: This defines the alleles of the genome of the vectors to be released.
             It must define all of the alleles including the gender 'gene'.  '*' is not allowed.
-        released_microsporidia_strain: The Strain_Name from the Microsporidia list defined for this species.
+        released_microsporidia: The Strain_Name from the Microsporidia list defined for this species.
             Each species has its own strains. Empty String means no microsporidia.
 
     Returns:
@@ -115,7 +122,7 @@ def add_scheduled_mosquito_release(
                                           released_infectious=released_infectious,
                                           released_species=released_species,
                                           released_genome=released_genome,
-                                          released_microsporidia_strain=released_microsporidia_strain)
+                                          released_microsporidia=released_microsporidia)
     add_campaign_event(campaign=campaign,
                        start_day=start_day,
                        node_ids=node_ids,
