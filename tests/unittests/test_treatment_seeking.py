@@ -19,7 +19,7 @@ import json
 class TreatmentSeekingTest(unittest.TestCase):
     runInComps = False
     debug = False
-    schema_path = schema_path_file.schema_path
+    schema_path = schema_path_file.schema_file
 
     def __init__(self, *args, **kwargs):
         super(TreatmentSeekingTest, self).__init__(*args, **kwargs)

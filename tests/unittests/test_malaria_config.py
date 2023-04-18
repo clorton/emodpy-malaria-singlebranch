@@ -26,7 +26,7 @@ class TestMalariaConfig(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.default_config = dfs.write_default_from_schema(schema_path_file.schema_path)  # default_config.json
+        cls.default_config = dfs.write_default_from_schema(schema_path_file.schema_file)  # default_config.json
 
     def setUp(self) -> None:
         self.is_debugging = False

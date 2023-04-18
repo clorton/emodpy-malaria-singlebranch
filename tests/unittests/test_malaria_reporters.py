@@ -873,7 +873,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Min_Age_Years'], default_min_age)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], empty_string)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], empty_string)
-        self.assertEqual(self.p_dict['Include_Barcode_IDs'], 0)
+        self.assertEqual(self.p_dict['Include_Genome_IDs'], 0)
         self.assertEqual(self.p_dict['Minimum_Parasite_Density'], 1)
         self.assertEqual(self.p_dict['Sampling_Period'], 1)
 
@@ -886,7 +886,7 @@ class TestMalariaReport(unittest.TestCase):
                                                   max_age_years=test_max_age,
                                                   must_have_intervention=test_string,
                                                   must_have_ip_key_value=test_string1,
-                                                  include_barcode_ids=True,
+                                                  include_genome_ids=True,
                                                   minimum_parasite_density=test_float,
                                                   sampling_period=test_int)
         self.p_dict = self.tmp_reporter.parameters
@@ -898,7 +898,7 @@ class TestMalariaReport(unittest.TestCase):
         self.assertEqual(self.p_dict['Min_Age_Years'], test_min_age)
         self.assertEqual(self.p_dict['Must_Have_IP_Key_Value'], test_string1)
         self.assertEqual(self.p_dict['Must_Have_Intervention'], test_string)
-        self.assertEqual(self.p_dict['Include_Barcode_IDs'], 1)
+        self.assertEqual(self.p_dict['Include_Genome_IDs'], 1)
         self.assertEqual(self.p_dict['Minimum_Parasite_Density'], test_float)
         self.assertEqual(self.p_dict['Sampling_Period'], test_int)
     # endregion

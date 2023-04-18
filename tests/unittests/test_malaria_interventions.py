@@ -79,7 +79,7 @@ class TestMalariaInterventions(unittest.TestCase):
         self.repelling_config = None
         self.usage_config = None
         self.schema_file = schema_path_file
-        camp.schema_path = schema_path_file.schema_path
+        camp.schema_path = schema_path_file.schema_file
         return
 
     def write_debug_files(self):

@@ -1341,7 +1341,7 @@ def add_report_fpg_output(task, manifest,
                           must_have_ip_key_value: str = "",
                           must_have_intervention: str = "",
                           filename_suffix: str = "",
-                          include_barcode_ids: bool = False,
+                          include_genome_ids: bool = False,
                           minimum_parasite_density: float = 1,
                           sampling_period: float = 1):
     """
@@ -1360,7 +1360,7 @@ def add_report_fpg_output(task, manifest,
         must_have_intervention: the name of the an intervention that the person must have in order to be included.
             Empty string means don't look at the interventions
         filename_suffix: NOT USED
-        include_barcode_ids: Add a column that has a list of Barcode IDs (hashcode) for the person.
+        include_genome_ids: Add a column that has a list of Genome IDs (hashcode) for the person.
         minimum_parasite_density: The minimum density that the infection must have to be included in the list
             of infections. A value of zero implies include all infections. Number of asexual parasites
             per micro liter of blood.
@@ -1388,7 +1388,7 @@ def add_report_fpg_output(task, manifest,
         params.Min_Age_Years = min_age_years
         params.Must_Have_IP_Key_Value = must_have_ip_key_value
         params.Must_Have_Intervention = must_have_intervention
-        params.Include_Barcode_IDs = 1 if include_barcode_ids else 0
+        params.Include_Genome_IDs = 1 if include_genome_ids else 0
         params.Minimum_Parasite_Density = minimum_parasite_density
         params.Sampling_Period = sampling_period
 
