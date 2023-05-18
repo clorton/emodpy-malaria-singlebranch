@@ -2,6 +2,13 @@ from dataclasses import dataclass, field
 
 from emodpy.reporters.base import BuiltInReporter
 from emod_api import schema_to_class as s2c
+import os
+import sys
+import json
+import urllib.request
+
+
+vis_url = "https://bryanressler-idmod.github.io/vis.json"
 
 
 def check_vectors(task):
@@ -37,6 +44,31 @@ def all_vectors_if_none(task):
     for species_params in task.config.parameters.Vector_Species_Params:
         species_list.append(species_params["Name"])
     return species_list
+
+
+def add_visualizations(task):
+    """
+        Adds pointer files that create visualization for reports relevant to malaria.
+        Currently, "AllInsets", "BinnedReport", "MalariaInterventions", "MalariaSummaryReport"
+        
+    Args:
+        task:  task to which to add the pointer files as assets
+
+    Returns:
+        Nothing
+    """
+    relevant_diseases = ["generic", "malaria"]
+    sites = []
+    with urllib.request.urlopen(vis_url) as vis_file:
+        vis = json.load(vis_file)
+    for disease in relevant_diseases:
+        sites.extend(vis["diseases"][disease])
+    for site in sites:
+        pointer = vis["sites"][site]["url"]
+        pointer_file_name = f"{site}.html"
+        with open(pointer_file_name, "w") as pointer_file:
+            pointer_file.write(pointer)
+        task.common_assets.add_asset(pointer_file_name, fail_on_duplicate=False)
 
 
 def add_report_vector_genetics(task, manifest,
@@ -127,6 +159,7 @@ def add_report_vector_genetics(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -175,6 +208,7 @@ def add_report_vector_stats(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -240,8 +274,10 @@ def add_malaria_summary_report(task, manifest,
         return params
 
     reporter.config(rec_config_builder, manifest)
+
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -293,6 +329,7 @@ def add_malaria_patient_json_report(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -355,6 +392,7 @@ def add_malaria_cotransmission_report(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -416,6 +454,7 @@ def add_report_malaria_filtered(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -477,6 +516,7 @@ def add_report_malaria_filtered_intrahost(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -546,6 +586,7 @@ def add_spatial_report_malaria_filtered(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -601,6 +642,7 @@ def add_report_event_counter(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -647,6 +689,7 @@ def add_sql_report_malaria(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -697,6 +740,7 @@ def add_sql_report_malaria_genetics(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -726,6 +770,7 @@ def add_vector_habitat_report(task, manifest):
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -788,6 +833,7 @@ def add_malaria_immunity_report(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -856,6 +902,7 @@ def add_malaria_survey_analyzer(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -888,6 +935,7 @@ def add_drug_status_report(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -950,6 +998,7 @@ def add_report_infection_stats_malaria(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -976,6 +1025,7 @@ def add_human_migration_tracking(task, manifest):
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1012,6 +1062,7 @@ def add_report_node_demographics(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1051,6 +1102,7 @@ def add_report_node_demographics_malaria(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1112,6 +1164,7 @@ def add_report_node_demographics_malaria_genetics(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1143,6 +1196,7 @@ def add_report_vector_migration(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1197,6 +1251,7 @@ def add_report_vector_stats_malaria_genetics(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1304,6 +1359,7 @@ def add_report_intervention_pop_avg(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1328,6 +1384,7 @@ def add_report_microsporidia(task, manifest):
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1397,6 +1454,7 @@ def add_report_fpg_output(task, manifest,
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
@@ -1424,6 +1482,7 @@ def add_report_simulation_stats(task, manifest):
     reporter.config(rec_config_builder, manifest)
     if task:
         task.reporters.add_reporter(reporter)
+        add_visualizations(task)
     else:  # assume we're running a unittest
         return reporter
 
