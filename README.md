@@ -21,3 +21,10 @@ To build the documentation locally, do the following:
 ## FAQ
 
 Frequently asked questions are answered in https://docs.idmod.org/projects/emodpy-malaria/en/latest/faq.html.
+
+## Support and Contributions
+
+IDM does not guarantee any support, but may consider requests on a case-by-case basis.
+If you have feature requests, issues, or new code, please see our
+'CONTRIBUTING <https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/CONTRIBUTING.rst>' page
+for how to provide your feedback.
