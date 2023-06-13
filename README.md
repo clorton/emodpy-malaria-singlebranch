@@ -24,7 +24,14 @@ Frequently asked questions are answered in https://docs.idmod.org/projects/emodp
 
 ## Support and Contributions
 
-IDM does not guarantee any support, but may consider requests on a case-by-case basis.
+The code in this repository was developed by IDM to support our research in disease
+transmission and managing epidemics. We’ve made it publicly available under the MIT
+License to provide others with a better understanding of our research and an opportunity
+to build upon it for their own work. We make no representations that the code works as
+intended or that we will provide support, address issues that are found, or accept pull
+requests. You are welcome to create your own fork and modify the code to suit your own
+modeling needs as contemplated under the MIT License.
+
 If you have feature requests, issues, or new code, please see our
 'CONTRIBUTING <https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/CONTRIBUTING.rst>' page
 for how to provide your feedback.
