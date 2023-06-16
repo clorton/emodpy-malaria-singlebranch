@@ -30,6 +30,7 @@ from emodpy_malaria.interventions.community_health_worker import add_community_h
 from emodpy_malaria.interventions.scale_larval_habitats import add_scale_larval_habitats
 
 import emod_api.campaign as camp
+
 camp.unsafe = True
 
 drug_codes = ["ALP", "AL", "ASA", "DP", "DPP", "PPQ", "DHA_PQ", "DHA", "PMQ", "DA", "CQ", "SP", "SPP", "SPA"]
@@ -481,7 +482,8 @@ class TestMalariaInterventions(unittest.TestCase):
             self.tmp_intervention = event
             self.parse_intervention_parts()
             self.assertEqual(event["Start_Day"], start_day)
-            intervention_list = self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"]["Intervention_List"]
+            intervention_list = self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"][
+                "Intervention_List"]
             if intervention_list[0]["class"] == "SimpleBednet":
                 broadcast_intervention = intervention_list[1]
                 self.intervention_config = intervention_list[0]
@@ -578,7 +580,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.tmp_intervention = camp.campaign_dict["Events"][0]
         self.parse_intervention_parts()
         self.assertEqual(self.tmp_intervention["Start_Day"], start_day)
-        intervention_list = self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"]["Actual_IndividualIntervention_Config"]["Actual_IndividualIntervention_Configs"]
+        intervention_list = self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"][
+            "Actual_IndividualIntervention_Config"]["Actual_IndividualIntervention_Configs"]
         if intervention_list[0]["class"] == "SimpleBednet":
             broadcast_intervention = intervention_list[1]
             self.intervention_config = intervention_list[0]
@@ -608,7 +611,9 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(self.intervention_config['Intervention_Name'], intervention_name)
         self.assertEqual(self.intervention_config['Insecticide_Name'], insecticide)
         self.assertEqual(self.intervention_config['Cost_To_Consumer'], cost)
-        self.assertEqual(self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"]["Demographic_Coverage"], demographic_coverage)
+        self.assertEqual(
+            self.tmp_intervention["Event_Coordinator_Config"]["Intervention_Config"]["Demographic_Coverage"],
+            demographic_coverage)
         self.assertEqual(broadcast_intervention['Broadcast_Event'], receiving_itn_broadcast_event)
         return
 
@@ -621,7 +626,6 @@ class TestMalariaInterventions(unittest.TestCase):
         add_outdoorrestkill(campaign=camp)
         self.tmp_intervention = camp.campaign_dict['Events'][0]
         self.parse_intervention_parts()
-        print(f"{self.killing_config}")
         self.assertEqual(self.start_day, 1)
         self.assertEqual(self.intervention_config["class"], "OutdoorRestKill")
         self.assertEqual(self.killing_config["class"], WaningEffects.Constant)
@@ -659,6 +663,7 @@ class TestMalariaInterventions(unittest.TestCase):
         # endregion
 
         # region UsageDependentBednet
+
     def test_scheduled_usage_dependent_bednet_default(self):
         camp.campaign_dict["Events"] = []  # resetting
         start_day = 1
@@ -1120,9 +1125,7 @@ class TestMalariaInterventions(unittest.TestCase):
         measurement_sensitivity = 0.1
         received_test_event = 'Received_Test'
         self.is_debugging = False
-
         diag_survey.add_diagnostic_survey(camp)
-
         self.assertEqual(len(camp.campaign_dict['Events']), 1)
         campaign_event = camp.campaign_dict['Events'][0]
         self.assertEqual(campaign_event['Start_Day'], start_day + 1)
@@ -1172,13 +1175,14 @@ class TestMalariaInterventions(unittest.TestCase):
         positive_diagnosis_configs = None
         negative_diagnosis_configs = None
         received_test_event = 'Received_Test_Test'
-        ind_property_restrictions = [{"IndividualProperty1": "PropertyValue1"}, {"IndividualProperty2": "PropertyValue2"}]
+        ind_property_restrictions = [{"IndividualProperty1": "PropertyValue1"},
+                                     {"IndividualProperty2": "PropertyValue2"}]
         disqualifying_properties = [{"IndividualProperty3": "PropertyValue2"}]
         trigger_condition_list = ["NewInfectionEvent"]
         listening_duration = 50
-        triggered_campaign_delay = 0
+        triggered_campaign_delay = 3
         check_eligibility_at_trigger = False
-        expire_recent_drugs = None
+        expire_recent_drugs = True
         self.is_debugging = False
 
         diag_survey.add_diagnostic_survey(camp, start_day=start_day, coverage=coverage, repetitions=repetitions,
@@ -1198,41 +1202,58 @@ class TestMalariaInterventions(unittest.TestCase):
 
         with open("testcampaign.json", "w") as testcampaign:
             json.dump(camp.campaign_dict['Events'], testcampaign)
-
-        self.assertEqual(len(camp.campaign_dict['Events']), 1)
-        campaign_event = camp.campaign_dict['Events'][0]
-        self.assertEqual(campaign_event['Start_Day'], start_day + 1)
-        self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
-        self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
-        event_config = campaign_event['Event_Coordinator_Config']
-        self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
-        intervention_config = event_config['Intervention_Config']
-        #self.assertEqual(intervention_config['Property_Restrictions_Within_Node'], ind_property_restrictions)
-        self.assertEqual(intervention_config['Demographic_Coverage'], coverage)
-        self.assertEqual(intervention_config['Duration'], listening_duration)
-        self.assertEqual(intervention_config['class'], "NodeLevelHealthTriggeredIV")
-        self.assertEqual(intervention_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
-        self.assertEqual(intervention_config['Target_Age_Min'], agemin)
-        self.assertEqual(intervention_config['Target_Age_Max'], agemax)
-        self.assertEqual(intervention_config['Target_Gender'], gender)
-        self.assertEqual(len(intervention_config['Actual_IndividualIntervention_Config']['Intervention_List']), 2)
-        if intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0][
-            "class"] == "MalariaDiagnostic":
-            malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
-            broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
-        else:
-            malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
-            broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
-        self.assertEqual(malaria_diagnostic['Diagnostic_Type'], diagnostic_type)
-        self.assertEqual(malaria_diagnostic['Detection_Threshold'], diagnostic_threshold)
-        self.assertEqual(malaria_diagnostic['Measurement_Sensitivity'], measurement_sensitivity)
-        self.assertEqual(malaria_diagnostic['Disqualifying_Properties'], [])
-        self.assertEqual(len(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List']), 2)
-        self.assertIn(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
-                      "TestedNegative")
-        self.assertIn(malaria_diagnostic['Positive_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
-                      "TestedPositive")
-        self.assertEqual(broadcast_event['Broadcast_Event'], received_test_event)
+        all_found = 0
+        custom_trigger_broadcast = ''
+        custom_trigger_listen = ''
+        self.assertEqual(len(camp.campaign_dict['Events']), 2)
+        for campaign_event in camp.campaign_dict['Events']:
+            actual_config = campaign_event['Event_Coordinator_Config']['Intervention_Config']['Actual_IndividualIntervention_Config']
+            if actual_config["class"] == "MultiInterventionDistributor":
+                self.assertEqual(campaign_event['Start_Day'], start_day + 1)
+                self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+                self.assertEqual(campaign_event['Nodeset_Config']['Node_List'], node_ids)
+                event_config = campaign_event['Event_Coordinator_Config']
+                self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+                intervention_config = event_config['Intervention_Config']
+                custom_trigger_listen = intervention_config["Trigger_Condition_List"][0]
+                # self.assertEqual(intervention_config['Property_Restrictions_Within_Node'], ind_property_restrictions)
+                self.assertEqual(intervention_config['Demographic_Coverage'], 0.65)
+                self.assertEqual(intervention_config['Duration'], listening_duration)
+                self.assertEqual(intervention_config['class'], "NodeLevelHealthTriggeredIV")
+                self.assertEqual(intervention_config['Target_Demographic'], "ExplicitAgeRangesAndGender")
+                self.assertEqual(intervention_config['Target_Age_Min'], agemin)
+                self.assertEqual(intervention_config['Target_Age_Max'], agemax)
+                self.assertEqual(intervention_config['Target_Gender'], gender)
+                self.assertEqual(len(intervention_config['Actual_IndividualIntervention_Config']['Intervention_List']), 2)
+                if intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0][
+                    "class"] == "MalariaDiagnostic":
+                    all_found += 1
+                    malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
+                    broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
+                else:
+                    all_found += 1
+                    malaria_diagnostic = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][1]
+                    broadcast_event = intervention_config['Actual_IndividualIntervention_Config']['Intervention_List'][0]
+                self.assertEqual(malaria_diagnostic['Diagnostic_Type'], diagnostic_type)
+                self.assertEqual(malaria_diagnostic['Detection_Threshold'], diagnostic_threshold)
+                self.assertEqual(malaria_diagnostic['Measurement_Sensitivity'], measurement_sensitivity)
+                self.assertEqual(malaria_diagnostic['Disqualifying_Properties'], [])
+                self.assertEqual(len(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List']), 2)
+                self.assertIn(malaria_diagnostic['Negative_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
+                              "TestedNegative")
+                self.assertIn(malaria_diagnostic['Positive_Diagnosis_Config']['Intervention_List'][0]['Broadcast_Event'],
+                              "TestedPositive")
+                self.assertEqual(broadcast_event['Broadcast_Event'], received_test_event)
+            else:
+                self.assertEqual(actual_config["class"], "DelayedIntervention")
+                self.assertEqual(actual_config["Delay_Period_Constant"], 3)
+                custom_trigger_broadcast = actual_config["Actual_IndividualIntervention_Configs"][0]["Broadcast_Event"]
+                self.assertEqual(campaign_event['Event_Coordinator_Config']['Intervention_Config']["Trigger_Condition_List"],
+                                 ["NewInfectionEvent"])
+                all_found += 1
+                print(actual_config)
+        self.assertEqual(custom_trigger_broadcast, custom_trigger_listen)
+        self.assertEqual(all_found, 2)
 
     def test_malaria_diagnostic_custom(self):
         self.is_debugging = False
@@ -1248,7 +1269,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(antimalarial_drug.Drug_Type, "Malaria")
         self.assertEqual(antimalarial_drug.Cost_To_Consumer, 0)
         self.assertEqual(antimalarial_drug.Intervention_Name, "AntimalarialDrug_Malaria")
-
 
     def test_malaria_diagnostic_default(self):
         self.is_debugging = False
@@ -1283,8 +1303,6 @@ class TestMalariaInterventions(unittest.TestCase):
             _malaria_diagnostic(camp, "TRUE_INFECTION_STATUS", -1, 0)
         with self.assertRaises(ValueError) as context:
             _malaria_diagnostic(camp, "TRUE_INFECTION_STATUS", 0, -1)
-
-
 
     def test_inputeir_default(self):
         camp.campaign_dict["Events"] = []
@@ -1712,7 +1730,8 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(campaign_event['Demographic_Coverage'], 1)
         self.assertEqual(campaign_event['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
         self.assertEqual(campaign_event['Target_Gender'], "All")
-        self.assertEqual(campaign_event['Target_Demographic'], "ExplicitAgeRanges") # should be everyone, but there's a bug in emod_api.intervnetions.common
+        self.assertEqual(campaign_event['Target_Demographic'],
+                         "ExplicitAgeRanges")  # should be everyone, but there's a bug in emod_api.intervnetions.common
         self.assertEqual(campaign_event['Property_Restrictions'], [])
         self.assertEqual(campaign_event['Number_Repetitions'], 1)
         self.assertEqual(campaign_event['Timesteps_Between_Repetitions'], 365)
@@ -1725,7 +1744,6 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(intervention_0['Waning_Config']["Initial_Effect"], 1)
         self.assertEqual(intervention_0['Waning_Config']["class"], "WaningEffectBoxExponential")
 
-
     def test_triggered_vaccine_default(self):
         camp.campaign_dict["Events"] = []
         add_triggered_vaccine(camp, trigger_condition_list=["HappyBirthday"])
@@ -1736,11 +1754,13 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(campaign_event['Demographic_Coverage'], 1)
         self.assertEqual(campaign_event['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
         self.assertEqual(campaign_event['Target_Gender'], "All")
-        self.assertEqual(campaign_event['Intervention_Config']['Target_Demographic'], "ExplicitAgeRanges") # should be everyone, but there's a bug in emod_api.intervnetions.common
+        self.assertEqual(campaign_event['Intervention_Config']['Target_Demographic'],
+                         "ExplicitAgeRanges")  # should be everyone, but there's a bug in emod_api.intervnetions.common
         self.assertEqual(campaign_event['Intervention_Config']['Property_Restrictions'], [])
         self.assertEqual(campaign_event['Number_Repetitions'], 1)
         self.assertEqual(campaign_event['Timesteps_Between_Repetitions'], 365)
-        intervention_0 = campaign_event['Intervention_Config']['Actual_IndividualIntervention_Config']["Actual_IndividualIntervention_Configs"][0]
+        intervention_0 = campaign_event['Intervention_Config']['Actual_IndividualIntervention_Config'][
+            "Actual_IndividualIntervention_Configs"][0]
         self.assertEqual(intervention_0['class'], "SimpleVaccine")
         self.assertEqual(intervention_0['Efficacy_Is_Multiplicative'], 1)
         self.assertEqual(intervention_0['Vaccine_Take'], 1)
@@ -1807,9 +1827,12 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(triggered_config['Duration'], duration)
         self.assertEqual(triggered_config['Actual_IndividualIntervention_Config']["Delay_Period_Constant"], delay)
         self.assertEqual(campaign_event['Event_Coordinator_Config']['Number_Repetitions'], repetitions)
-        self.assertEqual(campaign_event['Event_Coordinator_Config']['Timesteps_Between_Repetitions'], timesteps_between_repetitions)
-        intervention_1 = triggered_config['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][1]
-        intervention_0 = triggered_config['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]
+        self.assertEqual(campaign_event['Event_Coordinator_Config']['Timesteps_Between_Repetitions'],
+                         timesteps_between_repetitions)
+        intervention_1 = \
+            triggered_config['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][1]
+        intervention_0 = \
+            triggered_config['Actual_IndividualIntervention_Config']['Actual_IndividualIntervention_Configs'][0]
         if intervention_0['class'] == "BroadcastEvent":
             self.assertEqual(intervention_0["Broadcast_Event"], broadcast_event)
             self.assertEqual(intervention_1['class'], "SimpleVaccine")
@@ -2277,6 +2300,112 @@ class TestMalariaInterventions(unittest.TestCase):
                 self.assertTrue(True, "Could not find the correct node combination.")
         pass
 
+
+    def test_scale_larval_habitat1(self):
+        # resetting campaign
+        camp.campaign_dict["Events"] = []
+        df = pd.DataFrame({'TEMPORARY_RAINFALL': [3]})
+        add_scale_larval_habitats(camp, df=df,
+                                  start_day=35, repetitions=3, timesteps_between_repetitions=36)
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        for campaign_event in camp.campaign_dict['Events']: # there's only one
+            self.assertEqual(campaign_event['Start_Day'], 35)
+            self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+            event_config = campaign_event['Event_Coordinator_Config']
+            self.assertEqual(event_config['Number_Repetitions'], 3)
+            self.assertEqual(event_config['Timesteps_Between_Repetitions'], 36)
+            self.assertEqual(event_config['Demographic_Coverage'], 1)
+            self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+            self.assertEqual(event_config['Target_Gender'], "All")
+            self.assertEqual(event_config['Intervention_Config']['class'], "ScaleLarvalHabitat")
+            self.assertEqual(event_config['Intervention_Config']['Larval_Habitat_Multiplier'][0]["Habitat"],
+                             "TEMPORARY_RAINFALL")
+            self.assertEqual(event_config['Intervention_Config']['Larval_Habitat_Multiplier'][0]["Species"],
+                             "ALL_SPECIES")
+            self.assertEqual(event_config['Intervention_Config']['Larval_Habitat_Multiplier'][0]["Factor"],
+                             3)
+        pass
+
+    def test_scale_larval_habitat2(self):
+        # resetting campaign
+        camp.campaign_dict["Events"] = []
+        df = pd.DataFrame({'TEMPORARY_RAINFALL.arabiensis': [3]})
+        add_scale_larval_habitats(camp, df=df,
+                                  start_day=35, repetitions=3, timesteps_between_repetitions=36)
+        self.assertEqual(len(camp.campaign_dict['Events']), 1)
+        for campaign_event in camp.campaign_dict['Events']:  # there's only one
+            self.assertEqual(campaign_event['Start_Day'], 35)
+            self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetAll")
+            event_config = campaign_event['Event_Coordinator_Config']
+            self.assertEqual(event_config['Number_Repetitions'], 3)
+            self.assertEqual(event_config['Timesteps_Between_Repetitions'], 36)
+            self.assertEqual(event_config['Demographic_Coverage'], 1)
+            self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+            self.assertEqual(event_config['Target_Gender'], "All")
+            self.assertEqual(event_config['Intervention_Config']['class'], "ScaleLarvalHabitat")
+            self.assertEqual(event_config['Intervention_Config']['Larval_Habitat_Multiplier'][0]["Habitat"],
+                             "TEMPORARY_RAINFALL")
+            self.assertEqual(event_config['Intervention_Config']['Larval_Habitat_Multiplier'][0]["Species"],
+                             "arabiensis")
+            self.assertEqual(event_config['Intervention_Config']['Larval_Habitat_Multiplier'][0]["Factor"],
+                             3)
+        pass
+
+    def test_scale_larval_habitat3(self):
+        # resetting campaign
+        camp.campaign_dict["Events"] = []
+        df = pd.DataFrame({'NodeID':             [0, 1, 2, 3, 4],
+                           'CONSTANT':           [1, 0, 1, 1, 1],
+                           'TEMPORARY_RAINFALL': [1, 1, 0, 1, 0]})
+        add_scale_larval_habitats(camp, df=df,
+                                  start_day=35, repetitions=3, timesteps_between_repetitions=36)
+        self.assertEqual(len(camp.campaign_dict['Events']), 3)
+        all_found = 0
+        for campaign_event in camp.campaign_dict['Events']:
+            self.assertEqual(campaign_event['Start_Day'], 35)
+            self.assertEqual(campaign_event['Nodeset_Config']['class'], "NodeSetNodeList")
+            event_config = campaign_event['Event_Coordinator_Config']
+            self.assertEqual(event_config['Number_Repetitions'], 3)
+            self.assertEqual(event_config['Timesteps_Between_Repetitions'], 36)
+            self.assertEqual(event_config['Demographic_Coverage'], 1)
+            self.assertEqual(event_config['Individual_Selection_Type'], "DEMOGRAPHIC_COVERAGE")
+            self.assertEqual(event_config['Target_Gender'], "All")
+            if campaign_event['Nodeset_Config']['Node_List'] == [0, 3]:
+                self.assertEqual(event_config['Intervention_Config']['class'], "ScaleLarvalHabitat")
+                for habitat_multiplier in event_config['Intervention_Config']['Larval_Habitat_Multiplier']:
+                    if habitat_multiplier["Habitat"] == "TEMPORARY_RAINFALL":
+                        all_found += 1
+                        self.assertEqual(habitat_multiplier["Species"], "ALL_SPECIES")
+                        self.assertEqual(habitat_multiplier["Factor"], 1)
+                    elif habitat_multiplier["Habitat"] == "CONSTANT":
+                        all_found += 1
+                        self.assertEqual(habitat_multiplier["Species"], "ALL_SPECIES")
+                        self.assertEqual(habitat_multiplier["Factor"], 1)
+            elif campaign_event['Nodeset_Config']['Node_List'] == [2, 4]:
+                self.assertEqual(event_config['Intervention_Config']['class'], "ScaleLarvalHabitat")
+                for habitat_multiplier in event_config['Intervention_Config']['Larval_Habitat_Multiplier']:
+                    if habitat_multiplier["Habitat"] == "TEMPORARY_RAINFALL":
+                        all_found += 1
+                        self.assertEqual(habitat_multiplier["Species"], "ALL_SPECIES")
+                        self.assertEqual(habitat_multiplier["Factor"], 0)
+                    elif habitat_multiplier["Habitat"] == "CONSTANT":
+                        all_found += 1
+                        self.assertEqual(habitat_multiplier["Species"], "ALL_SPECIES")
+                        self.assertEqual(habitat_multiplier["Factor"], 1)
+            elif campaign_event['Nodeset_Config']['Node_List'] == [1]:
+                self.assertEqual(event_config['Intervention_Config']['class'], "ScaleLarvalHabitat")
+                for habitat_multiplier in event_config['Intervention_Config']['Larval_Habitat_Multiplier']:
+                    if habitat_multiplier["Habitat"] == "TEMPORARY_RAINFALL":
+                        all_found += 1
+                        self.assertEqual(habitat_multiplier["Species"], "ALL_SPECIES")
+                        self.assertEqual(habitat_multiplier["Factor"], 1)
+                    elif habitat_multiplier["Habitat"] == "CONSTANT":
+                        all_found += 1
+                        self.assertEqual(habitat_multiplier["Species"], "ALL_SPECIES")
+                        self.assertEqual(habitat_multiplier["Factor"], 0)
+        self.assertEqual(all_found, 6)
+        pass
+
     def test_adherent_drug(self):
         import emodpy_malaria.interventions.adherentdrug as ad
         camp.set_schema(schema_path_file.schema_file)
@@ -2330,19 +2459,76 @@ class TestMalariaInterventions(unittest.TestCase):
         self.assertEqual(adherent_drug["Intervention_Name"], "AdherentDrug_Amodiaquine_Pyrimethamine_Sulfadoxine")
         pass
 
-
-# Uncomment below if you would like to run test suite with different schema
-# class TestMalariaInterventions_17Dec20(TestMalariaInterventions):
-
-#     def setUp(self):
-#         super(TestMalariaInterventions_17Dec20, self).setUp()
-#         self.schema_file = schema_17Dec20
-
-# class TestMalariaInterventions_10Jan21(TestMalariaInterventions):
-
-#     def setUp(self):
-#         super(TestMalariaInterventions_10Jan21, self).setUp()
-#         self.schema_file = schema_10Jan21
+    def test_drug_campaign_exceptions(self):
+        import emodpy_malaria.interventions.adherentdrug as ad
+        camp.set_schema(schema_path_file.schema_file)
+        with self.assertRaisesRegex(Exception,
+                                    r"You have to pass in  drug_code\(AL, DP, etc; allowable "
+                                    r"types defined in malaria_drugs.py\) or"
+                                    "a list of adherent_drug_configs, which can be generated "
+                                    "with adherent_drug.py/configure_"
+                                    "adherent_drug.\n"):
+            drug_campaign.add_drug_campaign(camp)
+        doses = [["Sulfadoxine", "Pyrimethamine", 'Amodiaquine'], ['Amodiaquine'], ['Amodiaquine'],
+                 ['Pyrimethamine']]  # use doses value that is different from the default
+        dose_interval = 2
+        non_adherence_options = ['Stop']
+        non_adherence_distribution = [1]
+        values = [1, 0.6, 0.4, 0.1]
+        custom_intervention_name = "TryingNewDrugs"
+        adherent_drug = ad.adherent_drug(camp,
+                                         doses=doses,
+                                         dose_interval=dose_interval,
+                                         non_adherence_options=non_adherence_options,
+                                         non_adherence_distribution=non_adherence_distribution,
+                                         adherence_values=values,
+                                         intervention_name=custom_intervention_name
+                                         )
+        with self.assertRaisesRegex(Exception, "You passed in a drug_code AND a list of adherent_drug_configs."
+                                               " Please pick one.\n"):
+            drug_campaign.add_drug_campaign(camp, drug_code="AL", adherent_drug_configs=[adherent_drug])
+        with self.assertRaisesRegex(ValueError, '"treatment_delay" parameter is not used in MDA or SMC'):
+            drug_campaign.add_drug_campaign(camp, campaign_type="MDA", drug_code="AL", treatment_delay=2)
+        with self.assertRaisesRegex(Exception, 'Warning: unrecognized campaign type\n'):
+            drug_campaign.add_drug_campaign(camp, campaign_type="YMCA", drug_code="AL", treatment_delay=2)
+        with self.assertRaisesRegex(Exception, r"Please pass in a \(valid\) drug_code.\n"
+                                               "Available drug codes:\n"
+                                               "\"ALP\": Artemether, Lumefantrine, Primaquine.\n"
+                                               "\"AL\": Artemether, Lumefantrine. \n"
+                                               "\"ASAQ\": Artesunate, Amodiaquine.\n"
+                                               "\"DP\": DHA, Piperaquine.\n"
+                                               "\"DPP\": DHA, Piperaquine, Primaquine.\n"
+                                               "\"PPQ\": Piperaquine.\n"
+                                               "\"DHA_PQ\": DHA, Primaquine.\n"
+                                               "\"DHA\": DHA.\n"
+                                               "\"PMQ\": Primaquine.\n"
+                                               "\"DA\": DHA, Abstract.\n"
+                                               "\"CQ\": Chloroquine.\n"
+                                               "\"SP\": Sulfadoxine, Pyrimethamine.\n"
+                                               "\"SPP\": Sulfadoxine, Pyrimethamine, Primaquine.\n"
+                                               "\"SPA\": Sulfadoxine, Pyrimethamine, Amodiaquine.\n"
+                                               "\"Vehicle\": Vehicle.\n"):
+            drug_campaign.drug_configs_from_code(camp, drug_code=None)
+        with self.assertRaisesRegex(Exception,
+                                    r"You have to pass in drug_configs \(list of drug configurations\) that "
+                                    r"can be generated with "
+                                    "malaria.interventions.malaria_drugs import drug_configs_from_code.\n"):
+            drug_campaign.add_MSAT(camp, drug_configs=None)
+        with self.assertRaisesRegex(Exception,
+                                    r"You have to pass in drug_configs \(list of drug configurations\) that "
+                                    r"can be generated with \n"
+                                    "malaria.interventions.malaria_drugs import drug_configs_from_code.\n"):
+            drug_campaign.add_fMDA(camp, drug_configs=None)
+        with self.assertRaisesRegex(Exception,
+                                    r"You have to pass in drug_configs \(list of drug configurations\) "
+                                    r"that can be generated with "
+                                    "malaria.interventions.malaria_drugs import drug_configs_from_code.\n"):
+            drug_campaign.add_rfMSAT(camp, drug_configs=None)
+        with self.assertRaisesRegex(Exception,
+                                    r"You have to pass in drug_configs \(list of drug configurations\) "
+                                    r"that can be generated with "
+                                    "malaria.interventions.malaria_drugs import drug_configs_from_code.\n"):
+            drug_campaign.add_rfMDA(camp, drug_configs=None)
 
 
 if __name__ == '__main__':

@@ -349,7 +349,7 @@ def add_trait(config, manifest, species, allele_combo: list = None, trait_modifi
         trait_modifiers:  List of tuples of (**Trait**, **Modifier**) for the *Allele_Combinations**
             **Example**::
 
-            [("FECUNDITY", 0.5), ("X_SHRED", 0.80)]
+            [("FECUNDITY", 0.5), ("ADJUST_FERTILE_EGGS", 0.80)]
 
     Returns:
         configured config
@@ -577,6 +577,7 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
     species_params = get_species_params(config, species)
     gender_allele_required = False
     gender_allele_to_shred = False
+    gender_allele_to_shred_to = False
 
     gene_driver = dfs.schema_to_config_subnode(manifest.schema_file, ["idmTypes", "idmType:VectorGeneDriver"])
     gene_driver.parameters.Driving_Allele = driving_allele
@@ -592,22 +593,31 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
                         gender_allele_required = True
                         if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 0:
                             raise ValueError(
-                                f"For 'driver_type' = X_SHRED, 'allele_to_shred' should be the Y chromosome.\n")
+                                f"For 'driver_type' = X_SHRED, 'shredding_allele_required' should be a Y chromosome.\n")
                         elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 1:
                             raise ValueError(
-                                f"For 'driver_type' = Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
+                                f"For 'driver_type' = Y_SHRED, 'shredding_allele_required' should be an X chromosome.\n")
                     elif allele["Name"] == allele_to_shred:
                         gender_allele_to_shred = True
                         if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 1:
                             raise ValueError(
-                                f"For 'driver_type'= X_SHRED, 'allele_to_shred' should not be Y chromosome.\n")
+                                f"For 'driver_type'= X_SHRED, 'allele_to_shred' should be X chromosome.\n")
                         elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 0:
                             raise ValueError(
-                                f"For 'driver_type'= Y_SHRED, 'allele_to_shred' should be the X chromosome.\n")
+                                f"For 'driver_type'= Y_SHRED, 'allele_to_shred' should be Y chromosome.\n")
+                    elif allele["Name"] == allele_to_shred_to:
+                        gender_allele_to_shred_to = True
+                        if driver_type == "X_SHRED" and allele["Is_Y_Chromosome"] == 1:
+                            raise ValueError(
+                                f"For 'driver_type'= X_SHRED, 'allele_to_shred' should be X chromosome.\n")
+                        elif driver_type == "Y_SHRED" and allele["Is_Y_Chromosome"] == 0:
+                            raise ValueError(
+                                f"For 'driver_type'= Y_SHRED, 'allele_to_shred_to' should be Y chromosome.\n")
 
-        if not (gender_allele_required and gender_allele_to_shred):
-            raise ValueError(f"Looks like shredding allele required or allele to shred are not on a gender gene, "
-                             f"but they both should be. Please verify your settings.\n")
+        if not (gender_allele_required and gender_allele_to_shred and gender_allele_to_shred_to):
+            raise ValueError(f"Looks like shredding_allele_required or allele_to_shred or allele_to_shred_to are not "
+                             f"on a gender gene, "
+                             f"but they all should be. Please verify your settings.\n")
 
         shredding_alleles = dfs.schema_to_config_subnode(manifest.schema_file,
                                                          ["idmTypes", "idmType:ShreddingAlleles"])
@@ -637,7 +647,7 @@ def add_species_drivers(config, manifest, species: str = None, driving_allele: s
                     return config
                 else:
                     raise ValueError(f"The gene driver with 'driving_allele'={driving_allele} must have exactly one "
-                                     f"entry in 'Alleles_Driven' for this allele and therefore cannot be used for"
+                                     f"entry in 'Alleles_Driven' for this allele and therefore cannot be used for "
                                      f"multiple 'driver_type's.\n")
 
     if driver_type == "X_SHRED" or driver_type == "Y_SHRED":

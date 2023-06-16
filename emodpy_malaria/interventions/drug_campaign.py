@@ -173,8 +173,6 @@ def add_drug_campaign(campaign,
             :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
         measurement_sensitivity: The setting for **Measurement_Sensitivity**
             in :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`.
-        detection_threshold: The setting for **Detection_Threshold** in 
-            :doc:`emod-malaria:parameter-campaign-individual-malariadiagnostic`. 
         fmda_radius: Radius (in km) of focal response upon finding infection. 
             Used in simulations with many small nodes to simulate 
             community health workers distributing drugs to surrounding houses.

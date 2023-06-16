@@ -1,27 +1,33 @@
 import coverage
 import unittest
+
 loader = unittest.TestLoader()
 cov = coverage.Coverage(source=[
-    "emodpy_malaria.demographics.MalariaDemographics"
-    , "emodpy_malaria.malaria_config"
-    , "emodpy_malaria.interventions.bednet"
-    , "emodpy_malaria.interventions.drug"
-    , "emodpy_malaria.interventions.irs"
-    , "emodpy_malaria.interventions.ivermectin"
-    , "emodpy_malaria.interventions.outdoorrestkill"
-    , "emodpy_malaria.interventions.spacespraying"
-    , "emodpy_malaria.interventions.sugartrap"
-    , "emodpy_malaria.interventions.udbednet"
-    , "emodpy_malaria.vector_config"
-    , "emodpy_malaria.interventions.common"
-    , "emodpy_malaria.interventions.community_health_worker"
-    , "emodpy_malaria.interventions.diag_survey"
-    , "emodpy_malaria.interventions.drug_campaign"
-    , "emodpy_malaria.interventions.inputeir"
-    , "emodpy_malaria.interventions.mosquitorelease"
-    , "emodpy_malaria.interventions.outbreak"
-    , "emodpy_malaria.interventions.treatment_seeking"
-    , "emodpy_malaria.interventions.malaria_vector_species_params"
+    "emodpy_malaria.interventions.adherentdrug",
+    "emodpy_malaria.interventions.bednet",
+    "emodpy_malaria.interventions.common",
+    "emodpy_malaria.interventions.community_health_worker",
+    "emodpy_malaria.interventions.diag_survey",
+    "emodpy_malaria.interventions.drug",
+    "emodpy_malaria.interventions.drug_campaign",
+    "emodpy_malaria.interventions.inputeir",
+    "emodpy_malaria.interventions.irs",
+    "emodpy_malaria.interventions.ivermectin",
+    "emodpy_malaria.interventions.larvicide",
+    "emodpy_malaria.interventions.mosquitorelease",
+    "emodpy_malaria.interventions.outbreak",
+    "emodpy_malaria.interventions.outdoorrestkill",
+    "emodpy_malaria.interventions.scale_larval_habitats",
+    "emodpy_malaria.interventions.spacespraying",
+    "emodpy_malaria.interventions.sugartrap",
+    "emodpy_malaria.interventions.treatment_seeking",
+    "emodpy_malaria.interventions.usage_dependent_bednet",
+    "emodpy_malaria.interventions.vaccine",
+    "emodpy_malaria.demographics.MalariaDemographics",
+    "emodpy_malaria.malaria_config",
+    "emodpy_malaria.vector_config",
+    "emodpy_malaria.malaria_vector_species_params",
+    "emodpy_malaria.reporters.builtin"
 ])
 cov.start()
 
