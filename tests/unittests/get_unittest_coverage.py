@@ -1,5 +1,7 @@
 import coverage
 import unittest
+from pathlib import Path
+import os
 
 loader = unittest.TestLoader()
 cov = coverage.Coverage(source=[
@@ -26,7 +28,6 @@ cov = coverage.Coverage(source=[
     "emodpy_malaria.demographics.MalariaDemographics",
     "emodpy_malaria.malaria_config",
     "emodpy_malaria.vector_config",
-    "emodpy_malaria.malaria_vector_species_params",
     "emodpy_malaria.reporters.builtin"
 ])
 cov.start()
@@ -57,6 +58,51 @@ for tc in test_classes_to_run:
 big_suite = unittest.TestSuite(suites_list)
 runner = unittest.TextTestRunner()
 results = runner.run(big_suite)
+
+# Add examples to test coverage (comment out if you don't want to include examples)
+examples_dir = Path.cwd().parent.parent.joinpath('examples')
+examples_to_run = [
+    "add_reports",
+    "burnin_create",
+    "burnin_create_and_use_sweep_larval_habitat",
+    "burnin_create_infections",
+    "burnin_create_parasite_genetics",
+    "burnin_use",
+    "campaign_sweep",
+    "create_demographics",
+    "demographics_sweep",
+    "diagnostic_survey",
+    "download_files",
+    "drug_campaign",
+    "embedded_python_post_processing",
+    "fpg_example",
+    "inputEIR",
+    "irs",
+    "ivermectin",
+    "jonr_1",
+    "male_vector_fertility_test",
+    "microsporidia",
+    "migration_spatial_malaria_sim",
+    "migration_spatial_vector_sim",
+    "outdoor_rest_kill_male_mosquitoes",
+    "rcd_elimination_emodpy",
+    "run_with_unobserved_importation",
+    "scale_larval_habitats",
+    "serialization_remove_infections",
+    "serialization_replace_genomes",
+    "start_here",
+    "vector_basic",
+    "vector_genetics_insecticide_resistance",
+    "vector_genetics_vector_sim",
+    "weather"
+]
+
+def run_example(name):
+    exec_path = examples_dir.joinpath(name, "example.py")
+    os.system(f'python {exec_path}')
+
+for example in examples_to_run:
+    run_example(example)
 
 cov.stop()
 cov.save()
