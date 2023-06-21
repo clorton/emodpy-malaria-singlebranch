@@ -28,7 +28,13 @@ cov = coverage.Coverage(source=[
     "emodpy_malaria.demographics.MalariaDemographics",
     "emodpy_malaria.malaria_config",
     "emodpy_malaria.vector_config",
-    "emodpy_malaria.reporters.builtin"
+    "emodpy_malaria.reporters.builtin",
+    "emodpy_malaria.weather.weather_data",
+    "emodpy_malaria.weather.weather_metadata",
+    "emodpy_malaria.weather.weather_request",
+    "emodpy_malaria.weather.weather_set",
+    "emodpy_malaria.weather.weather_utils",
+    "emodpy_malaria.weather.weather_variable",
 ])
 cov.start()
 
@@ -40,6 +46,13 @@ from test_malaria_reporters import TestMalariaReport
 from test_malaria_config import TestMalariaConfig
 from test_treatment_seeking import TreatmentSeekingTest
 from test_demog import DemoTest
+from weather.test_e2e import WeatherE2ETests
+from weather.test_e2e_comps import WeatherE2ECompsTests
+from weather.test_weather_data import WeatherDataTests
+from weather.test_weather_metadata import WeatherMetadataTests
+from weather.test_weather_request import WeatherRequestTests
+from weather.test_weather_scenarios import WeatherScenariosTests
+from weather.test_weather_set import WeatherSetTests
 
 test_classes_to_run = [MalariaTestImports,
                        TestMalariaInterventions,
@@ -47,7 +60,14 @@ test_classes_to_run = [MalariaTestImports,
                        TestMalariaReport,
                        TestMalariaConfig,
                        TreatmentSeekingTest,
-                       DemoTest]
+                       DemoTest,
+                       WeatherE2ETests,
+                       WeatherE2ECompsTests,
+                       WeatherDataTests,
+                       WeatherMetadataTests,
+                       WeatherRequestTests,
+                       WeatherScenariosTests,
+                       WeatherSetTests]
 
 suites_list = []
 for tc in test_classes_to_run:

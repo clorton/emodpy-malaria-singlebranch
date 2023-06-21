@@ -68,10 +68,9 @@ podTemplate(
 			stage('Login') {
 				withCredentials([string(credentialsId: 'Comps_emodpy_user', variable: 'user'), string(credentialsId: 'Comps_emodpy_password', variable: 'password'),
 								 string(credentialsId: 'Bamboo_id', variable: 'bamboo_user'), string(credentialsId: 'Bamboo', variable: 'bamboo_password')]) {
-					dir('tests/bamboo_testing') {
+					dir('tests') {
 						sh 'python3 create_auth_token_args.py --comps_url https://comps2.idmod.org --username $user --password $password'
 						sh 'python3 create_auth_token_args.py --comps_url https://comps.idmod.org --username yechen --password $password'
-						sh 'python3 bamboo_login_with_arguments.py -u $bamboo_user -p $bamboo_password'
 					}
 				}
 			}
@@ -80,19 +79,6 @@ podTemplate(
 					echo "Running Unit test Tests"
 					dir('tests/unittests') {
 						sh "pip3 install unittest-xml-reporting"
-						sh 'python3 -m xmlrunner discover'
-						junit '*.xml'
-					}
-				}
-			} catch(e) {
-				build_ok = false
-				echo e.toString()  
-			}
-			
-			try{
-				stage('Sim Test') {
-					echo "Running sim Tests"
-					dir('tests/bamboo_testing') {
 						sh 'python3 -m xmlrunner discover'
 						junit '*.xml'
 					}
