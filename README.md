@@ -1,5 +1,6 @@
 # emodpy-malaria
-Python module for use as user-space front-end for doing research easily with EMOD (Malaria_SIM) via idmtools
+
+Python module for use as user-space front-end for doing research easily with EMOD (Malaria_SIM) via idmtools.
 
 ## Documentation
 
@@ -8,7 +9,7 @@ Documentation available at https://docs.idmod.org/projects/emodpy-malaria/en/lat
 To build the documentation locally, do the following:
 
 1. Create and activate a venv.
-2. Navigate to the root directory of the repo and enter the following
+2. Navigate to the root directory of the repo and enter the following:
 
     ```
     pip install -r requirements.txt
@@ -16,7 +17,11 @@ To build the documentation locally, do the following:
     pip install -r requirements.txt
     cd ..
     pip install -e .
+    cd docs
+    make html
     ```
+You may need to open a new command prompt before running `make html`. The HTML 
+documentation will be output to the docs/_build/html directory. 
 
 ## FAQ
 
