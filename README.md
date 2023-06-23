@@ -1,6 +1,6 @@
 # emodpy-malaria
 
-Python module for use as user-space front-end for doing research easily with EMOD (Malaria_SIM) via idmtools.
+Python module for use as user-space front-end for doing research easily with EMOD (MALARIA_SIM) via idmtools.
 
 ## Documentation
 
