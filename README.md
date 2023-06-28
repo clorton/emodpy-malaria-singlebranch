@@ -2,6 +2,24 @@
 
 Python module for use as user-space front-end for doing research easily with EMOD (MALARIA_SIM) via idmtools.
 
+![mosquito](media/jorussell-mosquito.png)
+
+![status](https://github.com/clorton/emodpy-malaria-singlebranch/workflows/Rebuild%20Malaria%20Docs/badge.svg) ![docs](https://readthedocs.org/projects/emodpy-malaria/badge/?version=latest) ![license](https://img.shields.io/badge/License-MIT-brightgreen.svg)
+
+## Description
+
+This package provides a Python scriptable interface for configuring EMOD for malaria modeling. This Python interface abstracts the process of creating JSON formatted files for parameter specification, demographics specification and intervention specification along as well as abstracting the process of creating binary climate and migration files.
+
+## Get `emodpy-malaria`
+
+The `emodpy-malaria` package (and its supporting packages) is currently hosted on IDM's Python package repository.
+
+```shell
+python3 -m pip install emodpy-malaria --index-url=https://packages.idmod.org/api/pypi/pypi-production/simple
+```
+
+Note: you may need to only use `python` on Windows machines rather than `python3`.
+
 ## Documentation
 
 Documentation available at https://docs.idmod.org/projects/emodpy-malaria/en/latest/.
@@ -40,3 +58,5 @@ modeling needs as contemplated under the MIT License.
 If you have feature requests, issues, or new code, please see our
 'CONTRIBUTING <https://github.com/InstituteforDiseaseModeling/emodpy-malaria/blob/main/CONTRIBUTING.rst>' page
 for how to provide your feedback.
+
+## Package Architecture
